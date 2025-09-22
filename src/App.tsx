@@ -11,6 +11,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { JoinCreateTeam } from "./JoinCreateTeam";
 import { ManageTeams } from "./ManageTeams";
 import { EmailVerification } from "./EmailVerification";
+import { TeamDetails } from "./pages/TeamDetails";
 
 function App() {
   return (
@@ -46,6 +47,7 @@ function App() {
             <Route path="/projects" element={<Projects />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/teams" element={<ManageTeams />} />
+            <Route path="/teams/:teamId" element={<TeamDetails />} />
           </Route>
         </Routes>
       </AuthProvider>

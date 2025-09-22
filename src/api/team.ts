@@ -18,5 +18,13 @@ export const teamApi = {
   getUserTeams: async (): Promise<TeamModel[]> => {
     const response = await apiClient.get<GetUserTeamsRes>(`/users/get-current-user-teams`);
     return response.data.teams;
+  },
+
+  promoteMember: async (teamId: string, memberId: string): Promise<void> => {
+    await apiClient.post(`/teams/promote-team-member/${teamId}`, { member_id: memberId });
+  },
+
+  kickMember: async (teamId: string, memberId: string): Promise<void> => {
+    await apiClient.post(`/teams/kick-team-member/${teamId}`, { member_id: memberId });
   }
 };

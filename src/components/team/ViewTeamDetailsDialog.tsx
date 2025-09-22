@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle, Di
 import { Button } from "../ui/button";
 import { useState } from "react";
 import type { User } from "@/types/auth";
+import { useNavigate } from "react-router";
 
 export interface ViewTeamDetailsDialogProps {
   team: TeamModel;
@@ -15,6 +16,7 @@ export function ViewTeamDetailsDialog({ team, getTeamDetails }: ViewTeamDetailsD
   const [loading, setLoading] = useState(false);
   const [details, setDetails] = useState<{ members: User[]; code: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const handleOpen = async () => {
     setIsOpen(true);
@@ -24,10 +26,22 @@ export function ViewTeamDetailsDialog({ team, getTeamDetails }: ViewTeamDetailsD
       const res = await getTeamDetails(team.id);
       setDetails(res);
     } catch (e) {
-      setError("Failed to load team details.");
+      let errorMsg = "Failed to load team details.";
+      if (e instanceof Error) {
+        errorMsg += `\n${e.message}`;
+      } else if (typeof e === "string") {
+        errorMsg += `\n${e}`;
+      }
+      setError(errorMsg);
+      setDetails(null);
     } finally {
       setLoading(false);
     }
+  };
+
+  const openFullPage = () => {
+    setIsOpen(false);
+    navigate(`/teams/${team.id}`);
   };
 
   return (
@@ -40,24 +54,40 @@ export function ViewTeamDetailsDialog({ team, getTeamDetails }: ViewTeamDetailsD
         {loading ? (
           <DialogDescription>Loading...</DialogDescription>
         ) : error ? (
-          <DialogDescription className="text-red-500">{error}</DialogDescription>
+          <DialogDescription className="text-red-500">
+            {error}
+            <br />
+            <span style={{ fontSize: "0.9em", color: "#888" }}>
+              Please check if the backend endpoint is working and returning the expected data.<br />
+              Team ID: {team.id}
+            </span>
+          </DialogDescription>
         ) : details ? (
           <>
             <DialogDescription>
-              <strong>Short Code:</strong> {details.code}
+              <strong>Short Code:</strong> {details.code || <span style={{color: 'gray'}}>No code available</span>}
             </DialogDescription>
             <DialogDescription>
               <strong>Members:</strong>
-              <ul>
-                {details.members.map((m) => (
-                  <li key={m.id}>{m.email}</li>
-                ))}
-              </ul>
+              {details.members && details.members.length > 0 ? (
+                <ul>
+                  {details.members.map((m) => (
+                    <li key={m.id}>{m.email}</li>
+                  ))}
+                </ul>
+              ) : (
+                <span style={{color: 'gray'}}>No members found</span>
+              )}
             </DialogDescription>
           </>
-        ) : null}
+        ) : (
+          <DialogDescription>
+            <span style={{color: 'gray'}}>No details available for this team.</span>
+          </DialogDescription>
+        )}
         <DialogFooter>
           <Button variant="ghost" onClick={() => setIsOpen(false)}>Close</Button>
+          <Button onClick={openFullPage}>Open full page</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

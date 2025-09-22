@@ -1,4 +1,4 @@
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
 import { useState } from "react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "./components/ui/input-otp";
@@ -20,10 +20,10 @@ const OTPFormSchema = z.object({
 
 export function EmailVerification() {
   const { state } = useLocation();
-  const { email, password } = state;
+  const { email, password } = state as { email: string; password: string };
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  const { verifyEmailAndLogin, isLoading } = useAuth();
+  const { verifyEmailAndLogin } = useAuth();
   const dispatch = useAppDispatch();
 
   const form = useForm<z.infer<typeof OTPFormSchema>>({

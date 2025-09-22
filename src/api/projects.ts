@@ -146,4 +146,18 @@ export const projectsApi = {
     );
     return response.data;
   },
+
+  // Budget: increase available budget
+  async increaseBudget(projectId: string, amount: number): Promise<void> {
+    await apiClient.post(`/projects/increase-budget/${projectId}`, undefined, {
+      params: { amount },
+    });
+  },
+
+  // Budget: spend budget
+  async spendBudget(projectId: string, amount: number): Promise<void> {
+    await apiClient.post(`/projects/spend-budget/${projectId}`, undefined, {
+      params: { amount },
+    });
+  },
 };

@@ -9,6 +9,8 @@ export interface Project {
   description: string | null;
   todo_statuses: TodoStatus[];
   todo_ids: string[];
+  budget_available: number;
+  budget_spent: number;
 }
 
 export interface ToDoItem {

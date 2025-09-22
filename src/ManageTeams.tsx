@@ -9,9 +9,11 @@ import { LeaveTeamDialog } from "./components/team/LeaveTeamDialog";
 import { ViewTeamDetailsDialog } from "./components/team/ViewTeamDetailsDialog";
 import { teamDetailsApi } from "./api/teamDetails";
 import { extractErrorMessage } from "./utils/errorHandling";
+import { useNavigate } from "react-router";
 
 export function ManageTeams() {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { teams } = useSelector((state: RootState) => state.teams);
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
@@ -35,6 +37,8 @@ export function ManageTeams() {
     const res = await teamDetailsApi.getDetails(teamId);
     return res;
   };
+
+  const goToTeam = (teamId: string) => navigate(`/teams/${teamId}`);
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -68,7 +72,14 @@ export function ManageTeams() {
             <tbody>
               {teams.map(team => (
                 <tr key={team.id} className="border-t">
-                  <td className="py-2 px-4 align-middle">{team.name}</td>
+                  <td className="py-2 px-4 align-middle">
+                    <button
+                      className="text-purple-600 hover:underline"
+                      onClick={() => goToTeam(team.id)}
+                    >
+                      {team.name}
+                    </button>
+                  </td>
                   <td className="py-2 px-4 align-middle">
                     <div className="flex flex-row gap-2 justify-center">
                       <LeaveTeamDialog
@@ -90,7 +101,12 @@ export function ManageTeams() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {teams.map(team => (
             <div key={team.id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col items-start justify-between shadow-md">
-              <span className="font-semibold text-lg mb-4">{team.name}</span>
+              <button
+                className="font-semibold text-lg mb-4 text-left text-purple-600 hover:underline"
+                onClick={() => goToTeam(team.id)}
+              >
+                {team.name}
+              </button>
               <div className="flex flex-row gap-2 mt-auto">
                 <LeaveTeamDialog
                   team={team}

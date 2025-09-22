@@ -5,11 +5,9 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Button } from "./components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "./components/ui/form";
 import { Input } from "./components/ui/input";
-import { Link, Navigate, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
-import { useDispatch } from "react-redux";
-import { type AppDispatch } from "./lib/store";
 
 const signUpFormSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -24,7 +22,6 @@ const signUpFormSchema = z.object({
 
 export function SignUp() {
   const { register, isLoading } = useAuth();
-  const dispatch = useDispatch<AppDispatch>();
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
