@@ -1,5 +1,5 @@
 import type { TeamModel } from "@/types/team";
-import { Card, CardContent } from "../ui/card";
+// Removed Card, CardContent imports
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { useState } from "react";
@@ -27,49 +27,42 @@ export function LeaveTeamDialog({ team, onLeave }: LeaveTeamDialogProps) {
   }
 
   return (
-    <Card>
-      <CardContent>
-        <div className="w-full flex flex-row justify-between items-center">
-          <p className="font-semibold">{team.name}</p>
-
-          <Dialog
-            open={isOpen}
-            onOpenChange={setIsOpen}
-          >
-            <DialogTrigger asChild>
-              <Button variant="destructive">Leave</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogTitle>Are you sure?</DialogTitle>
-              <DialogDescription>
-                Once you leave you will need to join the team again. Are you sure you
-                want to leave <span className="font-semibold">{team.name}</span>?
-              </DialogDescription>
-              {error && (
-                <DialogDescription
-                  className="font-semibold text-red-500"
-                >{error}</DialogDescription>
-              )}
-              <DialogFooter>
-                <Button
-                  variant="ghost"
-                  className="text-red-600"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  onClick={handleLeave}
-                >
-                  Confirm
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-        </div>
-      </CardContent>
-    </Card>
+    <>
+      <Dialog
+        open={isOpen}
+        onOpenChange={setIsOpen}
+      >
+        <DialogTrigger asChild>
+          <Button variant="destructive">Leave</Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogTitle>Are you sure?</DialogTitle>
+          <DialogDescription>
+            Once you leave you will need to join the team again. Are you sure you
+            want to leave <span className="font-semibold">{team.name}</span>?
+          </DialogDescription>
+          {error && (
+            <DialogDescription
+              className="font-semibold text-red-500"
+            >{error}</DialogDescription>
+          )}
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              className="text-red-600"
+              onClick={() => setIsOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleLeave}
+            >
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
