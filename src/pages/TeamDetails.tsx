@@ -10,6 +10,9 @@ import type { Project } from "@/types/projects";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useToast } from "@/components/ui/toast";
 
 export function TeamDetails() {
 	const navigate = useNavigate();
@@ -36,6 +39,9 @@ export function TeamDetails() {
 	const [newProjectName, setNewProjectName] = useState("");
 	const [newProjectDesc, setNewProjectDesc] = useState("");
 	const [creatingProject, setCreatingProject] = useState(false);
+
+	const { confirm, DialogEl } = useConfirm();
+	const { push } = useToast();
 
 	useEffect(() => {
 		if (!teamId) return;
@@ -110,47 +116,65 @@ export function TeamDetails() {
 		try {
 			await teamApi.promoteMember(teamId, memberId);
 			setActionMsg("Member promoted");
+			push({ title: "Success", description: "Member promoted", variant: "success" });
 			setExecMemberIds(prev => prev.includes(memberId) ? prev : [...prev, memberId]);
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			setActionMsg(`Failed to promote: ${message}`);
+			push({ title: "Error", description: `Failed to promote: ${message}`, variant: "destructive" });
 		}
 	};
 
-	const handleKick = async (memberId: string) => {
+	const handleKick = (memberId: string) => {
 		if (!teamId) return;
-		if (!confirm("Remove this member from the team?")) return;
-		setActionMsg(null);
-		try {
-			await teamApi.kickMember(teamId, memberId);
-			setMemberIds(prev => prev.filter(id => id !== memberId));
-			setExecMemberIds(prev => prev.filter(id => id !== memberId));
-			setActionMsg("Member removed");
-		} catch (e) {
-			const message = e instanceof Error ? e.message : String(e);
-			setActionMsg(`Failed to remove member: ${message}`);
-		}
+		confirm({
+			title: "Remove member",
+			description: "This member will be removed from the team.",
+			onConfirm: async () => {
+				setActionMsg(null);
+				try {
+					await teamApi.kickMember(teamId, memberId);
+					setMemberIds(prev => prev.filter(id => id !== memberId));
+					setExecMemberIds(prev => prev.filter(id => id !== memberId));
+					setActionMsg("Member removed");
+					push({ title: "Removed", description: "Member removed from team", variant: "success" });
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					setActionMsg(`Failed to remove member: ${message}`);
+					push({ title: "Error", description: `Failed to remove: ${message}`, variant: "destructive" });
+				}
+			}
+		});
 	};
 
-	const handleLeaveTeam = async () => {
+	const handleLeaveTeam = () => {
 		if (!teamId) return;
-		if (!confirm("Leave this team?")) return;
-		setActionMsg(null);
-		try {
-			await teamApi.leave({ team_id: teamId });
-			navigate("/teams");
-		} catch (e) {
-			const message = e instanceof Error ? e.message : String(e);
-			setActionMsg(`Failed to leave team: ${message}`);
-		}
+		confirm({
+			title: "Leave team",
+			description: "You will no longer have access to this team.",
+			onConfirm: async () => {
+				setActionMsg(null);
+				try {
+					await teamApi.leave({ team_id: teamId });
+					push({ title: "Left team", description: "You have left the team", variant: "success" });
+					navigate("/teams");
+				} catch (e) {
+					const message = e instanceof Error ? e.message : String(e);
+					setActionMsg(`Failed to leave team: ${message}`);
+					push({ title: "Error", description: `Failed to leave: ${message}`, variant: "destructive" });
+				}
+			}
+		});
 	};
 
 	const handleCopyInvite = async () => {
 		try {
 			await navigator.clipboard.writeText(details?.code ?? "");
 			setActionMsg("Invite code copied");
+			push({ title: "Copied", description: "Invite code copied" });
 		} catch {
 			setActionMsg("Failed to copy invite code");
+			push({ title: "Error", description: "Failed to copy", variant: "destructive" });
 		}
 	};
 
@@ -159,6 +183,7 @@ export function TeamDetails() {
 		const amount = parseFloat(budgetAmount);
 		if (!Number.isFinite(amount) || amount <= 0) {
 			setActionMsg("Enter a positive amount");
+			push({ title: "Invalid amount", description: "Enter a positive number", variant: "destructive" });
 			return;
 		}
 		setActionMsg(null);
@@ -168,9 +193,11 @@ export function TeamDetails() {
 			setProject(res.project);
 			setBudgetAmount("");
 			setActionMsg("Budget increased");
+			push({ title: "Budget updated", description: "Amount added", variant: "success" });
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			setActionMsg(`Failed to increase budget: ${message}`);
+			push({ title: "Error", description: `Failed to increase: ${message}`, variant: "destructive" });
 		}
 	};
 
@@ -179,6 +206,7 @@ export function TeamDetails() {
 		const amount = parseFloat(budgetAmount);
 		if (!Number.isFinite(amount) || amount <= 0) {
 			setActionMsg("Enter a positive amount");
+			push({ title: "Invalid amount", description: "Enter a positive number", variant: "destructive" });
 			return;
 		}
 		setActionMsg(null);
@@ -188,9 +216,11 @@ export function TeamDetails() {
 			setProject(res.project);
 			setBudgetAmount("");
 			setActionMsg("Budget spent");
+			push({ title: "Budget updated", description: "Amount spent", variant: "success" });
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			setActionMsg(`Failed to spend budget: ${message}`);
+			push({ title: "Error", description: `Failed to spend: ${message}`, variant: "destructive" });
 		}
 	};
 
@@ -198,6 +228,7 @@ export function TeamDetails() {
 		if (!teamId) return;
 		if (!newProjectName.trim()) {
 			setActionMsg("Enter a project name");
+			push({ title: "Missing name", description: "Enter a project name", variant: "destructive" });
 			return;
 		}
 		setCreatingProject(true);
@@ -211,9 +242,11 @@ export function TeamDetails() {
 			setNewProjectName("");
 			setNewProjectDesc("");
 			setActionMsg("Project created");
+			push({ title: "Project created", description: res.project.name, variant: "success" });
 		} catch (e) {
 			const message = e instanceof Error ? e.message : String(e);
 			setActionMsg(`Failed to create project: ${message}`);
+			push({ title: "Error", description: `Failed to create: ${message}`, variant: "destructive" });
 		} finally {
 			setCreatingProject(false);
 		}
@@ -230,13 +263,20 @@ export function TeamDetails() {
 
 	return (
 		<div className="min-h-screen bg-background p-8 space-y-6">
+			{DialogEl}
 			<div className="flex items-center justify-between">
 				<h1 className="text-3xl font-bold">{team?.name || (isFetchingTeams ? "Loading team..." : `Team ${teamId}`)}</h1>
 				<button className="text-sm text-red-600 hover:underline" onClick={handleLeaveTeam}>Leave team</button>
 			</div>
 			<p className="text-gray-600">Team ID: {teamId}</p>
 
-			{loading && <p>Loading team details...</p>}
+			{loading && (
+				<div className="space-y-4">
+					<Skeleton className="h-24 w-full" />
+					<Skeleton className="h-48 w-full" />
+					<Skeleton className="h-48 w-full" />
+				</div>
+			)}
 			{error && <p className="text-red-600">Failed to load details: {error}</p>}
 
 			{!loading && !error && (
@@ -249,7 +289,11 @@ export function TeamDetails() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<code className="px-2 py-1 bg-gray-100 rounded">{details?.code ?? ""}</code>
+							{details ? (
+								<code className="px-2 py-1 bg-gray-100 rounded">{details.code}</code>
+							) : (
+								<Skeleton className="h-6 w-40" />
+							)}
 						</CardContent>
 					</Card>
 
@@ -324,7 +368,11 @@ export function TeamDetails() {
 										</select>
 									</div>
 									{projectLoading ? (
-										<p>Loading project...</p>
+										<div className="space-y-2">
+											<Skeleton className="h-4 w-40" />
+											<Skeleton className="h-4 w-32" />
+											<Skeleton className="h-9 w-64" />
+										</div>
 									) : projectError ? (
 										<p className="text-red-600">{projectError}</p>
 									) : project ? (

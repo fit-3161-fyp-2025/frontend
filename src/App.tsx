@@ -12,44 +12,47 @@ import { JoinCreateTeam } from "./JoinCreateTeam";
 import { ManageTeams } from "./ManageTeams";
 import { EmailVerification } from "./EmailVerification";
 import { TeamDetails } from "./pages/TeamDetails";
+import { ToastProvider } from "@/components/ui/toast";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          {/* Public Routes - TODO: Redirect to dashboard if already logged in */}
-          <Route path="/login" element={<LogIn />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/email-verify" element={<EmailVerification />} />
+        <ToastProvider>
+          <Routes>
+            {/* Public Routes - TODO: Redirect to dashboard if already logged in */}
+            <Route path="/login" element={<LogIn />} />
+            <Route path="/signup" element={<SignUp />} />
+            <Route path="/email-verify" element={<EmailVerification />} />
 
-          <Route
-            path="/teams/join"
-            element={
-              <ProtectedRoute>
-                <JoinCreateTeam />
-              </ProtectedRoute>
-            }
-          />
+            <Route
+              path="/teams/join"
+              element={
+                <ProtectedRoute>
+                  <JoinCreateTeam />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Protected Routes - Needs to be authenticated */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/teams" element={<ManageTeams />} />
-            <Route path="/teams/:teamId" element={<TeamDetails />} />
-          </Route>
-        </Routes>
+            {/* Protected Routes - Needs to be authenticated */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/projects" element={<Projects />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/teams" element={<ManageTeams />} />
+              <Route path="/teams/:teamId" element={<TeamDetails />} />
+            </Route>
+          </Routes>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );
