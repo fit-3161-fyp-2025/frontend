@@ -1,6 +1,9 @@
 import { addDays, setHours, setMinutes, subDays } from "date-fns";
 import { EventCalendar, type CalendarEvent } from "./components/event-calendar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "./lib/store";
+import { eventApi } from "./api/events";
 
 // Sample events data with hardcoded times
 const sampleEvents: CalendarEvent[] = [
@@ -126,7 +129,33 @@ const sampleEvents: CalendarEvent[] = [
   },
 ]
 export function Events() {
-  const [events, setEvents] = useState<CalendarEvent[]>(sampleEvents)
+  const { selectedTeam } = useSelector((state: RootState) => state.teams);
+  const [events, setEvents] = useState<CalendarEvent[]>([])
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!selectedTeam) return;
+
+      try {
+        const fetchedEvents = await eventApi.getAll(selectedTeam.id);
+        setEvents(
+          fetchedEvents.events.map(event => ({
+            id: event.id,
+            title: event.name,
+            description: event.description,
+            start: setMinutes(setHours(addDays(new Date(), 2), 9), 0),
+            end: setMinutes(setHours(addDays(new Date(), 2), 10), 0),
+            color: "rose",
+            location: "innovation lab",
+          }))
+        );
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      }
+    }
+
+    fetchEvents();
+  }, []);
 
   const handleEventAdd = (event: CalendarEvent) => {
     setEvents([...events, event])
