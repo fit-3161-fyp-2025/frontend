@@ -10,3 +10,12 @@ export interface Event {
 export interface GetAllEventsRes {
   events: Event[];
 }
+
+export interface CreateEventPayload {
+  name: string;
+  description: string;
+}
+
+export interface CreateEventRes {
+  event: Event;
+}

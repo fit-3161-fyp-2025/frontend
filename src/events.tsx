@@ -9,6 +9,9 @@ export function Events() {
   const { selectedTeam } = useSelector((state: RootState) => state.teams);
   const [events, setEvents] = useState<CalendarEvent[]>([])
 
+  // Placehodler until dates get fixed
+  const [day, setDay] = useState(0);
+
   useEffect(() => {
     const fetchEvents = async () => {
       if (!selectedTeam) return;
@@ -16,17 +19,21 @@ export function Events() {
       try {
         const fetchedEvents = await eventApi.getAll(selectedTeam.id);
         setEvents(
-          fetchedEvents.events.map(event => ({
-            id: event.id,
-            title: event.name,
-            description: event.description,
+          fetchedEvents.events.map(event => {
+            setDay(prev => prev + 1);
 
-            // TODO: Replace with real date time
-            start: setMinutes(setHours(addDays(new Date(), 2), 9), 0),
-            end: setMinutes(setHours(addDays(new Date(), 2), 10), 0),
-            color: "rose",
-            location: "innovation lab",
-          }))
+            return ({
+              id: event.id,
+              title: event.name,
+              description: event.description,
+
+              // TODO: Replace with real date time
+              start: setMinutes(setHours(addDays(new Date(), day), 9), 0),
+              end: setMinutes(setHours(addDays(new Date(), day), 10), 0),
+              color: "rose",
+              location: "innovation lab",
+            })
+          })
         );
       } catch (error) {
         console.error("Failed to fetch events:", error);
@@ -34,10 +41,34 @@ export function Events() {
     }
 
     fetchEvents();
-  }, []);
+  }, [selectedTeam]);
 
-  const handleEventAdd = (event: CalendarEvent) => {
-    setEvents([...events, event])
+  const handleEventAdd = async (event: CalendarEvent) => {
+    if (!selectedTeam) return;
+
+    try {
+      const createdEvent = await eventApi.create(selectedTeam.id, {
+        name: event.title,
+        description: event.description ?? "No description",
+      });
+
+      setDay(prev => prev + 1);
+
+      const formattedCreatedEvent: CalendarEvent = {
+        id: createdEvent.event.id,
+        title: createdEvent.event.name,
+        description: createdEvent.event.description,
+
+        start: setMinutes(setHours(addDays(new Date(), day), 9), 0),
+        end: setMinutes(setHours(addDays(new Date(), day), 10), 0),
+        color: "rose",
+        location: "shi ok",
+      }
+
+      setEvents([...events, formattedCreatedEvent]);
+    } catch (error) {
+      console.error("Failed to create event");
+    }
   }
 
   const handleEventUpdate = (updatedEvent: CalendarEvent) => {

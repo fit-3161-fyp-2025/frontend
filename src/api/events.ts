@@ -1,4 +1,4 @@
-import type { GetAllEventsRes } from "@/types/events"
+import type { GetAllEventsRes, CreateEventPayload, CreateEventRes } from "@/types/events"
 import { apiClient } from "./client"
 
 export const eventApi = {
@@ -7,9 +7,11 @@ export const eventApi = {
     return response.data;
   },
 
+  create: async (teamId: string, data: CreateEventPayload): Promise<CreateEventRes> => {
+    const response = await apiClient.post<CreateEventRes>(`/teams/create-event/${teamId}`, data);
+    return response.data;
+  },
+
   // TODO: Delete event
-
-
-  // TODO: Create event
 
 }
