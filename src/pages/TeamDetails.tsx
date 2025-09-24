@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
+import { parseErrorMessage } from "@/utils/errorParser";
 
 export function TeamDetails() {
 	const navigate = useNavigate();
@@ -119,9 +120,9 @@ export function TeamDetails() {
 			push({ title: "Success", description: "Member promoted", variant: "success" });
 			setExecMemberIds(prev => prev.includes(memberId) ? prev : [...prev, memberId]);
 		} catch (e) {
-			const message = e instanceof Error ? e.message : String(e);
-			setActionMsg(`Failed to promote: ${message}`);
-			push({ title: "Error", description: `Failed to promote: ${message}`, variant: "destructive" });
+			const errorInfo = parseErrorMessage(e);
+			setActionMsg(`Failed to promote: ${errorInfo.description}`);
+			push({ title: errorInfo.title, description: errorInfo.description, variant: "destructive" });
 		}
 	};
 
@@ -139,9 +140,9 @@ export function TeamDetails() {
 					setActionMsg("Member removed");
 					push({ title: "Removed", description: "Member removed from team", variant: "success" });
 				} catch (e) {
-					const message = e instanceof Error ? e.message : String(e);
-					setActionMsg(`Failed to remove member: ${message}`);
-					push({ title: "Error", description: `Failed to remove: ${message}`, variant: "destructive" });
+					const errorInfo = parseErrorMessage(e);
+					setActionMsg(`Failed to remove member: ${errorInfo.description}`);
+					push({ title: errorInfo.title, description: errorInfo.description, variant: "destructive" });
 				}
 			}
 		});
@@ -159,9 +160,9 @@ export function TeamDetails() {
 					push({ title: "Left team", description: "You have left the team", variant: "success" });
 					navigate("/teams");
 				} catch (e) {
-					const message = e instanceof Error ? e.message : String(e);
-					setActionMsg(`Failed to leave team: ${message}`);
-					push({ title: "Error", description: `Failed to leave: ${message}`, variant: "destructive" });
+					const errorInfo = parseErrorMessage(e);
+					setActionMsg(`Failed to leave team: ${errorInfo.description}`);
+					push({ title: errorInfo.title, description: errorInfo.description, variant: "destructive" });
 				}
 			}
 		});
@@ -195,9 +196,9 @@ export function TeamDetails() {
 			setActionMsg("Budget increased");
 			push({ title: "Budget updated", description: "Amount added", variant: "success" });
 		} catch (e) {
-			const message = e instanceof Error ? e.message : String(e);
-			setActionMsg(`Failed to increase budget: ${message}`);
-			push({ title: "Error", description: `Failed to increase: ${message}`, variant: "destructive" });
+			const errorInfo = parseErrorMessage(e);
+			setActionMsg(`Failed to increase budget: ${errorInfo.description}`);
+			push({ title: errorInfo.title, description: errorInfo.description, variant: "destructive" });
 		}
 	};
 
@@ -218,9 +219,9 @@ export function TeamDetails() {
 			setActionMsg("Budget spent");
 			push({ title: "Budget updated", description: "Amount spent", variant: "success" });
 		} catch (e) {
-			const message = e instanceof Error ? e.message : String(e);
-			setActionMsg(`Failed to spend budget: ${message}`);
-			push({ title: "Error", description: `Failed to spend: ${message}`, variant: "destructive" });
+			const errorInfo = parseErrorMessage(e);
+			setActionMsg(`Failed to spend budget: ${errorInfo.description}`);
+			push({ title: errorInfo.title, description: errorInfo.description, variant: "destructive" });
 		}
 	};
 
@@ -244,9 +245,9 @@ export function TeamDetails() {
 			setActionMsg("Project created");
 			push({ title: "Project created", description: res.project.name, variant: "success" });
 		} catch (e) {
-			const message = e instanceof Error ? e.message : String(e);
-			setActionMsg(`Failed to create project: ${message}`);
-			push({ title: "Error", description: `Failed to create: ${message}`, variant: "destructive" });
+			const errorInfo = parseErrorMessage(e);
+			setActionMsg(`Failed to create project: ${errorInfo.description}`);
+			push({ title: errorInfo.title, description: errorInfo.description, variant: "destructive" });
 		} finally {
 			setCreatingProject(false);
 		}

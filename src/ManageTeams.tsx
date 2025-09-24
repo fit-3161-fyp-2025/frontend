@@ -125,9 +125,11 @@ export function ManageTeams() {
       <div className="flex justify-around mt-12">
         <CreateTeam
           description="Create a new team"
+          onCreate={() => dispatch(fetchTeams())}
         />
         <JoinTeam
           description="Joining a new team? Enter the team code below"
+          onJoin={() => dispatch(fetchTeams())}
         />
       </div>
     </div>

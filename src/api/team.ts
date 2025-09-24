@@ -6,6 +6,10 @@ export const teamApi = {
     await apiClient.post(`/teams/join-team/${data.team_id}`, data);
   },
 
+  joinByShortId: async (shortId: string): Promise<void> => {
+    await apiClient.post(`/teams/join-team-by-short-id/${shortId}`);
+  },
+
   create: async (data: CreateTeamPayload): Promise<TeamModel> => {
     const response = await apiClient.post<TeamModel>(`/teams/create-team`, data);
     return response.data

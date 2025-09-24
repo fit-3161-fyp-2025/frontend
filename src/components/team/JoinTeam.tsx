@@ -14,7 +14,7 @@ export interface JoinTeamProps {
 }
 
 const joinFormSchema = z.object({
-  team_id: z.string(),
+  team_code: z.string().min(1, "Team code is required"),
 });
 
 export function JoinTeam({ onJoin, description }: JoinTeamProps) {
@@ -30,7 +30,7 @@ export function JoinTeam({ onJoin, description }: JoinTeamProps) {
     setIsLoading(true);
 
     try {
-      await teamApi.join({ team_id: values.team_id });
+      await teamApi.joinByShortId(values.team_code);
       onJoin && onJoin();
     } catch (err) {
       console.error(err);
@@ -64,12 +64,12 @@ export function JoinTeam({ onJoin, description }: JoinTeamProps) {
             )}
             <FormField
               control={form.control}
-              name="team_id"
+              name="team_code"
               render={({ field }) => (
                 <FormItem className="pb-4">
                   <FormLabel>Team Code</FormLabel>
                   <FormControl>
-                    <Input id="team_id" {...field} />
+                    <Input id="team_code" {...field} />
                   </FormControl>
                 </FormItem>
               )}
