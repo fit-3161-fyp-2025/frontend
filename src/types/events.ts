@@ -1,8 +1,13 @@
+import type { EventColor } from "@/components/event-calendar";
 
 export interface Event {
   id: string;
   name: string;
   description: string;
+  start: string;
+  end: string;
+  colour: EventColor;
+  location: string;
   rsvp_ids: string[];
   public: boolean;
 }
@@ -14,6 +19,10 @@ export interface GetAllEventsRes {
 export interface CreateEventPayload {
   name: string;
   description: string;
+  start: string;
+  end: string;
+  colour: EventColor;
+  location: string;
 }
 
 export interface CreateEventRes {

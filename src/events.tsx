@@ -9,9 +9,6 @@ export function Events() {
   const { selectedTeam } = useSelector((state: RootState) => state.teams);
   const [events, setEvents] = useState<CalendarEvent[]>([])
 
-  // Placehodler until dates get fixed
-  const [day, setDay] = useState(0);
-
   useEffect(() => {
     const fetchEvents = async () => {
       if (!selectedTeam) return;
@@ -20,18 +17,16 @@ export function Events() {
         const fetchedEvents = await eventApi.getAll(selectedTeam.id);
         setEvents(
           fetchedEvents.events.map(event => {
-            setDay(prev => prev + 1);
-
             return ({
               id: event.id,
               title: event.name,
               description: event.description,
 
               // TODO: Replace with real date time
-              start: setMinutes(setHours(addDays(new Date(), day), 9), 0),
-              end: setMinutes(setHours(addDays(new Date(), day), 10), 0),
-              color: "rose",
-              location: "innovation lab",
+              start: new Date(event.start),
+              end: new Date(event.end),
+              color: event.colour,
+              location: event.location,
             })
           })
         );
@@ -50,18 +45,19 @@ export function Events() {
       const createdEvent = await eventApi.create(selectedTeam.id, {
         name: event.title,
         description: event.description ?? "No description",
+        start: event.start.toISOString(),
+        end: event.end.toISOString(),
+        colour: event.color ?? "rose",
+        location: event.location ?? "No location",
       });
-
-      setDay(prev => prev + 1);
 
       const formattedCreatedEvent: CalendarEvent = {
         id: createdEvent.event.id,
         title: createdEvent.event.name,
         description: createdEvent.event.description,
-
-        start: setMinutes(setHours(addDays(new Date(), day), 9), 0),
-        end: setMinutes(setHours(addDays(new Date(), day), 10), 0),
-        color: "rose",
+        start: new Date(createdEvent.event.start),
+        end: new Date(createdEvent.event.end),
+        color: createdEvent.event.colour,
         location: "shi ok",
       }
 
@@ -82,6 +78,7 @@ export function Events() {
   const handleEventDelete = (eventId: string) => {
     setEvents(events.filter((event) => event.id !== eventId))
   }
+
   return (
     <div className="min-h-screen bg-background p-8">
       <h1 className="text-3xl font-bold text-left mb-8">Events</h1>
