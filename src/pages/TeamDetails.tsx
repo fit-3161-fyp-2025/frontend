@@ -808,112 +808,263 @@ export function TeamDetails() {
 						</CardContent>
 					</Card>
 
+					// Enhanced Project Management Section for Team Details Page
+// Replace the existing project card section with this enhanced version
+
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center justify-between">
-								Projects Management
-								<span className="text-sm font-normal text-gray-600">{teamProjectIds.length} project{teamProjectIds.length !== 1 ? 's' : ''}</span>
+								<div className="flex items-center gap-3">
+									Projects Management
+									<Badge variant="secondary" className="bg-blue-100 text-blue-700">
+										{teamProjectIds.length} project{teamProjectIds.length !== 1 ? 's' : ''}
+									</Badge>
+								</div>
+								<button 
+									className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
+									onClick={() => {
+										setNewProjectName("");
+										setNewProjectDesc("");
+									}}
+								>
+									+ New Project
+								</button>
 							</CardTitle>
 						</CardHeader>
-						<CardContent className="space-y-3">
+						<CardContent className="space-y-4">
 							{teamProjectIds.length === 0 ? (
-								<div className="space-y-2">
-									<p className="text-gray-600">No projects in this team. Create one to manage budget.</p>
-									<div className="flex flex-col gap-2 max-w-md">
-										<input className="border rounded px-2 py-1" placeholder="Project name" value={newProjectName} onChange={(e) => setNewProjectName(e.target.value)} />
-										<textarea className="border rounded px-2 py-1" placeholder="Description (optional)" value={newProjectDesc} onChange={(e) => setNewProjectDesc(e.target.value)} />
-										<button className="bg-purple-600 text-white px-3 py-1 rounded w-fit" disabled={creatingProject} onClick={handleCreateProject}>{creatingProject ? "Creating..." : "Create Project"}</button>
+								/* Empty State */
+								<div className="text-center py-8">
+									<div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+										<span className="text-2xl">📁</span>
+									</div>
+									<h3 className="text-lg font-medium text-gray-900 mb-2">No Projects Yet</h3>
+									<p className="text-gray-600 mb-6">Create your first project to start managing budgets and tracking progress.</p>
+									<div className="flex flex-col gap-3 max-w-md mx-auto">
+										<input 
+											className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+											placeholder="Project name" 
+											value={newProjectName} 
+											onChange={(e) => setNewProjectName(e.target.value)} 
+										/>
+										<textarea 
+											className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none" 
+											placeholder="Description (optional)" 
+											value={newProjectDesc} 
+											onChange={(e) => setNewProjectDesc(e.target.value)} 
+										/>
+										<button 
+											className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed" 
+											disabled={creatingProject || !newProjectName.trim()} 
+											onClick={handleCreateProject}
+										>
+											{creatingProject ? "Creating..." : "Create Project"}
+										</button>
 									</div>
 								</div>
 							) : (
+								/* Projects Overview */
 								<>
-									<div className="flex items-center gap-2">
-										<label htmlFor="projectSelect" className="text-sm">Project</label>
-										<select
-											id="projectSelect"
-											className="border rounded px-2 py-1 flex-1"
-											value={selectedProjectId ?? ""}
-											onChange={(e) => setSelectedProjectId(e.target.value || null)}
-										>
-											{teamProjectIds.map(pid => (
-												<option key={pid} value={pid}>{projectNamesById[pid] || pid}</option>
-											))}
-										</select>
-										{selectedProjectId && (
-											<button 
-												className="bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200"
-												onClick={() => {
-													const projectName = projectNamesById[selectedProjectId] || selectedProjectId;
+									{/* Project Cards Grid */}
+									<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+										{teamProjectIds.map(projectId => {
+											const projectName = projectNamesById[projectId] || projectId;
+											const isSelected = selectedProjectId === projectId;
+											const currentUserMember = details?.members?.find(member => member.email === user?.email);
+											const currentUserId = currentUserMember?.id;
+											const executiveMembers = execMemberIds || team?.exec_member_ids || [];
+											const isExecutive = currentUserId && executiveMembers.includes(currentUserId);
+											
+											return (
+												<div 
+													key={projectId}
+													className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+														isSelected ? 'border-purple-500 bg-purple-50 shadow-sm' : 'border-gray-200 hover:border-gray-300'
+													}`}
+													onClick={() => setSelectedProjectId(projectId)}
+												>
+													<div className="flex items-start justify-between mb-3">
+														<div className="flex-1 min-w-0">
+															<h4 className="font-medium text-sm truncate">{projectName}</h4>
+															<p className="text-xs text-gray-500 mt-1">Project ID: {projectId.slice(-6)}</p>
+														</div>
+														{isSelected && (
+															<span className="text-purple-600 text-sm">✓</span>
+														)}
+													</div>
 													
-													// Find the current user's ID by matching their email with member details
-													const currentUserMember = details?.members?.find(member => member.email === user?.email);
-													const currentUserId = currentUserMember?.id;
-													const executiveMembers = execMemberIds || team?.exec_member_ids || [];
-													const isExecutive = currentUserId && executiveMembers.includes(currentUserId);
+													{/* Budget Overview */}
+													{projectLoading && selectedProjectId === projectId ? (
+														<div className="space-y-2">
+															<Skeleton className="h-3 w-20" />
+															<Skeleton className="h-6 w-24" />
+														</div>
+													) : project && selectedProjectId === projectId && !projectError ? (
+														<div className="space-y-2">
+															<div className="flex justify-between text-xs">
+																<span className="text-gray-600">Budget:</span>
+																<span className="font-medium">${(project.budget_available + project.budget_spent).toFixed(2)}</span>
+															</div>
+															<div className="flex justify-between text-xs">
+																<span className="text-gray-600">Available:</span>
+																<span className="text-green-600 font-medium">${project.budget_available.toFixed(2)}</span>
+															</div>
+															<div className="flex justify-between text-xs">
+																<span className="text-gray-600">Spent:</span>
+																<span className="text-red-600 font-medium">${project.budget_spent.toFixed(2)}</span>
+															</div>
+															
+															{/* Budget Progress Bar */}
+															<div className="mt-2">
+																<div className="w-full bg-gray-200 rounded-full h-2">
+																	<div 
+																		className="bg-red-500 h-2 rounded-full" 
+																		style={{
+																			width: `${Math.min(100, (project.budget_spent / (project.budget_available + project.budget_spent)) * 100)}%`
+																		}}
+																	></div>
+																</div>
+																<p className="text-xs text-gray-600 mt-1">
+																	{(project.budget_spent / (project.budget_available + project.budget_spent) * 100).toFixed(1)}% spent
+																</p>
+															</div>
+														</div>
+													) : (
+														<div className="space-y-2">
+															<div className="flex justify-between text-xs">
+																<span className="text-gray-600">Status:</span>
+																<span className="text-gray-500">Loading...</span>
+															</div>
+														</div>
+													)}
 													
-													console.log('Delete Project Debug:', {
-														user: user,
-														userEmail: user?.email,
-														currentUserId,
-														executiveMembers,
-														execMemberIds: execMemberIds,
-														teamExecMemberIds: team?.exec_member_ids,
-														isExecutive
-													});
-													
-													if (!isExecutive) {
-														push({ 
-															title: "Permission Denied", 
-															description: "Only executives can delete projects", 
-															variant: "destructive" 
-														});
-														return;
-													}
-													
-													confirm({
-														title: "Delete Project",
-														description: `Are you sure you want to permanently delete "${projectName}"? This action cannot be undone and will delete all associated data.`,
-														onConfirm: () => handleDeleteProject(selectedProjectId)
-													});
-												}}
-											>
-												Delete Project
-											</button>
-										)}
+													{/* Actions */}
+													<div className="flex gap-2 mt-3 pt-3 border-t">
+														{isExecutive && (
+															<button 
+																className="flex-1 bg-red-50 text-red-700 px-2 py-1 rounded text-xs hover:bg-red-100"
+																onClick={(e) => {
+																	e.stopPropagation();
+																	const projectName = projectNamesById[projectId] || projectId;
+																	confirm({
+																		title: "Delete Project",
+																		description: `Are you sure you want to permanently delete "${projectName}"? This action cannot be undone and will delete all associated data.`,
+																		onConfirm: () => handleDeleteProject(projectId)
+																	});
+																}}
+															>
+																Delete
+															</button>
+														)}
+														{!isExecutive && isSelected && (
+															<button 
+																className="flex-1 bg-red-50 text-red-700 px-2 py-1 rounded text-xs hover:bg-red-100"
+																onClick={(e) => {
+																	e.stopPropagation();
+																	push({ 
+																		title: "Permission Denied", 
+																		description: "Only executives can delete projects", 
+																		variant: "destructive" 
+																	});
+																}}
+															>
+																Delete
+															</button>
+														)}
+													</div>
+												</div>
+											);
+										})}
 									</div>
-									{projectLoading ? (
-										<div className="space-y-2">
-											<Skeleton className="h-4 w-40" />
-											<Skeleton className="h-4 w-32" />
-											<Skeleton className="h-9 w-64" />
-										</div>
-									) : projectError ? (
-										<p className="text-red-600">{projectError}</p>
-									) : project ? (
-										<div className="space-y-2">
-										<h4 className="font-medium text-gray-800">
-											{projectNamesById[selectedProjectId] || selectedProjectId} Budget
-										</h4>
-											<p>Available: <strong>${project.budget_available.toFixed(2)}</strong></p>
-											<p>Spent: <strong>${project.budget_spent.toFixed(2)}</strong></p>
-											<div className="flex items-center gap-2">
-												<input
-													type="number"
-													step="0.01"
-													className="border rounded px-2 py-1 w-32"
-													placeholder="Amount"
-													value={budgetAmount}
-													onChange={(e) => setBudgetAmount(e.target.value)}
-												/>
-												<button className="bg-green-600 text-white px-3 py-1 rounded" onClick={handleIncreaseBudget}>Increase</button>
-												<button className="bg-orange-600 text-white px-3 py-1 rounded" onClick={handleSpendBudget}>Spend</button>
+									
+									{/* Budget Management Section */}
+									{selectedProjectId && project && !projectError && (
+										<div className="border-t pt-4 space-y-4">
+											<div className="flex items-center justify-between">
+												<h4 className="font-medium text-lg font-medium text-gray-800">
+													{projectNamesById[selectedProjectId]} Budget Management
+												</h4>
+												<div className="flex items-center gap-2">
+													<span className="text-sm text-gray-600">Total:</span>
+													<span className="font-bold text-lg">${(project.budget_available + project.budget_spent).toFixed(2)}</span>
+												</div>
+											</div>
+											
+											{/* Budget Cards */}
+											<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+												{/* Available Budget */}
+												<div className="bg-green-50 border border-green-200 rounded-lg p-4">
+													<div className="flex items-center justify-between">
+														<div>
+															<h5 className="text-sm font-medium text-green-800">Available Budget</h5>
+															<p className="text-2xl font-bold text-green-600">${project.budget_available.toFixed(2)}</p>
+														</div>
+														<div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+															<span className="text-green-600 font-bold">✓</span>
+														</div>
+													</div>
+												</div>
+												
+												{/* Spent Budget */}
+												<div className="bg-red-50 border border-red-200 rounded-lg p-4">
+													<div className="flex items-center justify-between">
+														<div>
+															<h5 className="text-sm font-medium text-red-800">Budget Spent</h5>
+															<p className="text-2xl font-bold text-red-600">${project.budget_spent.toFixed(2)}</p>
+														</div>
+														<div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+															<span className="text-red-600 font-bold">₹</span>
+														</div>
+													</div>
+												</div>
+											</div>
+											
+											{/* Budget Actions */}
+											<div className="bg-gray-50 rounded-lg p-4">
+												<h5 className="font-medium text-gray-800 mb-3">Budget Actions</h5>
+												<p className="text-sm text-gray-600 mb-3">
+													{actionMsg || "Enter an amount below to add or spend budget"}
+												</p>
+												<div className="flex flex-wrap gap-3">
+													<input
+														type="number"
+														step="0.01"
+														min="0"
+														className="border rounded-lg px-3 py-2 w-32 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+														placeholder="Amount"
+														value={budgetAmount}
+														onChange={(e) => setBudgetAmount(e.target.value)}
+													/>
+													<button 
+														className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+														disabled={!budgetAmount || parseFloat(budgetAmount) <= 0}
+														onClick={handleIncreaseBudget}
+													>
+														+ Add Budget
+													</button>
+													<button 
+														className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+														disabled={!budgetAmount || parseFloat(budgetAmount) <= 0 || parseFloat(budgetAmount) > project.budget_available}
+														onClick={handleSpendBudget}
+													>
+														- Spend Budget
+													</button>
+												</div>
 											</div>
 										</div>
-									) : null}
+									)}
+									
+									{/* Show budget error */}
+									{projectError && (
+										<div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
+											<p className="text-red-700 text-sm">Error: {projectError}</p>
+										</div>
+									)}
 								</>
 							)}
 						</CardContent>
 					</Card>
+
 
 					<Card>
 						<CardHeader>
