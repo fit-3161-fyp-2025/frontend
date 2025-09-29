@@ -1068,7 +1068,7 @@ export function TeamDetails() {
 									{selectedProjectId && project && !projectError && (
 										<div className="border-t pt-4 space-y-4">
 											<div className="flex items-center justify-between">
-												<h4 className="font-medium text-lg font-medium text-gray-800">
+												<h4 className="font-medium text-lg text-gray-800">
 													{projectNamesById[selectedProjectId]} Budget Management
 												</h4>
 											<div className="flex items-center gap-2">
