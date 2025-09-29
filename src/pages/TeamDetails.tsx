@@ -14,6 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
 import { parseErrorMessage } from "@/utils/errorParser";
+import { DeleteTeamDialog } from "@/components/team/DeleteTeamDialog";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function TeamDetails() {
 	const navigate = useNavigate();
@@ -41,6 +43,7 @@ export function TeamDetails() {
 	const [newProjectDesc, setNewProjectDesc] = useState("");
 	const [creatingProject, setCreatingProject] = useState(false);
 
+	const { user, isLoading } = useAuth();
 	const { confirm, DialogEl } = useConfirm();
 	const { push } = useToast();
 
@@ -51,7 +54,7 @@ export function TeamDetails() {
 		setError(null);
 		Promise.all([
 			teamDetailsApi.getDetails(teamId),
-			projectsApi.getTeam(teamId),
+			teamApi.getTeam(teamId),
 		])
 			.then(async ([res, teamRes]) => {
 				if (!isMounted) return;
@@ -179,6 +182,34 @@ export function TeamDetails() {
 		}
 	};
 
+	const handleDeleteTeam = () => {
+		navigate("/teams");
+	};
+
+	const handleDeleteProject = async (projectId: string) => {
+		if (!teamId) return;
+		setActionMsg(null);
+		try {
+			await teamApi.deleteProject(teamId, projectId);
+			setTeamProjectIds(prev => prev.filter(id => id !== projectId));
+			setProjectNamesById(prev => {
+				const newProjectNames = { ...prev };
+				delete newProjectNames[projectId];
+				return newProjectNames;
+			});
+			if (selectedProjectId === projectId) {
+				const remainingProjects = teamProjectIds.filter(id => id !== projectId);
+				setSelectedProjectId(remainingProjects.length > 0 ? remainingProjects[0] : null);
+			}
+			setActionMsg("Project deleted");
+			push({ title: "Project Deleted", description: "Project has been permanently deleted", variant: "default" });
+		} catch (e) {
+			const errorInfo = parseErrorMessage(e);
+			setActionMsg(`Failed to delete project: ${errorInfo.description}`);
+			push({ title: errorInfo.title, description: errorInfo.description, variant: "destructive" });
+		}
+	};
+
 	const handleIncreaseBudget = async () => {
 		if (!selectedProjectId) return;
 		const amount = parseFloat(budgetAmount);
@@ -267,7 +298,17 @@ export function TeamDetails() {
 			{DialogEl}
 			<div className="flex items-center justify-between">
 				<h1 className="text-3xl font-bold">{team?.name || (isFetchingTeams ? "Loading team..." : `Team ${teamId}`)}</h1>
-				<button className="text-sm text-red-600 hover:underline" onClick={handleLeaveTeam}>Leave team</button>
+				<div className="flex gap-4">
+					{team && user && !isLoading && (
+						<DeleteTeamDialog 
+							team={team} 
+							onDelete={handleDeleteTeam}
+							execMemberIds={execMemberIds}
+							memberDetails={details?.members}
+						/>
+					)}
+					<button className="text-sm text-red-600 hover:underline" onClick={handleLeaveTeam}>Leave team</button>
+				</div>
 			</div>
 			<p className="text-gray-600">Team ID: {teamId}</p>
 
@@ -341,7 +382,10 @@ export function TeamDetails() {
 
 					<Card>
 						<CardHeader>
-							<CardTitle>Budget</CardTitle>
+							<CardTitle className="flex items-center justify-between">
+								Projects Management
+								<span className="text-sm font-normal text-gray-600">{teamProjectIds.length} project{teamProjectIds.length !== 1 ? 's' : ''}</span>
+							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-3">
 							{teamProjectIds.length === 0 ? (
@@ -359,7 +403,7 @@ export function TeamDetails() {
 										<label htmlFor="projectSelect" className="text-sm">Project</label>
 										<select
 											id="projectSelect"
-											className="border rounded px-2 py-1"
+											className="border rounded px-2 py-1 flex-1"
 											value={selectedProjectId ?? ""}
 											onChange={(e) => setSelectedProjectId(e.target.value || null)}
 										>
@@ -367,6 +411,47 @@ export function TeamDetails() {
 												<option key={pid} value={pid}>{projectNamesById[pid] || pid}</option>
 											))}
 										</select>
+										{selectedProjectId && (
+											<button 
+												className="bg-red-100 text-red-700 px-3 py-1 rounded text-sm hover:bg-red-200"
+												onClick={() => {
+													const projectName = projectNamesById[selectedProjectId] || selectedProjectId;
+													
+													// Find the current user's ID by matching their email with member details
+													const currentUserMember = details?.members?.find(member => member.email === user?.email);
+													const currentUserId = currentUserMember?.id;
+													const executiveMembers = execMemberIds || team?.exec_member_ids || [];
+													const isExecutive = currentUserId && executiveMembers.includes(currentUserId);
+													
+													console.log('Delete Project Debug:', {
+														user: user,
+														userEmail: user?.email,
+														currentUserId,
+														executiveMembers,
+														execMemberIds: execMemberIds,
+														teamExecMemberIds: team?.exec_member_ids,
+														isExecutive
+													});
+													
+													if (!isExecutive) {
+														push({ 
+															title: "Permission Denied", 
+															description: "Only executives can delete projects", 
+															variant: "destructive" 
+														});
+														return;
+													}
+													
+													confirm({
+														title: "Delete Project",
+														description: `Are you sure you want to permanently delete "${projectName}"? This action cannot be undone and will delete all associated data.`,
+														onConfirm: () => handleDeleteProject(selectedProjectId)
+													});
+												}}
+											>
+												Delete Project
+											</button>
+										)}
 									</div>
 									{projectLoading ? (
 										<div className="space-y-2">
@@ -376,10 +461,13 @@ export function TeamDetails() {
 										</div>
 									) : projectError ? (
 										<p className="text-red-600">{projectError}</p>
-									) : project ? (
-										<div className="space-y-2">
-											<p>Available: <strong>${project.budget_available.toFixed(2)}</strong></p>
-											<p>Spent: <strong>${project.budget_spent.toFixed(2)}</strong></p>
+								) : project ? (
+									<div className="space-y-2">
+										<h4 className="font-medium text-gray-800">
+											{projectNamesById[selectedProjectId] || selectedProjectId} Budget
+										</h4>
+										<p>Available: <strong>${project.budget_available.toFixed(2)}</strong></p>
+										<p>Spent: <strong>${project.budget_spent.toFixed(2)}</strong></p>
 											<div className="flex items-center gap-2">
 												<input
 													type="number"

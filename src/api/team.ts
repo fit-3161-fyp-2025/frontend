@@ -1,6 +1,10 @@
 import type { CreateTeamPayload, GetUserTeamsRes, JoinTeamPayload, LeaveTeamPayload, TeamModel } from "@/types/team";
 import { apiClient } from "./client";
 
+export interface GetTeamResponse {
+  team: TeamModel;
+}
+
 export const teamApi = {
   join: async (data: JoinTeamPayload): Promise<void> => {
     await apiClient.post(`/teams/join-team/${data.team_id}`, data);
@@ -30,5 +34,20 @@ export const teamApi = {
 
   kickMember: async (teamId: string, memberId: string): Promise<void> => {
     await apiClient.post(`/teams/kick-team-member/${teamId}`, { member_id: memberId });
+  },
+
+  getTeam: async (teamId: string): Promise<GetTeamResponse> => {
+    const response = await apiClient.get<GetTeamResponse>(`/teams/get-team/${teamId}`);
+    return response.data;
+  },
+
+  deleteTeam: async (teamId: string): Promise<void> => {
+    await apiClient.post(`/teams/delete-team/${teamId}`);
+  },
+
+  deleteProject: async (teamId: string, projectId: string): Promise<void> => {
+    await apiClient.delete(`/teams/delete-project/${teamId}`, {
+      data: { project_id: projectId }
+    });
   }
 };
