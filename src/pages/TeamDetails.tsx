@@ -1068,7 +1068,7 @@ export function TeamDetails() {
 									{selectedProjectId && project && !projectError && (
 										<div className="border-t pt-4 space-y-4">
 											<div className="flex items-center justify-between">
-												<h4 className="font-medium text-lg font-medium text-gray-800">
+												<h4 className="font-medium text-lg text-gray-800">
 													{projectNamesById[selectedProjectId]} Budget Management
 												</h4>
 											<div className="flex items-center gap-2">
@@ -1100,7 +1100,7 @@ export function TeamDetails() {
 															<p className="text-2xl font-bold text-red-600">${project.budget_spent.toFixed(2)}</p>
 														</div>
 														<div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-															<span className="text-red-600 font-bold">₹</span>
+															<span className="text-red-600 font-bold">$</span>
 														</div>
 													</div>
 												</div>
