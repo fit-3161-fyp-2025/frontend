@@ -46,12 +46,14 @@ export function TeamDetails() {
 	const [project, setProject] = useState<Project | null>(null);
 	const [projectLoading, setProjectLoading] = useState(false);
 	const [projectError, setProjectError] = useState<string | null>(null);
+	const [projectsBudgetData, setProjectsBudgetData] = useState<Record<string, Project>>({});
 	const [budgetAmount, setBudgetAmount] = useState<string>("");
 	const [actionMsg, setActionMsg] = useState<string | null>(null);
 
 	const [newProjectName, setNewProjectName] = useState("");
 	const [newProjectDesc, setNewProjectDesc] = useState("");
 	const [creatingProject, setCreatingProject] = useState(false);
+	const [showCreateProject, setShowCreateProject] = useState(false);
 
 	// Event management state
 	const [events, setEvents] = useState<EventModel[]>([]);
@@ -146,7 +148,44 @@ export function TeamDetails() {
 		};
 	}, [selectedProjectId]);
 
-	// Load events on component mount
+	// Load budget data for all projects
+	useEffect(() => {
+		if (teamProjectIds.length === 0) {
+			setProjectsBudgetData({});
+			return;
+		}
+
+		let isMounted = true;
+		const loadAllProjectBudgets = async () => {
+			const promises = teamProjectIds.map(async (projectId) => {
+				try {
+					const res = await projectsApi.getProject(projectId);
+					return [projectId, res.project] as const;
+				} catch {
+					return [projectId, null] as const;
+				}
+			});
+
+			const results = await Promise.all(promises);
+			if (isMounted) {
+				const budgetData: Record<string, Project> = {};
+				results.forEach(([projectId, projectData]) => {
+					if (projectData) {
+						budgetData[projectId] = projectData;
+					}
+				});
+				setProjectsBudgetData(budgetData);
+			}
+		};
+
+		loadAllProjectBudgets();
+
+		return () => {
+			isMounted = false;
+		};
+	}, [teamProjectIds]);
+
+	// load events on component mount
 	useEffect(() => {
 		if (teamId) {
 			loadEvents();
@@ -236,6 +275,11 @@ export function TeamDetails() {
 				delete newProjectNames[projectId];
 				return newProjectNames;
 			});
+			setProjectsBudgetData(prev => {
+				const newBudgetData = { ...prev };
+				delete newBudgetData[projectId];
+				return newBudgetData;
+			});
 			if (selectedProjectId === projectId) {
 				const remainingProjects = teamProjectIds.filter(id => id !== projectId);
 				setSelectedProjectId(remainingProjects.length > 0 ? remainingProjects[0] : null);
@@ -262,6 +306,7 @@ export function TeamDetails() {
 			await projectsApi.increaseBudget(selectedProjectId, amount);
 			const res = await projectsApi.getProject(selectedProjectId);
 			setProject(res.project);
+			setProjectsBudgetData(prev => ({ ...prev, [selectedProjectId]: res.project }));
 			setBudgetAmount("");
 			setActionMsg("Budget increased");
 			push({ title: "Budget updated", description: "Amount added", variant: "success" });
@@ -285,6 +330,7 @@ export function TeamDetails() {
 			await projectsApi.spendBudget(selectedProjectId, amount);
 			const res = await projectsApi.getProject(selectedProjectId);
 			setProject(res.project);
+			setProjectsBudgetData(prev => ({ ...prev, [selectedProjectId]: res.project }));
 			setBudgetAmount("");
 			setActionMsg("Budget spent");
 			push({ title: "Budget updated", description: "Amount spent", variant: "success" });
@@ -459,6 +505,7 @@ export function TeamDetails() {
 			setSelectedProjectId(newId);
 			setNewProjectName("");
 			setNewProjectDesc("");
+			setShowCreateProject(false);
 			setActionMsg("Project created");
 			push({ title: "Project created", description: res.project.name, variant: "success" });
 		} catch (e) {
@@ -823,11 +870,14 @@ export function TeamDetails() {
 								<button 
 									className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
 									onClick={() => {
-										setNewProjectName("");
-										setNewProjectDesc("");
+										setShowCreateProject(!showCreateProject);
+										if (!showCreateProject) {
+											setNewProjectName("");
+											setNewProjectDesc("");
+										}
 									}}
 								>
-									+ New Project
+									{showCreateProject ? "Cancel" : "+ New Project"}
 								</button>
 							</CardTitle>
 						</CardHeader>
@@ -894,24 +944,19 @@ export function TeamDetails() {
 													</div>
 													
 													{/* Budget Overview */}
-													{projectLoading && selectedProjectId === projectId ? (
-														<div className="space-y-2">
-															<Skeleton className="h-3 w-20" />
-															<Skeleton className="h-6 w-24" />
-														</div>
-													) : project && selectedProjectId === projectId && !projectError ? (
+													{projectsBudgetData[projectId] ? (
 														<div className="space-y-2">
 															<div className="flex justify-between text-xs">
 																<span className="text-gray-600">Budget:</span>
-																<span className="font-medium">${(project.budget_available + project.budget_spent).toFixed(2)}</span>
+																<span className="font-medium">${(projectsBudgetData[projectId].budget_available + projectsBudgetData[projectId].budget_spent).toFixed(2)}</span>
 															</div>
 															<div className="flex justify-between text-xs">
 																<span className="text-gray-600">Available:</span>
-																<span className="text-green-600 font-medium">${project.budget_available.toFixed(2)}</span>
+																<span className="text-green-600 font-medium">${projectsBudgetData[projectId].budget_available.toFixed(2)}</span>
 															</div>
 															<div className="flex justify-between text-xs">
 																<span className="text-gray-600">Spent:</span>
-																<span className="text-red-600 font-medium">${project.budget_spent.toFixed(2)}</span>
+																<span className="text-red-600 font-medium">${projectsBudgetData[projectId].budget_spent.toFixed(2)}</span>
 															</div>
 															
 															{/* Budget Progress Bar */}
@@ -920,12 +965,12 @@ export function TeamDetails() {
 																	<div 
 																		className="bg-red-500 h-2 rounded-full" 
 																		style={{
-																			width: `${Math.min(100, (project.budget_spent / (project.budget_available + project.budget_spent)) * 100)}%`
+																			width: `${Math.min(100, (projectsBudgetData[projectId].budget_spent / (projectsBudgetData[projectId].budget_available + projectsBudgetData[projectId].budget_spent)) * 100)}%`
 																		}}
 																	></div>
 																</div>
 																<p className="text-xs text-gray-600 mt-1">
-																	{(project.budget_spent / (project.budget_available + project.budget_spent) * 100).toFixed(1)}% spent
+																	{(projectsBudgetData[projectId].budget_spent / (projectsBudgetData[projectId].budget_available + projectsBudgetData[projectId].budget_spent) * 100).toFixed(1)}% spent
 																</p>
 															</div>
 														</div>
@@ -977,6 +1022,50 @@ export function TeamDetails() {
 										})}
 									</div>
 									
+									{/* Create Project Form */}
+									{showCreateProject && (
+										<div className="border bg-purple-50 rounded-lg p-4 mt-4">
+											<div className="flex items-center justify-between mb-4">
+												<h4 className="font-medium text-purple-800">Create New Project</h4>
+												<button 
+													className="text-purple-600 hover:text-purple-800 text-sm"
+													onClick={() => setShowCreateProject(false)}
+												>
+													Cancel
+												</button>
+											</div>
+											<div className="flex flex-col gap-3">
+												<input 
+													className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
+													placeholder="Project name" 
+													value={newProjectName} 
+													onChange={(e) => setNewProjectName(e.target.value)} 
+												/>
+												<textarea 
+													className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none" 
+													placeholder="Description (optional)" 
+													value={newProjectDesc} 
+													onChange={(e) => setNewProjectDesc(e.target.value)} 
+												/>
+												<div className="flex gap-2">
+													<button 
+														className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed" 
+														disabled={creatingProject || !newProjectName.trim()} 
+														onClick={handleCreateProject}
+													>
+														{creatingProject ? "Creating..." : "Create Project"}
+													</button>
+													<button 
+														className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+														onClick={() => setShowCreateProject(false)}
+													>
+														Cancel
+													</button>
+												</div>
+											</div>
+										</div>
+									)}
+									
 									{/* Budget Management Section */}
 									{selectedProjectId && project && !projectError && (
 										<div className="border-t pt-4 space-y-4">
@@ -984,7 +1073,7 @@ export function TeamDetails() {
 												<h4 className="font-medium text-lg font-medium text-gray-800">
 													{projectNamesById[selectedProjectId]} Budget Management
 												</h4>
-												<div className="flex items-center gap-2">
+											<div className="flex items-center gap-2">
 													<span className="text-sm text-gray-600">Total:</span>
 													<span className="font-bold text-lg">${(project.budget_available + project.budget_spent).toFixed(2)}</span>
 												</div>
@@ -1026,15 +1115,15 @@ export function TeamDetails() {
 													{actionMsg || "Enter an amount below to add or spend budget"}
 												</p>
 												<div className="flex flex-wrap gap-3">
-													<input
-														type="number"
-														step="0.01"
+												<input
+													type="number"
+													step="0.01"
 														min="0"
 														className="border rounded-lg px-3 py-2 w-32 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-														placeholder="Amount"
-														value={budgetAmount}
-														onChange={(e) => setBudgetAmount(e.target.value)}
-													/>
+													placeholder="Amount"
+													value={budgetAmount}
+													onChange={(e) => setBudgetAmount(e.target.value)}
+												/>
 													<button 
 														className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
 														disabled={!budgetAmount || parseFloat(budgetAmount) <= 0}
