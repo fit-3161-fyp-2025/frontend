@@ -17,6 +17,7 @@ export interface LeaveTeamPayload {
 export interface TeamModel {
   id: string;
   name: string;
+  short_id?: string;
   member_ids: string[];
   exec_member_ids: string[];
   kanban_ids: string[];

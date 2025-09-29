@@ -1,12 +1,7 @@
 import type { UserDetails } from "./projects";
 
 export interface User {
-  id: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
-  // name: string,
-  // isExec: boolean,
 }
 
 export interface AuthContextType {

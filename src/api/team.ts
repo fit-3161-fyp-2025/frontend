@@ -47,7 +47,7 @@ export const teamApi = {
       return {
         team: {
           id: teamId || "507f1f77bcf86cd799439000",
-          short_id: "hjrisp",
+          // short_id: "hjrisp", // Commented out until backend has this field
           name: "Development Team Alpha",
           member_ids: [
             "507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012", "507f1f77bcf86cd799439013",
@@ -80,7 +80,7 @@ export const teamApi = {
 
   createEvent: async (teamId: string, eventData: CreateEventRequest): Promise<CreateEventResponse> => {
     const response = await apiClient.post(`/teams/create-event/${teamId}`, eventData);
-    return response.data;
+    return response.data as CreateEventResponse;
   },
 
   deleteEvent: async (teamId: string, eventId: string): Promise<void> => {
@@ -89,6 +89,6 @@ export const teamApi = {
 
   getTeamEvents: async (teamId: string): Promise<GetTeamEventsResponse> => {
     const response = await apiClient.post(`/teams/get-team-events/${teamId}`);
-    return response.data;
+    return response.data as GetTeamEventsResponse;
   }
 };

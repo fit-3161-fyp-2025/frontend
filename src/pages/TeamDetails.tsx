@@ -855,8 +855,6 @@ export function TeamDetails() {
 						</CardContent>
 					</Card>
 
-					// Enhanced Project Management Section for Team Details Page
-// Replace the existing project card section with this enhanced version
 
 					<Card>
 						<CardHeader>
