@@ -1100,7 +1100,7 @@ export function TeamDetails() {
 															<p className="text-2xl font-bold text-red-600">${project.budget_spent.toFixed(2)}</p>
 														</div>
 														<div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-															<span className="text-red-600 font-bold">₹</span>
+															<span className="text-red-600 font-bold">$</span>
 														</div>
 													</div>
 												</div>
