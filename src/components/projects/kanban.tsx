@@ -26,6 +26,7 @@ interface KanbanProps {
     action: "rename" | "delete" | "color";
     color?: string;
   }) => void;
+  allowDrag?: boolean;
 }
 
 export function Kanban({
@@ -36,6 +37,7 @@ export function Kanban({
   onSelect,
   extraColumn,
   onColumnUpdated,
+  allowDrag,
 }: KanbanProps) {
   const prevFeaturesRef = useRef<Feature[]>([]);
 
@@ -185,6 +187,7 @@ export function Kanban({
               name={feature.name}
               owner={feature.owner}
               onClick={() => onSelect(feature)}
+              disabled={!allowDrag}
             >
               <div className="flex items-start justify-between gap-1">
                 <div className="flex flex-col gap-2">

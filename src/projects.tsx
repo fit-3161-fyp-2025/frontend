@@ -57,6 +57,7 @@ export default function Projects() {
     isAddingColumn,
     setIsAddingColumn,
     addColumn,
+    isExecutive,
   } = useProjectData({
     dispatch,
     teams,
@@ -134,6 +135,7 @@ export default function Projects() {
               project={project}
               onFeaturesChange={setFeatures}
               onSelect={setSelectedItem}
+              allowDrag={isExecutive ?? undefined}
               onColumnUpdated={() => {
                 if (selectedProjectId) void loadProjectData(selectedProjectId);
               }}

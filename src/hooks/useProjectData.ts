@@ -377,5 +377,6 @@ export function useProjectData({
     setIsAddingColumn,
     addColumn,
     proposedCounts,
+    isExecutive,
   } as const;
 }

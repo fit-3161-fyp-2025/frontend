@@ -96,6 +96,7 @@ export type KanbanCardProps<T extends KanbanItemProps = KanbanItemProps> = T & {
   children?: ReactNode;
   className?: string;
   onClick?: () => void;
+  disabled: boolean;
 };
 
 export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
@@ -104,6 +105,7 @@ export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
   children,
   className,
   onClick,
+  disabled,
 }: KanbanCardProps<T>) => {
   const {
     attributes,
@@ -113,7 +115,8 @@ export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
     transform,
     isDragging,
   } = useSortable({
-    id,
+    id: id as string,
+    disabled,
   });
   const { activeCardId } = useContext(KanbanContext) as KanbanContextProps;
 
@@ -129,10 +132,11 @@ export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
           className={cn(
             "cursor-grab gap-4 rounded-md p-3 shadow-sm relative group",
             isDragging && "pointer-events-none cursor-grabbing opacity-30",
+            disabled && "cursor-default",
             className
           )}
-          {...attributes}
-          {...listeners}
+          {...(disabled ? {} : attributes)}
+          {...(disabled ? {} : listeners)}
         >
           {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
           {onClick && (
@@ -160,6 +164,7 @@ export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
             className={cn(
               "cursor-grab gap-4 rounded-md p-3 shadow-sm ring-2 ring-primary",
               isDragging && "cursor-grabbing",
+              disabled && "cursor-default",
               className
             )}
           >
