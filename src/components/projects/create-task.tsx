@@ -77,7 +77,7 @@ export function CreateTask({
       <DialogTrigger asChild>
         <Button size="lg">Create Task</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] overflow-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>New Task</DialogTitle>
@@ -97,7 +97,7 @@ export function CreateTask({
                 required
               />
             </div>
-            <div className="grid gap-3">
+            <div className="grid gap-3 break-words">
               <Label htmlFor="task-description-1">Task Description</Label>
               <Input
                 id="task-description-1"
