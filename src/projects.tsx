@@ -23,13 +23,13 @@ import { useSelector, useDispatch } from "react-redux";
 import { type AppDispatch, type RootState } from "./lib/store";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useProjectData } from "./hooks/useProjectData";
-import { Trash2Icon } from "lucide-react";
+import { Plus, Trash2Icon } from "lucide-react";
 import CreateProject from "./components/projects/create-project";
+import { setSelectedProjectId } from "@/features/teams/teamSlice";
 
 export default function Projects() {
-  const { teams, isFetchingTeams, selectedTeam } = useSelector(
-    (state: RootState) => state.teams
-  );
+  const { teams, isFetchingTeams, selectedTeam, selectedProjectId } =
+    useSelector((state: RootState) => state.teams);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const [selectedItem, setSelectedItem] = useState<KanbanItemProps | null>(
@@ -52,8 +52,7 @@ export default function Projects() {
     loading,
     loadingStage,
     availableProjects,
-    selectedProjectId,
-    setSelectedProjectId,
+    proposedCounts,
     project,
     features,
     setFeatures,
@@ -69,13 +68,20 @@ export default function Projects() {
     isAddingColumn,
     setIsAddingColumn,
     addColumn,
-  } = useProjectData({ dispatch, teams, isFetchingTeams, selectedTeam });
+  } = useProjectData({
+    dispatch,
+    teams,
+    isFetchingTeams,
+    selectedTeam,
+    selectedProjectId: selectedProjectId ?? "",
+  });
 
   // Column updates will be received via the Kanban `onColumnUpdated` prop.
 
   const handleProjectChange = async (projectId: string) => {
     try {
-      setSelectedProjectId(projectId);
+      // update redux selected project id
+      dispatch(setSelectedProjectId(projectId));
       await loadProjectData(projectId);
     } catch (err) {
       console.log(
@@ -85,13 +91,13 @@ export default function Projects() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8 py-2">
+    <div className="bg-background p-8 py-2">
       {ConfirmDialog}
       {loading ? (
         <ProgressLoading stages={loadingStages} currentStage={loadingStage} />
       ) : (
         <>
-          <div className="flex items-start justify-between py-1 mb-4 z-10 relative">
+          <div className="flex items-start justify-between py-1 mb-4 z-10 relative shrink-0">
             <div className="flex-1">
               <div className="space-y-2">
                 <div>
@@ -105,6 +111,7 @@ export default function Projects() {
                     availableProjects={availableProjects}
                     selectedProjectId={selectedProjectId}
                     handleProjectChange={handleProjectChange}
+                    proposedCounts={proposedCounts}
                   />
                   <Dialog
                     open={isCreateDialogOpen}
@@ -112,11 +119,10 @@ export default function Projects() {
                   >
                     <DialogTrigger asChild>
                       <Button
-                        size="sm"
                         variant="outline"
-                        className="py-6 px-4.5 border-green-400 text-green-600 hover:bg-green-50 text-xl font-bold"
+                        className="w-12.5 h-12.5 hover:bg-green-100 hover:scale-110 border-green-200"
                       >
-                        +
+                        <Plus color="green" />
                       </Button>
                     </DialogTrigger>
                     <CreateProject
@@ -127,7 +133,7 @@ export default function Projects() {
                   <Button
                     size="icon"
                     variant="outline"
-                    className="py-6 px-6 border-red-400 text-red-500 hover:bg-red-50"
+                    className="w-12.5 h-12.5 border-red-200 text-red-500 hover:bg-red-200 hover:scale-110"
                     title="Delete project"
                     disabled={!selectedProjectId}
                     onClick={() =>
