@@ -15,7 +15,7 @@ import type { KanbanItemProps } from "./index";
 import type { Column, UserDetails } from "@/types/projects";
 
 import { ItemSheetAvatar } from "@/components/ui/user-avatar";
-import { ItemSheetStatusBadge } from "@/utils/statusBadge";
+import { ListViewStatusBadge } from "@/utils/statusBadge";
 
 // Reusable editable wrapper component
 const EditableField = ({
@@ -191,7 +191,7 @@ export function KanbanItemSheet({
                       canEdit={!!onUpdate}
                       onClick={() => startEdit("column", localItem!.column)}
                     >
-                      <ItemSheetStatusBadge
+                      <ListViewStatusBadge
                         status={getColumnName(localItem!.column ?? "")}
                       />
                     </EditableField>
