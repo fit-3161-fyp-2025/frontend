@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
-type Props = {
+type ColumnProp = {
   currentColor?: string;
   onChangeColor: (color: string) => void;
   onDelete: () => void;
@@ -22,7 +22,7 @@ export function KanbanColDropdown({
   currentColor,
   onChangeColor,
   onDelete,
-}: Props) {
+}: ColumnProp) {
   const [open, setOpen] = useState(false);
   const { confirm, DialogEl } = useConfirm();
 
@@ -36,6 +36,7 @@ export function KanbanColDropdown({
     "#6366f1",
     "#8b5cf6",
     "#ec4899",
+    "#8e8e8eff",
   ];
 
   const handleDelete = () => {
@@ -58,10 +59,10 @@ export function KanbanColDropdown({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[220px]">
-          <DropdownMenuLabel>Column</DropdownMenuLabel>
+          <DropdownMenuLabel>Status Column</DropdownMenuLabel>
           <DropdownMenuGroup>
             <div className="p-2">
-              <div className="text-xs text-muted-foreground mb-2">Color</div>
+              <div className="text-xs text-muted-foreground mb-2">Colour</div>
               <div className="flex flex-wrap gap-2">
                 {colors.map((c) => (
                   <button

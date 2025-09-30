@@ -56,7 +56,6 @@ export function Kanban({
     });
 
     if (movedFeature && project) {
-      // Update the todo item status in the backend
       projectsApi
         .updateTodo(project.id, {
           id: movedFeature.id,
@@ -75,14 +74,10 @@ export function Kanban({
   }, [features, project]);
 
   const handleKanbanChange = (value: React.SetStateAction<Feature[]>) => {
-    // Handle both direct values and function updates
     const newFeatures = typeof value === "function" ? value(features) : value;
-
-    // Update the features through the parent callback
     onFeaturesChange(newFeatures);
   };
 
-  // Extracted ColumnView so hooks run in a component, not inside a render callback
   function ColumnView({ column }: { column: Column }) {
     const [editingName, setEditingName] = useState(false);
     const [nameValue, setNameValue] = useState(column.name);
@@ -153,16 +148,17 @@ export function Kanban({
                 currentColor={column.color}
                 onChangeColor={async (c: string) => {
                   if (!project) return;
-                  try {
-                    onColumnUpdated?.({
-                      id: column.id,
-                      action: "color",
-                      color: c,
-                    });
-                    toast.success("Column color updated");
-                  } catch (err) {
-                    toast.error("Failed to update column colour");
-                  }
+                  await projectsApi.updateTodoStatus(project.id, {
+                    id: column.id,
+                    name: column.name,
+                    color: c,
+                  });
+                  onColumnUpdated?.({
+                    id: column.id,
+                    action: "color",
+                    color: c,
+                  });
+                  toast.success("Column color updated");
                 }}
                 onDelete={async () => {
                   if (!project) return;

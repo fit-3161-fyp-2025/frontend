@@ -106,7 +106,6 @@ export default function Projects() {
                     selectedProjectId={selectedProjectId}
                     handleProjectChange={handleProjectChange}
                   />
-                  {/* Add Column button removed; use the Kanban end-card instead */}
                   <Dialog
                     open={isCreateDialogOpen}
                     onOpenChange={setIsCreateDialogOpen}
@@ -170,7 +169,6 @@ export default function Projects() {
             </div>
           </div>
 
-          {/* Modal dialog for Add Column (opened from Kanban's extraColumn) */}
           <Dialog open={isAddingColumn} onOpenChange={setIsAddingColumn}>
             <DialogContent className="sm:max-w-[425px]">
               <form
@@ -201,7 +199,7 @@ export default function Projects() {
                     />
                   </div>
                   <div className="grid gap-3">
-                    <Label className="text-sm">Column Colour Label</Label>
+                    <Label className="text-sm">Colour Label</Label>
                     <div className="flex gap-2 my-2">
                       {[
                         "#ef4444",
