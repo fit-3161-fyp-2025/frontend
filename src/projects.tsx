@@ -1,19 +1,6 @@
 import { Kanban } from "@/components/projects/kanban";
 import { useState } from "react";
 import { ListView } from "./components/projects/list-view";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { CreateTask } from "./components/projects/create-task";
 import { KanbanItemSheet } from "@/components/projects/item-sheet";
 import type { KanbanItemProps } from "@/components/projects";
@@ -23,14 +10,15 @@ import { useSelector, useDispatch } from "react-redux";
 import { type AppDispatch, type RootState } from "./lib/store";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useProjectData } from "./hooks/useProjectData";
-import { Plus, Trash2Icon } from "lucide-react";
 import CreateProject from "./components/projects/create-project";
 import { setSelectedProjectId } from "@/features/teams/teamSlice";
+import { DeleteProjectButton } from "./components/projects/delete-project";
+import { AddColumnDialog } from "./components/projects/add-column";
+import { ViewToggle } from "./components/projects/view-toggle";
 
 export default function Projects() {
   const { teams, isFetchingTeams, selectedTeam, selectedProjectId } =
     useSelector((state: RootState) => state.teams);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const [selectedItem, setSelectedItem] = useState<KanbanItemProps | null>(
     null
@@ -46,7 +34,8 @@ export default function Projects() {
   ];
 
   const dispatch = useDispatch<AppDispatch>();
-  const { confirm, DialogEl: ConfirmDialog } = useConfirm();
+
+  const { DialogEl: ConfirmDialog } = useConfirm();
 
   const {
     loading,
@@ -76,11 +65,8 @@ export default function Projects() {
     selectedProjectId: selectedProjectId ?? "",
   });
 
-  // Column updates will be received via the Kanban `onColumnUpdated` prop.
-
   const handleProjectChange = async (projectId: string) => {
     try {
-      // update redux selected project id
       dispatch(setSelectedProjectId(projectId));
       await loadProjectData(projectId);
     } catch (err) {
@@ -97,9 +83,9 @@ export default function Projects() {
         <ProgressLoading stages={loadingStages} currentStage={loadingStage} />
       ) : (
         <>
-          <div className="flex items-start justify-between py-1 mb-4 z-10 relative shrink-0">
+          <div className="flex items-start justify-between mt-2 mb-2">
             <div className="flex-1">
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div>
                   <p className="text-xs text-muted-foreground">
                     Team: {selectedTeam?.name} • {availableProjects.length}{" "}
@@ -113,43 +99,15 @@ export default function Projects() {
                     handleProjectChange={handleProjectChange}
                     proposedCounts={proposedCounts}
                   />
-                  <Dialog
-                    open={isCreateDialogOpen}
-                    onOpenChange={setIsCreateDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-12.5 h-12.5 hover:bg-green-100 hover:scale-110 border-green-200"
-                      >
-                        <Plus color="green" />
-                      </Button>
-                    </DialogTrigger>
-                    <CreateProject
-                      onClose={() => setIsCreateDialogOpen(false)}
-                      handleCreateProject={handleCreateProject}
-                    />
-                  </Dialog>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="w-12.5 h-12.5 border-red-200 text-red-500 hover:bg-red-200 hover:scale-110"
-                    title="Delete project"
+                  <CreateProject handleCreateProject={handleCreateProject} />
+                  <DeleteProjectButton
+                    handleDeleteProject={handleDeleteProject}
                     disabled={!selectedProjectId}
-                    onClick={() =>
-                      confirm({
-                        title: "Delete project?",
-                        description:
-                          "This will permanently delete the project and its tasks. This action cannot be undone.",
-                        onConfirm: handleDeleteProject,
-                      })
-                    }
-                  >
-                    <Trash2Icon className="h-4 w-4" />
-                  </Button>
+                  />
                 </div>
               </div>
             </div>
+
             <div className="flex flex-col items-end space-y-2">
               <CreateTask
                 project={project}
@@ -157,98 +115,17 @@ export default function Projects() {
                 users={users}
                 onCreated={() => loadProjectData(selectedProjectId || "")}
               />
-              <div className="flex items-center space-x-2 mt-4">
-                <Label htmlFor="view-switch" className="text-sm font-medium">
-                  Kanban
-                </Label>
-                <Switch
-                  id="view-switch"
-                  checked={view === "list"}
-                  onCheckedChange={(checked) =>
-                    setView(checked ? "list" : "kanban")
-                  }
-                />
-                <Label htmlFor="view-switch" className="text-sm font-medium">
-                  List
-                </Label>
-              </div>
+              <ViewToggle view={view} onViewChange={setView} />
             </div>
           </div>
 
-          <Dialog open={isAddingColumn} onOpenChange={setIsAddingColumn}>
-            <DialogContent className="sm:max-w-[425px]">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  addColumn();
-                }}
-              >
-                <DialogHeader>
-                  <DialogTitle>Add Column</DialogTitle>
-                  <DialogDescription className="mb-2">
-                    Enter a title and pick a colour for the new column.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="grid gap-4">
-                  <div className="grid gap-3">
-                    <Label htmlFor="column-title">Column Title</Label>
-                    <input
-                      id="column-title"
-                      value={newColumn.name}
-                      onChange={(e) =>
-                        setNewColumn({ ...newColumn, name: e.target.value })
-                      }
-                      placeholder="Enter column title"
-                      required
-                      className="w-full rounded border px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                    />
-                  </div>
-                  <div className="grid gap-3">
-                    <Label className="text-sm">Colour Label</Label>
-                    <div className="flex gap-2 my-2">
-                      {[
-                        "#ef4444",
-                        "#f97316",
-                        "#f59e0b",
-                        "#10b981",
-                        "#06b6d4",
-                        "#3b82f6",
-                        "#6366f1",
-                        "#8b5cf6",
-                        "#ec4899",
-                      ].map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() =>
-                            setNewColumn({ ...newColumn, color: c })
-                          }
-                          className={
-                            "w-8 h-8 rounded-full border-2 " +
-                            (newColumn.color === c
-                              ? "ring-2 ring-offset-1"
-                              : "")
-                          }
-                          style={{ background: c }}
-                          aria-label={`select ${c}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline" type="button">
-                      Cancel
-                    </Button>
-                  </DialogClose>
-                  <Button type="submit">Add Column</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <AddColumnDialog
+            open={isAddingColumn}
+            onOpenChange={setIsAddingColumn}
+            newColumn={newColumn}
+            setNewColumn={setNewColumn}
+            onSubmit={addColumn}
+          />
 
           {view === "kanban" ? (
             <Kanban

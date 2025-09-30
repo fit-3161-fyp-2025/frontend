@@ -26,9 +26,13 @@ export function ListView({
   columns = [],
   onSelect,
 }: ListViewProps) {
-  const getColumnName = (columnId: string) => {
-    const column = columns.find((col) => col.id === columnId);
-    return column?.name || columnId;
+  const getColumnDetails = (columnId: string) => {
+    return (
+      columns.find((col) => col.id === columnId) || {
+        name: columnId,
+        color: undefined,
+      }
+    );
   };
 
   return (
@@ -43,28 +47,32 @@ export function ListView({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item: KanbanItemProps) => (
-            <TableRow
-              key={item.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => onSelect(item)}
-            >
-              <TableCell className="font-medium max-w-25 truncate">
-                {item.name}
-              </TableCell>
-              <TableCell className="max-w-5 truncate">
-                <ListViewStatusBadge
-                  status={getColumnName(item.column ?? "")}
-                />
-              </TableCell>
-              <TableCell className="max-w-15 truncate">
-                <ListViewAvatar owner={item.owner} />
-              </TableCell>
-              <TableCell className="max-w-35 truncate">
-                <div className="text-sm w-20">{item.description}</div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {items.map((item: KanbanItemProps) => {
+            const column = getColumnDetails(item.column ?? "");
+            return (
+              <TableRow
+                key={item.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => onSelect(item)}
+              >
+                <TableCell className="font-medium max-w-25 truncate">
+                  {item.name}
+                </TableCell>
+                <TableCell className="max-w-5 truncate">
+                  <ListViewStatusBadge
+                    status={column.name}
+                    color={column.color}
+                  />
+                </TableCell>
+                <TableCell className="max-w-15 truncate">
+                  <ListViewAvatar owner={item.owner} />
+                </TableCell>
+                <TableCell className="max-w-35 truncate">
+                  <div className="text-sm w-20">{item.description}</div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
       <ScrollBar orientation="vertical" />

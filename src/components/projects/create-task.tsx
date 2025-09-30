@@ -80,9 +80,7 @@ export function CreateTask({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="lg">
-          {isProposeMode ? "Propose Task" : "Create Task"}
-        </Button>
+        <Button>{isProposeMode ? "Propose Task" : "Create Task"}</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] overflow-auto">
         <form onSubmit={handleSubmit}>
