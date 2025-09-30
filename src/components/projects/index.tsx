@@ -81,7 +81,7 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
   return (
     <div
       className={cn(
-        "flex size-full min-h-40 flex-col divide-y overflow-hidden rounded-md border bg-secondary text-xs shadow-sm ring-2 transition-all",
+        "flex size-full h-[calc(100vh-25vh)] flex-col divide-y overflow-hidden rounded-md border bg-secondary text-xs shadow-sm ring-2 transition-all",
         isOver ? "ring-primary" : "ring-transparent",
         className
       )}
@@ -344,17 +344,18 @@ export const KanbanProvider = <
         sensors={sensors}
         {...props}
       >
-        <div
-          className={cn("overflow-x-auto max-w-full py-2 min-w-0", className)}
-        >
-          <div className="inline-flex items-start gap-4 min-h-[8rem] px-2 min-w-0">
+        <div className={cn("overflow-x-auto", className)}>
+          <div className="inline-flex items-start ">
             {columns.map((column) => (
-              <div key={column.id} className="flex-shrink-0 min-w-[14rem]">
+              <div
+                key={column.id}
+                className="min-w-[24rem] min-h-[45rem] px-1.25"
+              >
                 {children(column)}
               </div>
             ))}
             {extraColumn && (
-              <div className="flex-shrink-0 min-w-[14rem]">{extraColumn}</div>
+              <div className="min-w-[12rem] m-2">{extraColumn}</div>
             )}
           </div>
         </div>

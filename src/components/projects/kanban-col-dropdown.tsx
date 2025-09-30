@@ -54,11 +54,22 @@ export function KanbanColDropdown({
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm">
-            <MoreHorizontal />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-md hover:scale-115 hover:ring-2 transform transition-all duration-150"
+            aria-label="Column options"
+            title="Column options"
+          >
+            <MoreHorizontal
+              className={
+                "h-4 w-4 transition-transform duration-150 " +
+                (open ? "rotate-90 text-foreground" : "text-muted-foreground")
+              }
+            />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[220px]">
+        <DropdownMenuContent align="end" className="w-[240px]">
           <DropdownMenuLabel>Status Column</DropdownMenuLabel>
           <DropdownMenuGroup>
             <div className="p-2">
@@ -74,7 +85,7 @@ export function KanbanColDropdown({
                     }}
                     aria-label={`Set color ${c}`}
                     className={
-                      "w-7 h-7 rounded-full border-2" +
+                      "w-7 h-7 rounded-full border-2 hover:scale-120" +
                       (currentColor === c ? " ring-2 ring-offset-1" : "")
                     }
                     style={{ background: c }}

@@ -325,6 +325,10 @@ export function useProjectData({
     const currentFeature = features.find((f) => f.id === itemId);
     if (!currentFeature) return;
 
+    // keep a copy to allow rollback on failure
+    const prevFeaturesSnapshot = [...features];
+
+    // optimistic UI update
     setFeatures((prevFeatures) =>
       prevFeatures.map((feature) =>
         feature.id === itemId ? { ...feature, ...updates } : feature
@@ -339,10 +343,21 @@ export function useProjectData({
         status_id: (updates as any).column ?? currentFeature.column,
         assignee_id: (updates as any).owner?.id ?? currentFeature.owner.id,
       };
-      projectsApi.updateTodo(project.id, apiData).catch((err) => {
-        toast(err, { id: "update-todo-failed" });
-        console.error("Failed to update todo:", err);
-      });
+
+      // Call API and show toast on success; revert optimistic update on failure.
+      projectsApi
+        .updateTodo(project.id, apiData)
+        .then(() => {
+          toast.success("Edit Applied", { id: `update-todo-${itemId}` });
+        })
+        .catch((err) => {
+          // rollback optimistic update
+          setFeatures(prevFeaturesSnapshot);
+          toast.error("Failed to update task", {
+            id: `update-todo-failed-${itemId}`,
+          });
+          console.error("Failed to update todo:", err);
+        });
     }
   };
 

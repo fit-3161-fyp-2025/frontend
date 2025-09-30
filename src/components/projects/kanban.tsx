@@ -99,7 +99,7 @@ export function Kanban({
           name: trimmed,
           color: column.color,
         });
-        toast.success("Column renamed");
+        toast.success("Column renamed: " + trimmed);
         setEditingName(false);
         onColumnUpdated?.({ id: column.id, action: "rename" });
       } catch (err) {
@@ -111,38 +111,39 @@ export function Kanban({
     return (
       <KanbanBoard id={column.id} key={column.id}>
         <KanbanHeader>
-          <div className="flex items-center gap-2">
-            <div
-              className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: column.color }}
-            />
-            {editingName ? (
-              <Input
-                value={nameValue}
-                onChange={(e) => setNameValue(e.target.value)}
-                className="w-40"
-                autoFocus
-                onBlur={() => saveName()}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    saveName();
-                  }
-                  if (e.key === "Escape") {
-                    setEditingName(false);
-                    setNameValue(column.name);
-                  }
-                }}
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <div
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: column.color }}
               />
-            ) : (
-              <span
-                className="cursor-pointer"
-                onClick={() => setEditingName(true)}
-                title="Click to rename"
-              >
-                {column.name}
-              </span>
-            )}
+              {editingName ? (
+                <Input
+                  value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
+                  autoFocus
+                  onBlur={() => saveName()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      saveName();
+                    }
+                    if (e.key === "Escape") {
+                      setEditingName(false);
+                      setNameValue(column.name);
+                    }
+                  }}
+                />
+              ) : (
+                <span
+                  className="cursor-pointer max-w-[13rem] truncate block"
+                  onClick={() => setEditingName(true)}
+                  title={column.name}
+                >
+                  {column.name}
+                </span>
+              )}
+            </div>
             <div className="ml-2">
               <KanbanColDropdown
                 currentColor={column.color}
@@ -185,15 +186,15 @@ export function Kanban({
               owner={feature.owner}
               onClick={() => onSelect(feature)}
             >
-              <div className="flex items-start justify-between gap-2 ">
-                <div className="flex flex-col gap-1">
-                  <p className="m-0 flex-1 font-medium text-sm">
+              <div className="flex items-start justify-between gap-1">
+                <div className="flex flex-col gap-2">
+                  <p className="font-medium text-sm line-clamp-1 truncate max-w-70">
                     {feature.name}
                   </p>
                 </div>
                 {feature.owner && <KanbanAvatar owner={feature.owner} />}
               </div>
-              <div className="text-muted-foreground text-xs w-70 line-clamp-1">
+              <div className="text-muted-foreground text-xs max-w-60 line-clamp-1 truncate">
                 {feature.description}
               </div>
             </KanbanCard>
