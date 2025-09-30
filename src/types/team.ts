@@ -62,4 +62,5 @@ export interface UserTeamsState {
   teams: TeamModel[];
   isFetchingTeams: boolean;
   selectedTeam: TeamModel | null;
+  selectedProjectId: string | null;
 }

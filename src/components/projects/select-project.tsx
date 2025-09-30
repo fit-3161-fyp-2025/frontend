@@ -5,38 +5,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-type Project = {
-  id: string;
-  name: string;
-  description?: string | null;
-};
+import { Badge } from "@/components/ui/badge"; // Add import for Badge
+import type { Project } from "@/types/projects";
 
 type SelectProjectProps = {
   availableProjects: Project[];
-  selectedProjectId?: string | null;
-  handleProjectChange: (value: string) => void;
+  selectedProjectId: string | null;
+  handleProjectChange: (projectId: string) => void;
+  proposedCounts?: Record<string, number>;
 };
 
 export default function SelectProject({
   availableProjects,
   selectedProjectId,
   handleProjectChange,
+  proposedCounts,
 }: SelectProjectProps) {
   return (
-    <Select value={selectedProjectId || ""} onValueChange={handleProjectChange}>
-      <SelectTrigger className="flex-start w-[255px] py-6.5">
-        <SelectValue className="text-left truncate" />
+    <Select value={selectedProjectId ?? ""} onValueChange={handleProjectChange}>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Select project" />
       </SelectTrigger>
-      <SelectContent className="text-left">
-        {availableProjects.map((proj) => (
-          <SelectItem key={proj.id} value={proj.id}>
-            <div className="grid grid-rows-2">
-              <div className="text-left font-medium">{proj.name}</div>
-              {proj.description && (
-                <div className="text-left text-xs">{proj.description}</div>
-              )}
-            </div>
+      <SelectContent>
+        {availableProjects.map((project) => (
+          <SelectItem key={project.id} value={project.id}>
+            {project.name}
+            {(proposedCounts?.[project.id] ?? 0) > 0 && (
+              <Badge variant="destructive" className="ml-2">
+                {proposedCounts?.[project.id] ?? 0}
+              </Badge>
+            )}
           </SelectItem>
         ))}
       </SelectContent>

@@ -49,16 +49,18 @@ export function ListView({
               className="cursor-pointer hover:bg-muted/50"
               onClick={() => onSelect(item)}
             >
-              <TableCell className="font-medium">{item.name}</TableCell>
-              <TableCell>
+              <TableCell className="font-medium max-w-25 truncate">
+                {item.name}
+              </TableCell>
+              <TableCell className="max-w-5 truncate">
                 <ListViewStatusBadge
                   status={getColumnName(item.column ?? "")}
                 />
               </TableCell>
-              <TableCell>
+              <TableCell className="max-w-15 truncate">
                 <ListViewAvatar owner={item.owner} />
               </TableCell>
-              <TableCell>
+              <TableCell className="max-w-35 truncate">
                 <div className="text-sm w-20">{item.description}</div>
               </TableCell>
             </TableRow>

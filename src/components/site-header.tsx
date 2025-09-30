@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { PageHeaderDisplay } from "@/contexts/PageHeaderContext";
+import { Inbox } from "@/components/projects/inbox";
 
 export function SiteHeader() {
   return (
@@ -11,10 +12,13 @@ export function SiteHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-6"
         />
-        <div className="text-base font-medium">
+        <div className="text-base font-medium flex-1">
           <PageHeaderDisplay
             fallback={<h1 className="text-base font-black">Club Sync</h1>}
           />
+        </div>
+        <div className="flex justify-end">
+          <Inbox />
         </div>
       </div>
     </header>

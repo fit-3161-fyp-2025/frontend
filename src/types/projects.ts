@@ -54,8 +54,6 @@ export interface Feature {
   id: string;
   name: string;
   description: string;
-  startAt: string | Date;
-  endAt: string | Date;
   column: string;
   owner: UserDetails;
   [key: string]: unknown;

@@ -24,6 +24,13 @@ export const authApi = {
     return response.data;
   },
 
+  getCurrentUser: async (): Promise<User> => {
+    const response = await apiClient.get<UserResponse>(
+      `/users/get-current-user`
+    );
+    return response.data.user;
+  },
+
   verifyCode: async (data: EmailVerifyPayload): Promise<User> => {
     const response = await apiClient.post<User>("/users/verify-code", data);
     return response.data;
