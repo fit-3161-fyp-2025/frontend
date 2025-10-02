@@ -1,51 +1,41 @@
 import { Kanban } from "@/components/projects/kanban";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ListView } from "./components/projects/list-view";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import type {
-  Column,
-  User,
-  Feature,
-  Project,
-  ToDoItem,
-  Team,
-} from "@/types/projects";
 import { CreateTask } from "./components/projects/create-task";
 import { KanbanItemSheet } from "@/components/projects/item-sheet";
 import type { KanbanItemProps } from "@/components/projects";
-import { projectsApi } from "@/api/projects";
 import { ProgressLoading } from "@/components/ProgressLoading";
+import SelectProject from "@/components/projects/select-project";
+import { useSelector, useDispatch } from "react-redux";
+import { type AppDispatch, type RootState } from "./lib/store";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useProjectData } from "./hooks/useProjectData";
+import { Trash2Icon } from "lucide-react";
+import CreateProject from "./components/projects/create-project";
 
 export default function Projects() {
-  const [teams, setTeams] = useState<Team[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
-  const [project, setProject] = useState<Project | null>(null);
-  const [features, setFeatures] = useState<Feature[]>([]);
-  const [columns, setColumns] = useState<Column[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingStage, setLoadingStage] = useState(0);
+  const { teams, isFetchingTeams, selectedTeam } = useSelector(
+    (state: RootState) => state.teams
+  );
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [newProjectName, setNewProjectName] = useState("");
-  const [newProjectDescription, setNewProjectDescription] = useState("");
 
+  const [selectedItem, setSelectedItem] = useState<KanbanItemProps | null>(
+    null
+  );
+  const [view, setView] = useState<"kanban" | "list">("kanban");
   const loadingStages = [
     "Fetching user teams...",
     "Loading available projects...",
@@ -54,390 +44,105 @@ export default function Projects() {
     "Fetching todo items...",
     "Preparing workspace...",
   ];
-  const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
-  const [selectedItem, setSelectedItem] = useState<KanbanItemProps | null>(
-    null
-  );
-  const [view, setView] = useState<"kanban" | "list">("kanban");
 
-  // Function to load specific project data
-  const loadProjectData = async (projectId: string) => {
-    try {
-      setLoadingStage(3); // Loading project details
+  const dispatch = useDispatch<AppDispatch>();
+  const { confirm, DialogEl: ConfirmDialog } = useConfirm();
 
-      // Fetch project details and todo items in parallel
-      const [projectResponse, todoItemsResponse] = await Promise.all([
-        projectsApi.getProject(projectId),
-        (async () => {
-          setLoadingStage(4); // Fetching todo items
-          return await projectsApi.getTodoItems(projectId);
-        })(),
-      ]);
+  const {
+    loading,
+    loadingStage,
+    availableProjects,
+    selectedProjectId,
+    setSelectedProjectId,
+    project,
+    features,
+    setFeatures,
+    columns,
+    users,
+    loadProjectData,
+    handleCreateProject,
+    handleDeleteProject,
+    handleDeleteItem,
+    handleUpdateItem,
+    newColumn,
+    setNewColumn,
+    isAddingColumn,
+    setIsAddingColumn,
+    addColumn,
+  } = useProjectData({ dispatch, teams, isFetchingTeams, selectedTeam });
 
-      setLoadingStage(5); // Preparing workspace
+  // Column updates will be received via the Kanban `onColumnUpdated` prop.
 
-      if (projectResponse.project) {
-        setProject(projectResponse.project);
-
-        // Use todo_statuses array to create columns
-        const statusColumns: Column[] =
-          projectResponse.project.todo_statuses.map((status, index) => ({
-            id: status.id,
-            name: status.name,
-            color: ["#6B7280", "#F59E0B", "#10B981"][index % 3],
-          }));
-
-        setColumns(
-          statusColumns.length > 0
-            ? statusColumns
-            : [
-                { id: "1", name: "To Do", color: "#6B7280" },
-                { id: "2", name: "In Progress", color: "#F59E0B" },
-                { id: "3", name: "Done", color: "#10B981" },
-              ]
-        );
-      }
-
-      if (todoItemsResponse.todos) {
-        // Convert ToDoItems to Features format
-        const convertedFeatures: Feature[] = todoItemsResponse.todos.map(
-          (item: ToDoItem) => ({
-            id: item.id,
-            name: item.name,
-            startAt: new Date(),
-            endAt: new Date(),
-            column: item.status_id,
-            owner: {
-              id: item.owner_id,
-              name: item.owner_id,
-              image: "",
-            },
-          })
-        );
-        setFeatures(convertedFeatures);
-      }
-    } catch (err) {
-      console.log(
-        err instanceof Error ? err.message : "Failed to load project data"
-      );
-      throw err;
-    }
-  };
-  // Fetch users whenever project or teams change
-  useEffect(() => {
-    const fetchUsers = async () => {
-      let teamId = null;
-      if (project && teams.length > 0) {
-        const owningTeam = teams.find((team) =>
-          team.project_ids.includes(project.id)
-        );
-        teamId = owningTeam?.id || teams[0].id;
-      } else if (teams.length > 0) {
-        teamId = teams[0].id;
-      }
-      let realUsers: User[] = [];
-      if (teamId) {
-        try {
-          const teamResponse = await projectsApi.getTeam(teamId);
-          realUsers = teamResponse.team.member_ids.map((id) => ({
-            id,
-            name: id,
-            image: "",
-          }));
-        } catch (err) {
-          // silently fail
-        }
-      }
-      setUsers(realUsers);
-    };
-    fetchUsers();
-  }, [project, teams]);
-
-  useEffect(() => {
-    const fetchTeamsAndProjects = async () => {
-      try {
-        setLoading(true);
-        setLoadingStage(0); // Fetching user teams
-
-        // Get current user teams to find project IDs
-        const teamsResponse = await projectsApi.getCurrentUserTeams();
-        if (!teamsResponse || !teamsResponse.teams) {
-          throw new Error("Invalid response from teams API");
-        }
-        setTeams(teamsResponse.teams);
-
-        setLoadingStage(1); // Loading available projects
-
-        if (teamsResponse.teams.length === 0) {
-          throw new Error("No teams found for current user");
-        }
-
-        setLoadingStage(2); // Setting up project data
-
-        // Collect all project IDs from all teams
-        const allProjectIds = teamsResponse.teams.flatMap(
-          (team) => team.project_ids
-        );
-        if (allProjectIds.length === 0) {
-          throw new Error("No projects found in user teams");
-        }
-
-        // Fetch all projects to populate the selector
-        const projectPromises = allProjectIds.map(async (projectId) => {
-          try {
-            const response = await projectsApi.getProject(projectId);
-            return response;
-          } catch (err) {
-            return null;
-          }
-        });
-
-        const projectResponses = await Promise.all(projectPromises);
-        const validProjects = projectResponses
-          .filter((response) => response && response.project)
-          .map((response) => response!.project);
-        setAvailableProjects(validProjects);
-
-        // Auto-select the first available project
-        if (validProjects.length > 0) {
-          const firstProjectId = validProjects[0].id;
-          setSelectedProjectId(firstProjectId);
-          await loadProjectData(firstProjectId);
-        } else {
-          throw new Error("No valid projects could be loaded");
-        }
-      } catch (err) {
-        console.log(
-          err instanceof Error ? err.message : "Failed to fetch project data"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTeamsAndProjects();
-  }, []);
-
-  // Handle project selection change
   const handleProjectChange = async (projectId: string) => {
     try {
       setSelectedProjectId(projectId);
-      setLoading(true);
-      setLoadingStage(3); // Loading project details
       await loadProjectData(projectId);
     } catch (err) {
       console.log(
         err instanceof Error ? err.message : "Failed to load project"
       );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle creating a new project
-  const handleCreateProject = async () => {
-    if (teams.length === 0) {
-      console.log("No team available to create project");
-      return;
-    }
-
-    if (!newProjectName.trim()) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setLoadingStage(1); // Creating project
-
-      const teamId = teams[0].id; // Use the first team
-      const response = await projectsApi.createProject(
-        teamId,
-        newProjectName.trim(),
-        newProjectDescription.trim() || undefined
-      );
-
-      if (response.project) {
-        // Refresh the available projects list
-        const updatedTeamsResponse = await projectsApi.getCurrentUserTeams();
-        if (updatedTeamsResponse.teams.length > 0) {
-          const allProjectIds = updatedTeamsResponse.teams.flatMap(
-            (team) => team.project_ids
-          );
-
-          const projectPromises = allProjectIds.map(async (projectId) => {
-            try {
-              const response = await projectsApi.getProject(projectId);
-              return response;
-            } catch (err) {
-              return null;
-            }
-          });
-
-          const projectResponses = await Promise.all(projectPromises);
-          const validProjects = projectResponses
-            .filter((response) => response && response.project)
-            .map((response) => response!.project);
-
-          setAvailableProjects(validProjects);
-
-          // Auto-select the newly created project
-          setSelectedProjectId(response.project.id);
-          await loadProjectData(response.project.id);
-        }
-
-        // Reset form and close dialog
-        setNewProjectName("");
-        setNewProjectDescription("");
-        setIsCreateDialogOpen(false);
-      }
-    } catch (err) {
-      console.log(
-        err instanceof Error ? err.message : "Failed to create project"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDeleteItem = async (itemId: string) => {
-    if (!project) return;
-    
-    try {
-      // Call backend API to delete the todo item
-      await projectsApi.deleteTodo(project.id, itemId);
-      
-      // Update UI state after successful backend deletion
-      setFeatures((prevFeatures) =>
-        prevFeatures.filter((feature) => feature.id !== itemId)
-      );
-      setSelectedItem(null);
-    } catch (err) {
-      console.log(err instanceof Error ? err.message : "Failed to delete item");
-      // Optionally show an error message to the user
-    }
-  };
-
-  const handleUpdateItem = (
-    itemId: string,
-    updates: Partial<KanbanItemProps>
-  ) => {
-    setFeatures((prevFeatures) =>
-      prevFeatures.map((feature) =>
-        feature.id === itemId ? { ...feature, ...updates } : feature
-      )
-    );
-    // Update selectedItem if it's the one being edited
-    if (selectedItem?.id === itemId) {
-      setSelectedItem({ ...selectedItem, ...updates });
     }
   };
 
   return (
     <div className="min-h-screen bg-background p-8 py-2">
+      {ConfirmDialog}
       {loading ? (
         <ProgressLoading stages={loadingStages} currentStage={loadingStage} />
       ) : (
         <>
-          <div className="flex items-start justify-between mb-4 py-2">
+          <div className="flex items-start justify-between py-1 mb-4 z-10 relative">
             <div className="flex-1">
               <div className="space-y-2">
-                <div className="text-sm font-medium text-muted-foreground mb-2">
-                  Select Project
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Team: {selectedTeam?.name} • {availableProjects.length}{" "}
+                    project(s)
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Select
-                    value={selectedProjectId || ""}
-                    onValueChange={handleProjectChange}
-                  >
-                    <SelectTrigger className="flex-initial px-2 space-x-2">
-                      <SelectValue placeholder="Create a Project" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableProjects.map((proj) => (
-                        <SelectItem key={proj.id} value={proj.id}>
-                          <div className="flex items-center gap-2">
-                            <div className="font-medium">{proj.name}</div>
-                            {proj.description && (
-                              <div className="text-xs text-muted-foreground">
-                                {proj.description}
-                              </div>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SelectProject
+                    availableProjects={availableProjects}
+                    selectedProjectId={selectedProjectId}
+                    handleProjectChange={handleProjectChange}
+                  />
+                  {/* Add Column button removed; use the Kanban end-card instead */}
                   <Dialog
                     open={isCreateDialogOpen}
                     onOpenChange={setIsCreateDialogOpen}
                   >
                     <DialogTrigger asChild>
-                      <Button size="sm" variant="outline" className="px-3">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="py-6 px-4.5 border-green-400 text-green-600 hover:bg-green-50 text-xl font-bold"
+                      >
                         +
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Create New Project</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-1 items-center gap-4">
-                          <Label htmlFor="project-name" className="text-right">
-                            Project Name:
-                          </Label>
-                          <Input
-                            id="project-name"
-                            value={newProjectName}
-                            onChange={(e) => setNewProjectName(e.target.value)}
-                            className="col-span-3"
-                            placeholder="Enter project name"
-                          />
-                        </div>
-                        <div className="grid grid-cols-1 items-center gap-4">
-                          <Label
-                            htmlFor="project-description"
-                            className="text-right"
-                          >
-                            Project Description:
-                          </Label>
-                          <Input
-                            id="project-description"
-                            value={newProjectDescription}
-                            onChange={(e) =>
-                              setNewProjectDescription(e.target.value)
-                            }
-                            className="col-span-3"
-                            placeholder="Enter project description (optional)"
-                          />
-                        </div>
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setNewProjectName("");
-                            setNewProjectDescription("");
-                            setIsCreateDialogOpen(false);
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={handleCreateProject}
-                          disabled={!newProjectName.trim()}
-                        >
-                          Create Project
-                        </Button>
-                      </div>
-                    </DialogContent>
+                    <CreateProject
+                      onClose={() => setIsCreateDialogOpen(false)}
+                      handleCreateProject={handleCreateProject}
+                    />
                   </Dialog>
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    className="py-6 px-6 border-red-400 text-red-500 hover:bg-red-50"
+                    title="Delete project"
+                    disabled={!selectedProjectId}
+                    onClick={() =>
+                      confirm({
+                        title: "Delete project?",
+                        description:
+                          "This will permanently delete the project and its tasks. This action cannot be undone.",
+                        onConfirm: handleDeleteProject,
+                      })
+                    }
+                  >
+                    <Trash2Icon className="h-4 w-4" />
+                  </Button>
                 </div>
-                {teams.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
-                    Team: {teams[0].name} • {availableProjects.length}{" "}
-                    project(s)
-                  </p>
-                )}
               </div>
             </div>
             <div className="flex flex-col items-end space-y-2">
@@ -465,6 +170,82 @@ export default function Projects() {
             </div>
           </div>
 
+          {/* Modal dialog for Add Column (opened from Kanban's extraColumn) */}
+          <Dialog open={isAddingColumn} onOpenChange={setIsAddingColumn}>
+            <DialogContent className="sm:max-w-[425px]">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  addColumn();
+                }}
+              >
+                <DialogHeader>
+                  <DialogTitle>Add Column</DialogTitle>
+                  <DialogDescription className="mb-2">
+                    Enter a title and pick a colour for the new column.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="grid gap-4">
+                  <div className="grid gap-3">
+                    <Label htmlFor="column-title">Column Title</Label>
+                    <input
+                      id="column-title"
+                      value={newColumn.name}
+                      onChange={(e) =>
+                        setNewColumn({ ...newColumn, name: e.target.value })
+                      }
+                      placeholder="Enter column title"
+                      required
+                      className="w-full rounded border px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                    />
+                  </div>
+                  <div className="grid gap-3">
+                    <Label className="text-sm">Column Colour Label</Label>
+                    <div className="flex gap-2 my-2">
+                      {[
+                        "#ef4444",
+                        "#f97316",
+                        "#f59e0b",
+                        "#10b981",
+                        "#06b6d4",
+                        "#3b82f6",
+                        "#6366f1",
+                        "#8b5cf6",
+                        "#ec4899",
+                      ].map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() =>
+                            setNewColumn({ ...newColumn, color: c })
+                          }
+                          className={
+                            "w-8 h-8 rounded-full border-2 " +
+                            (newColumn.color === c
+                              ? "ring-2 ring-offset-1"
+                              : "")
+                          }
+                          style={{ background: c }}
+                          aria-label={`select ${c}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button variant="outline" type="button">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                  <Button type="submit">Add Column</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           {view === "kanban" ? (
             <Kanban
               columns={columns}
@@ -472,6 +253,19 @@ export default function Projects() {
               project={project}
               onFeaturesChange={setFeatures}
               onSelect={setSelectedItem}
+              onColumnUpdated={() => {
+                if (selectedProjectId) void loadProjectData(selectedProjectId);
+              }}
+              extraColumn={
+                <div
+                  onClick={() => setIsAddingColumn(true)}
+                  className="cursor-pointer rounded-md border-2 border-dashed border-muted-foreground/30 h-full p-3 flex items-start justify-center"
+                >
+                  <div className="text-sm text-muted-foreground">
+                    + Add Column
+                  </div>
+                </div>
+              }
             />
           ) : (
             <ListView

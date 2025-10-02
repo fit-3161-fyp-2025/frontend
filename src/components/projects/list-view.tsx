@@ -10,7 +10,6 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { KanbanItemProps } from "@/components/projects/index";
 import type { Column } from "@/types/projects";
-import { formatDateRange } from "@/utils/dateFormat";
 import { ListViewAvatar } from "@/components/ui/user-avatar";
 import { ListViewStatusBadge } from "@/utils/statusBadge";
 
@@ -40,7 +39,7 @@ export function ListView({
             <TableHead>Name</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Owner</TableHead>
-            <TableHead>Date Range</TableHead>
+            <TableHead>Description</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -60,9 +59,7 @@ export function ListView({
                 <ListViewAvatar owner={item.owner} />
               </TableCell>
               <TableCell>
-                <span className="text-sm">
-                  {formatDateRange(item.startAt, item.endAt)}
-                </span>
+                <div className="text-sm w-20">{item.description}</div>
               </TableCell>
             </TableRow>
           ))}

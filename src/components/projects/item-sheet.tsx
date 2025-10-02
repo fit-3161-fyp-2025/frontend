@@ -8,18 +8,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  CalendarIcon,
-  UserIcon,
-  HashIcon,
-  Trash2Icon,
-  CheckIcon,
-  XIcon,
-} from "lucide-react";
+import { UserIcon, HashIcon, Trash2Icon } from "lucide-react";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useState, useEffect } from "react";
 import type { KanbanItemProps } from "./index";
-import type { Column, User } from "@/types/projects";
-import { formatDateParts } from "@/utils/dateFormat";
+import type { Column, UserDetails } from "@/types/projects";
+
 import { ItemSheetAvatar } from "@/components/ui/user-avatar";
 import { ItemSheetStatusBadge } from "@/utils/statusBadge";
 
@@ -51,7 +45,7 @@ type KanbanItemSheetProps = {
   onDelete?: (itemId: string) => void;
   onUpdate?: (itemId: string, updates: Partial<KanbanItemProps>) => void;
   columns?: Column[];
-  users?: User[];
+  users?: UserDetails[];
 };
 
 export function KanbanItemSheet({
@@ -66,10 +60,10 @@ export function KanbanItemSheet({
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValues, setEditValues] = useState<{
     name?: string;
+    description?: string;
     column?: string;
     startAt?: string;
     endAt?: string;
-    owner?: User;
   }>({});
 
   // Reset editing state when sheet opens/closes
@@ -78,13 +72,20 @@ export function KanbanItemSheet({
       setEditingField(null);
       setEditValues({});
     }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () =>
+      document.removeEventListener("keydown", handleKeyDown, { capture: true });
   }, [open]);
 
   const getColumnName = (columnId: string) => {
     const column = columns.find((col) => col.id === columnId);
     return column?.name || columnId;
   };
-
   const startEdit = (field: string, currentValue: any) => {
     setEditingField(field);
     setEditValues({ [field]: currentValue });
@@ -107,20 +108,17 @@ export function KanbanItemSheet({
     setEditValues({});
   };
 
-  const formatDateForInput = (date: unknown) => {
-    if (!date) return "";
-    const d = new Date(date as string);
-    return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
-  };
+  const { confirm, DialogEl: ConfirmDialog } = useConfirm();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
+      {ConfirmDialog}
       <SheetContent className="w-full sm:max-w-md p-2">
         {item && (
           <div className="flex flex-col h-full">
             {/* Header */}
             <SheetHeader className="border-b-4 p-4">
-              <div className="space-y-4">
+              <div className="space-y-4 space-x-4">
                 {/* Title Section */}
                 {editingField === "name" ? (
                   <Input
@@ -138,7 +136,7 @@ export function KanbanItemSheet({
                   <EditableField
                     canEdit={!!onUpdate}
                     onClick={() => startEdit("name", item.name)}
-                    className="text-2xl font-semibold leading-tight cursor-pointer hover:bg-muted/70 hover:shadow-sm rounded-lg px-2 py-1 transition-all duration-200 border-2 border-transparent hover:border-muted-foreground/20"
+                    className="space-x-6 text-2xl font-semibold leading-tight cursor-pointer hover:bg-muted/70 hover:shadow-sm rounded-lg px-2 py-1 transition-all duration-200 border-2 border-transparent hover:border-muted-foreground/20"
                   >
                     {item.name}
                   </EditableField>
@@ -210,14 +208,7 @@ export function KanbanItemSheet({
                       <SelectContent>
                         {users.map((user) => (
                           <SelectItem key={user.id} value={user.id}>
-                            <div className="flex items-center gap-2">
-                              <img
-                                src={user.image}
-                                alt={user.name}
-                                className="w-6 h-6 rounded-full"
-                              />
-                              {user.name}
-                            </div>
+                            {user.first_name} {user.last_name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -227,136 +218,85 @@ export function KanbanItemSheet({
                       canEdit={!!onUpdate}
                       onClick={() => startEdit("owner", item.owner)}
                     >
-                      <ItemSheetAvatar owner={item.owner} />
+                      <div className="flex items-center gap-2">
+                        <ItemSheetAvatar owner={item.owner} />
+                      </div>
                     </EditableField>
                   )}
                 </div>
               </div>
 
-              {/* Date Range Section */}
-              <div className="space-y-4">
+              {/* Task Description Section */}
+              <div className="space-y-3">
                 <div className="flex items-center gap-2 text-base font-medium text-foreground">
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  <span>Date Range</span>
+                  <span>Description</span>
                 </div>
-                <div className="pl-6">
-                  {editingField === "dates" ? (
-                    <div className="space-y-2">
-                      <div className="flex gap-2 items-center">
-                        <Input
-                          type="date"
-                          value={editValues.startAt || ""}
-                          onChange={(e) =>
-                            setEditValues({
-                              ...editValues,
-                              startAt: e.target.value,
-                            })
-                          }
-                          className="flex-1 min-w-0"
-                        />
-                        <span className="text-muted-foreground px-2">→</span>
-                        <Input
-                          type="date"
-                          value={editValues.endAt || ""}
-                          onChange={(e) =>
-                            setEditValues({
-                              ...editValues,
-                              endAt: e.target.value,
-                            })
-                          }
-                          className="flex-1 min-w-0"
-                        />
-                      </div>
-                      <div className="flex gap-2 justify-evenly p-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            if (onUpdate && item) {
-                              onUpdate(item.id, {
-                                startAt: editValues.startAt
-                                  ? new Date(editValues.startAt)
-                                  : undefined,
-                                endAt: editValues.endAt
-                                  ? new Date(editValues.endAt)
-                                  : undefined,
-                              });
-                            }
-                            cancelEdit();
-                          }}
-                          className="border-green-500 hover:bg-green-50 hover:text-green-700"
-                        >
-                          <CheckIcon className="h-4 w-4 text-green-600" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={cancelEdit}
-                          className="border-red-500 hover:bg-red-50 hover:text-red-700"
-                        >
-                          <XIcon className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </div>
+                <div className="pl-0">
+                  {editingField === "description" ? (
+                    <textarea
+                      value={editValues.description || ""}
+                      onChange={(e) =>
+                        setEditValues({
+                          ...editValues,
+                          description: e.target.value,
+                        })
+                      }
+                      placeholder="Enter task description..."
+                      className="w-full min-h-[120px] p-3 text-sm border border-input rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                      autoFocus
+                      onBlur={() => saveEdit("description")}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") cancelEdit();
+                      }}
+                    />
                   ) : (
                     <EditableField
                       canEdit={!!onUpdate}
-                      onClick={() => {
-                        setEditingField("dates");
-                        setEditValues({
-                          startAt: formatDateForInput(item.startAt),
-                          endAt: formatDateForInput(item.endAt),
-                        });
-                      }}
-                      className="cursor-pointer hover:bg-muted/70 hover:shadow-sm rounded-lg px-2 py-1 transition-all duration-200 border-2 border-transparent hover:border-muted-foreground/20 inline-block"
+                      onClick={() =>
+                        startEdit("description", item?.description || "")
+                      }
+                      className="cursor-pointer hover:bg-muted/70 hover:shadow-sm rounded-lg p-3 transition-all duration-200 border-2 border-transparent hover:border-muted-foreground/20 min-h-[80px] block"
                     >
-                      {(() => {
-                        const { startDate, endDate, isValid } = formatDateParts(
-                          item.startAt,
-                          item.endAt
-                        );
-                        return isValid ? (
-                          <div className="text-base">
-                            <span className="font-medium">{startDate}</span>
-                            <span className="text-muted-foreground mx-2">
-                              →
-                            </span>
-                            <span className="font-medium">{endDate}</span>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-muted-foreground">
-                            No dates set - click to add
-                          </span>
-                        );
-                      })()}
+                      {item?.description ? (
+                        <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                          {item.description}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground italic">
+                          No description - click to add
+                        </span>
+                      )}
                     </EditableField>
                   )}
-                </div>
-              </div>
-
-              {/* ID Section */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-base font-medium text-foreground">
-                  <HashIcon className="h-4 w-4 text-muted-foreground" />
-                  <span>ID</span>
-                </div>
-                <div className="pl-6">
-                  <div className="px-2 py-1 text-sm bg-muted rounded-md">
-                    {item.id}
-                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Delete Button - Full Width Bar at Bottom */}
+            {/* Delete Button */}
             {onDelete && (
               <div className="border-t border-border p-4 mt-auto">
+                {/* ID Section */}
+                <div className="flex items-center gap-2 text-base font-medium text-foreground text-sm">
+                  <HashIcon className="h-4 w-4" />
+                  Task ID
+                  <div className="p-4 text-sm text-muted-foreground">
+                    {item.id}
+                  </div>
+                </div>
+
                 <Button
                   variant="destructive"
                   size="lg"
                   onClick={() => {
-                    onDelete(item.id);
-                    onOpenChange(false);
+                    confirm({
+                      title: "Delete task?",
+                      description:
+                        "This will permanently delete the task. This action cannot be undone.",
+                      onConfirm: () => {
+                        onDelete?.(item.id);
+                        onOpenChange(false);
+                      },
+                    });
                   }}
                   className="w-full"
                 >

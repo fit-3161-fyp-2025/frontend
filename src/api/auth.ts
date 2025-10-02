@@ -4,6 +4,7 @@ import type {
   RefreshTokenPayload,
   RegisterPayload,
   User,
+  UserResponse,
 } from "@/types/auth";
 import { apiClient } from "./client";
 
@@ -16,12 +17,16 @@ export const authApi = {
     return response.data;
   },
 
-  verifyCode: async (data: EmailVerifyPayload): Promise<User> => {
-    const response = await apiClient.post<User>(
-      "/users/verify-code",
-      data
+  getUserById: async (user_id: string): Promise<UserResponse> => {
+    const response = await apiClient.get<UserResponse>(
+      `users/get-user-by-id/${user_id}`
     );
-    return response.data
+    return response.data;
+  },
+
+  verifyCode: async (data: EmailVerifyPayload): Promise<User> => {
+    const response = await apiClient.post<User>("/users/verify-code", data);
+    return response.data;
   },
 
   login: async (data: FormData): Promise<AuthResponse> => {
@@ -51,5 +56,5 @@ export const authApi = {
   me: async (): Promise<User> => {
     const response = await apiClient.get<User>("/auth/me");
     return response.data;
-  }
+  },
 };

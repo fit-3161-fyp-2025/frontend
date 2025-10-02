@@ -33,6 +33,7 @@ import { Card } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { MoreHorizontal } from "lucide-react";
+import type { UserDetails } from "@/types/projects";
 
 const t = tunnel();
 
@@ -42,6 +43,8 @@ export type KanbanItemProps = {
   id: string;
   name: string;
   column: string;
+  description?: string;
+  owner: UserDetails;
 } & Record<string, unknown>;
 
 type KanbanColumnProps = {
@@ -216,6 +219,7 @@ export type KanbanProviderProps<
   onDragStart?: (event: DragStartEvent) => void;
   onDragEnd?: (event: DragEndEvent) => void;
   onDragOver?: (event: DragOverEvent) => void;
+  extraColumn?: ReactNode;
 };
 
 export const KanbanProvider = <
@@ -230,6 +234,7 @@ export const KanbanProvider = <
   columns,
   data,
   onDataChange,
+  extraColumn,
   ...props
 }: KanbanProviderProps<T, C>) => {
   const [activeCardId, setActiveCardId] = useState<string | null>(null);
@@ -340,12 +345,18 @@ export const KanbanProvider = <
         {...props}
       >
         <div
-          className={cn(
-            "grid size-full auto-cols-fr grid-flow-col gap-4",
-            className
-          )}
+          className={cn("overflow-x-auto max-w-full py-2 min-w-0", className)}
         >
-          {columns.map((column) => children(column))}
+          <div className="inline-flex items-start gap-4 min-h-[8rem] px-2 min-w-0">
+            {columns.map((column) => (
+              <div key={column.id} className="flex-shrink-0 min-w-[14rem]">
+                {children(column)}
+              </div>
+            ))}
+            {extraColumn && (
+              <div className="flex-shrink-0 min-w-[14rem]">{extraColumn}</div>
+            )}
+          </div>
         </div>
         {typeof window !== "undefined" &&
           createPortal(

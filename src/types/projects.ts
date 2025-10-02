@@ -1,6 +1,12 @@
 export interface TodoStatus {
   id: string;
   name: string;
+  color: string;
+}
+
+export interface addTodoStatus {
+  name: string;
+  color: string;
 }
 
 export interface Project {
@@ -18,40 +24,29 @@ export interface ToDoItem {
   name: string;
   description: string;
   status_id: string;
-  owner_id: string;
+  assignee_id: string;
+  approved: boolean;
 }
 
-export interface Team {
-  id: string;
-  name: string;
-  member_ids: string[];
-  exec_member_ids: string[];
-  project_ids: string[];
-  event_ids: string[];
-}
-
-export interface UserTeamsResponse {
-  teams: Team[];
-}
-
-// Kanban view types
 export type Column = {
   id: string;
   name: string;
   color: string;
 };
 
-export type User = {
+export type UserDetails = {
   id: string;
-  name: string;
-  image: string;
+  email: string;
+  first_name: string;
+  last_name: string;
 };
 
 export type Feature = {
   id: string;
   name: string;
+  description: string;
   startAt: Date;
   endAt: Date;
   column: string;
-  owner: User;
+  owner: UserDetails;
 };

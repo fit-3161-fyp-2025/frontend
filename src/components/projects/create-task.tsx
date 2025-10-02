@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { projectsApi } from "@/api/projects";
+import type { UserDetails } from "@/types/projects";
+import { toast } from "sonner";
 
 export function CreateTask({
   project,
@@ -29,20 +31,24 @@ export function CreateTask({
 }: {
   project: { id: string } | null;
   statuses: { id: string; name: string }[];
-  users: { id: string; name: string }[];
+  users: UserDetails[];
   onCreated: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [statusId, setStatusId] = useState(statuses[0]?.id || "");
-  const [ownerId, setOwnerId] = useState(users[0]?.id || "");
+  const [statusId, setStatusId] = useState("");
+  const [assigneeId, setAssigneeId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!project) return;
+    if (!statusId) {
+      setError("Please select a task status");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -50,13 +56,14 @@ export function CreateTask({
         name,
         description,
         status_id: statusId,
-        owner_id: ownerId,
+        assignee_id: assigneeId,
       });
+      toast.success("New Task Added", { id: "new-todo" });
       setOpen(false);
       setName("");
       setDescription("");
-      setStatusId(statuses[0]?.id || "");
-      setOwnerId(users[0]?.id || "");
+      setStatusId("");
+      setAssigneeId(users[0]?.id || "");
       onCreated();
     } catch (err: any) {
       setError(err?.message || "Failed to create task");
@@ -68,7 +75,7 @@ export function CreateTask({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Create Task</Button>
+        <Button size="lg">Create Task</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
@@ -123,8 +130,8 @@ export function CreateTask({
             <div className="grid gap-3">
               <Label htmlFor="assignee-1">Assign to</Label>
               <Select
-                value={ownerId}
-                onValueChange={setOwnerId}
+                value={assigneeId}
+                onValueChange={setAssigneeId}
                 name="assignee"
               >
                 <SelectTrigger id="assignee-1">
@@ -133,7 +140,7 @@ export function CreateTask({
                 <SelectContent>
                   {users.map((u) => (
                     <SelectItem key={u.id} value={u.id}>
-                      {u.name}
+                      {u.first_name} {u.last_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -147,7 +154,7 @@ export function CreateTask({
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !statusId}>
               {loading ? "Creating..." : "Create task"}
             </Button>
           </DialogFooter>

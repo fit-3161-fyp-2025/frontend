@@ -26,7 +26,8 @@ export function ManageTeams() {
       await dispatch(removeTeam(teamId)).unwrap();
     } catch (error) {
       console.log("Manage Teams Error:", error);
-      const errMsg = typeof error === "string" ? error : extractErrorMessage(error);
+      const errMsg =
+        typeof error === "string" ? error : extractErrorMessage(error);
       throw new Error(errMsg);
     }
   };
@@ -47,20 +48,24 @@ export function ManageTeams() {
       <h2 className="text-xl font-bold text-left mb-4">My Teams</h2>
       <div className="mb-4">
         <button
-          className={`mr-2 px-4 py-2 rounded ${viewMode === 'table' ? 'bg-purple-500 text-white' : 'bg-gray-200'}`}
-          onClick={() => setViewMode('table')}
+          className={`mr-2 px-4 py-2 rounded ${
+            viewMode === "table" ? "bg-purple-500 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setViewMode("table")}
         >
           List View
         </button>
         <button
-          className={`px-4 py-2 rounded ${viewMode === 'card' ? 'bg-purple-500 text-white' : 'bg-gray-200'}`}
-          onClick={() => setViewMode('card')}
+          className={`px-4 py-2 rounded ${
+            viewMode === "card" ? "bg-purple-500 text-white" : "bg-gray-200"
+          }`}
+          onClick={() => setViewMode("card")}
         >
           Card View
         </button>
       </div>
-
-      {viewMode === 'table' ? (
+      
+      {viewMode === "table" ? (
         <div className="overflow-x-auto">
           <table className="min-w-[400px] w-full border border-gray-200 rounded-lg bg-white">
             <thead>
@@ -70,7 +75,7 @@ export function ManageTeams() {
               </tr>
             </thead>
             <tbody>
-              {teams.map(team => (
+              {teams.map((team) => (
                 <tr key={team.id} className="border-t">
                   <td className="py-2 px-4 align-middle">
                     <button
@@ -82,10 +87,7 @@ export function ManageTeams() {
                   </td>
                   <td className="py-2 px-4 align-middle">
                     <div className="flex flex-row gap-2 justify-center">
-                      <LeaveTeamDialog
-                        team={team}
-                        onLeave={handleLeaveGroup}
-                      />
+                      <LeaveTeamDialog team={team} onLeave={handleLeaveGroup} />
                       <ViewTeamDetailsDialog
                         team={team}
                         getTeamDetails={getTeamDetails}
@@ -99,8 +101,11 @@ export function ManageTeams() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {teams.map(team => (
-            <div key={team.id} className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col items-start justify-between shadow-md">
+          {teams.map((team) => (
+            <div
+              key={team.id}
+              className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col items-start justify-between shadow-md"
+            >
               <button
                 className="font-semibold text-lg mb-4 text-left text-purple-600 hover:underline"
                 onClick={() => goToTeam(team.id)}
@@ -108,10 +113,7 @@ export function ManageTeams() {
                 {team.name}
               </button>
               <div className="flex flex-row gap-2 mt-auto">
-                <LeaveTeamDialog
-                  team={team}
-                  onLeave={handleLeaveGroup}
-                />
+                <LeaveTeamDialog team={team} onLeave={handleLeaveGroup} />
                 <ViewTeamDetailsDialog
                   team={team}
                   getTeamDetails={getTeamDetails}

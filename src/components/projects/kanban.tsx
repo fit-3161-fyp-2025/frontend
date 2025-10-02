@@ -7,10 +7,12 @@ import {
   type KanbanItemProps,
 } from "@/components/projects";
 import type { Column, Feature, Project } from "@/types/projects";
-import { formatDateRange } from "@/utils/dateFormat";
 import { KanbanAvatar } from "@/components/ui/user-avatar";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { projectsApi } from "@/api/projects";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { KanbanColDropdown } from "./kanban-col-dropdown";
 
 interface KanbanProps {
   columns: Column[];
@@ -18,6 +20,12 @@ interface KanbanProps {
   project: Project | null;
   onFeaturesChange: (features: Feature[]) => void;
   onSelect: React.Dispatch<React.SetStateAction<KanbanItemProps | null>>;
+  extraColumn?: React.ReactNode;
+  onColumnUpdated?: (detail: {
+    id: string;
+    action: "rename" | "delete" | "color";
+    color?: string;
+  }) => void;
 }
 
 export function Kanban({
@@ -26,6 +34,8 @@ export function Kanban({
   project,
   onFeaturesChange,
   onSelect,
+  extraColumn,
+  onColumnUpdated,
 }: KanbanProps) {
   const prevFeaturesRef = useRef<Feature[]>([]);
 
@@ -51,9 +61,9 @@ export function Kanban({
         .updateTodo(project.id, {
           id: movedFeature.id,
           name: movedFeature.name,
-          description: movedFeature.name, // Using name as description fallback
+          description: movedFeature.description,
           status_id: movedFeature.column,
-          owner_id: movedFeature.owner.id,
+          assignee_id: movedFeature.owner.id,
         })
         .catch((err) => {
           console.error("Failed to update todo status in backend:", err);
@@ -72,48 +82,139 @@ export function Kanban({
     onFeaturesChange(newFeatures);
   };
 
+  // Extracted ColumnView so hooks run in a component, not inside a render callback
+  function ColumnView({ column }: { column: Column }) {
+    const [editingName, setEditingName] = useState(false);
+    const [nameValue, setNameValue] = useState(column.name);
+
+    useEffect(() => {
+      setNameValue(column.name);
+    }, [column.name]);
+
+    const saveName = async () => {
+      if (!project) return;
+      const trimmed = (nameValue || "").trim();
+      if (!trimmed) {
+        toast.error("Column name cannot be empty");
+        return;
+      }
+      try {
+        await projectsApi.updateTodoStatus(project.id, {
+          id: column.id,
+          name: trimmed,
+          color: column.color,
+        });
+        toast.success("Column renamed");
+        setEditingName(false);
+        onColumnUpdated?.({ id: column.id, action: "rename" });
+      } catch (err) {
+        console.error("Failed to rename column:", err);
+        toast.error("Failed to rename column");
+      }
+    };
+
+    return (
+      <KanbanBoard id={column.id} key={column.id}>
+        <KanbanHeader>
+          <div className="flex items-center gap-2">
+            <div
+              className="h-2 w-2 rounded-full"
+              style={{ backgroundColor: column.color }}
+            />
+            {editingName ? (
+              <Input
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                className="w-40"
+                autoFocus
+                onBlur={() => saveName()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    saveName();
+                  }
+                  if (e.key === "Escape") {
+                    setEditingName(false);
+                    setNameValue(column.name);
+                  }
+                }}
+              />
+            ) : (
+              <span
+                className="cursor-pointer"
+                onClick={() => setEditingName(true)}
+                title="Click to rename"
+              >
+                {column.name}
+              </span>
+            )}
+            <div className="ml-2">
+              <KanbanColDropdown
+                currentColor={column.color}
+                onChangeColor={async (c: string) => {
+                  if (!project) return;
+                  try {
+                    onColumnUpdated?.({
+                      id: column.id,
+                      action: "color",
+                      color: c,
+                    });
+                    toast.success("Column color updated");
+                  } catch (err) {
+                    toast.error("Failed to update column colour");
+                  }
+                }}
+                onDelete={async () => {
+                  if (!project) return;
+                  try {
+                    await projectsApi.deleteTodoStatus(project.id, column.id);
+                    onColumnUpdated?.({ id: column.id, action: "delete" });
+                    toast.success("Column deleted");
+                  } catch (err) {
+                    console.error("Failed to delete column:", err);
+                    toast.error("Failed to delete column");
+                  }
+                }}
+              />
+            </div>
+          </div>
+        </KanbanHeader>
+        <KanbanCards id={column.id}>
+          {(feature: Feature) => (
+            <KanbanCard
+              column={column.id}
+              id={feature.id}
+              key={feature.id}
+              name={feature.name}
+              owner={feature.owner}
+              onClick={() => onSelect(feature)}
+            >
+              <div className="flex items-start justify-between gap-2 ">
+                <div className="flex flex-col gap-1">
+                  <p className="m-0 flex-1 font-medium text-sm">
+                    {feature.name}
+                  </p>
+                </div>
+                {feature.owner && <KanbanAvatar owner={feature.owner} />}
+              </div>
+              <div className="text-muted-foreground text-xs w-70 line-clamp-1">
+                {feature.description}
+              </div>
+            </KanbanCard>
+          )}
+        </KanbanCards>
+      </KanbanBoard>
+    );
+  }
+
   return (
     <KanbanProvider
       columns={columns}
       data={features}
       onDataChange={handleKanbanChange}
+      extraColumn={extraColumn}
     >
-      {(column) => (
-        <KanbanBoard id={column.id} key={column.id}>
-          <KanbanHeader>
-            <div className="flex items-center gap-2">
-              <div
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: column.color }}
-              />
-              <span>{column.name}</span>
-            </div>
-          </KanbanHeader>
-          <KanbanCards id={column.id}>
-            {(feature: Feature) => (
-              <KanbanCard
-                column={column.id}
-                id={feature.id}
-                key={feature.id}
-                name={feature.name}
-                onClick={() => onSelect(feature)}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex flex-col gap-1">
-                    <p className="m-0 flex-1 font-medium text-sm">
-                      {feature.name}
-                    </p>
-                  </div>
-                  {feature.owner && <KanbanAvatar owner={feature.owner} />}
-                </div>
-                <p className="m-0 text-muted-foreground text-xs">
-                  {formatDateRange(feature.startAt, feature.endAt)}
-                </p>
-              </KanbanCard>
-            )}
-          </KanbanCards>
-        </KanbanBoard>
-      )}
+      {(column) => <ColumnView column={column} />}
     </KanbanProvider>
   );
 }

@@ -1,8 +1,10 @@
+import type { UserDetails } from "./projects";
+
 export interface User {
   id: string;
   email: string;
-  first_name?: string;
-  last_name?: string;
+  first_name: string;
+  last_name: string;
   // name: string,
   // isExec: boolean,
 }
@@ -13,8 +15,18 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
-  register: (email: string, password: string, passwordConfirm: string, name: string, lastname: string) => Promise<void>;
-  verifyEmailAndLogin: (email: string, password: string, code: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    passwordConfirm: string,
+    name: string,
+    lastname: string
+  ) => Promise<void>;
+  verifyEmailAndLogin: (
+    email: string,
+    password: string,
+    code: string
+  ) => Promise<void>;
 }
 
 export interface TokenPayload {
@@ -28,6 +40,10 @@ export interface TokenPayload {
 export interface AuthResponse {
   user: User | null;
   token: TokenPayload;
+}
+
+export interface UserResponse {
+  user: UserDetails;
 }
 
 export interface RegisterPayload {

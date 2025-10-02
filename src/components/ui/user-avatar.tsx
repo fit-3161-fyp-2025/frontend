@@ -16,8 +16,12 @@ export const getOwnerData = (
 ): { name: string; image: string } | null => {
   if (!owner || typeof owner !== "object") return null;
 
-  const ownerObj = owner as { name?: string; image?: string };
-  const name = ownerObj.name || "";
+  const ownerObj = owner as {
+    first_name?: string;
+    last_name: string;
+    image?: string;
+  };
+  const name = ownerObj.first_name + " " + ownerObj.last_name || "";
   const image = ownerObj.image || "";
 
   // Only return valid data if we have at least a name
