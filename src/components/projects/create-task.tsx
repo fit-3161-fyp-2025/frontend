@@ -21,6 +21,7 @@ import {
 import { useState } from "react";
 import { projectsApi } from "@/api/projects";
 import type { UserDetails } from "@/types/projects";
+import { toast } from "sonner";
 
 export function CreateTask({
   project,
@@ -36,14 +37,18 @@ export function CreateTask({
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [statusId, setStatusId] = useState(statuses[0]?.id || "");
-  const [assigneeId, setAssigneeId] = useState(users[0]?.id || "");
+  const [statusId, setStatusId] = useState("");
+  const [assigneeId, setAssigneeId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!project) return;
+    if (!statusId) {
+      setError("Please select a task status");
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -53,10 +58,11 @@ export function CreateTask({
         status_id: statusId,
         assignee_id: assigneeId,
       });
+      toast.success("New Task Added", { id: "new-todo" });
       setOpen(false);
       setName("");
       setDescription("");
-      setStatusId(statuses[0]?.id || "");
+      setStatusId("");
       setAssigneeId(users[0]?.id || "");
       onCreated();
     } catch (err: any) {
@@ -69,7 +75,7 @@ export function CreateTask({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Create Task</Button>
+        <Button size="lg">Create Task</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form onSubmit={handleSubmit}>
@@ -148,7 +154,7 @@ export function CreateTask({
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading || !statusId}>
               {loading ? "Creating..." : "Create task"}
             </Button>
           </DialogFooter>

@@ -1,6 +1,12 @@
 export interface TodoStatus {
   id: string;
   name: string;
+  color: string;
+}
+
+export interface addTodoStatus {
+  name: string;
+  color: string;
 }
 
 export interface Project {

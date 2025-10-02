@@ -1,4 +1,3 @@
-import { authApi } from "./auth";
 import axios, {
   type AxiosInstance,
   type AxiosRequestConfig,
@@ -6,6 +5,7 @@ import axios, {
   type AxiosError,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { toast } from "sonner";
 
 // Extend the Axios request config to include our custom _retry property
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -25,6 +25,7 @@ class ApiClient {
   constructor(baseUrl: string) {
     this.axiosInstance = axios.create({
       baseURL: baseUrl,
+      timeout: 20000,
       withCredentials: true,
     });
 
@@ -75,11 +76,55 @@ class ApiClient {
             return this.axiosInstance(originalRequest);
           } catch (refreshError) {
             this.processQueue(refreshError);
+            // Display toast for 401 error before redirect
+            if (typeof window !== "undefined") {
+              toast.error("Session expired. Please log in again.");
+            }
             // Redirect to login or handle auth failure
             window.location.href = "/login";
             return Promise.reject(refreshError);
           } finally {
             this.isRefreshing = false;
+          }
+        }
+
+        // Centralized error handling for other HTTP statuses
+        if (error.response) {
+          const { status, data } = error.response as {
+            status: number;
+            data: any;
+          };
+          let errorMessage = "An unexpected error occurred";
+
+          switch (status) {
+            case 400:
+              errorMessage =
+                (data && (data.detail || data.message)) ||
+                "Invalid input. Please check your data.";
+
+              if (data && data.errors) {
+                errorMessage = data.errors
+                  .map((err: any) => `${err.field}: ${err.message}`)
+                  .join("\n");
+              }
+
+              break;
+            case 403:
+              errorMessage =
+                "You do not have permission to perform this action.";
+              break;
+            case 404:
+              errorMessage = "Resource not found.";
+              break;
+            case 500:
+              errorMessage = "Server error. Please try again later.";
+              break;
+            default:
+              errorMessage = data.message || errorMessage;
+          }
+
+          if (typeof window !== "undefined") {
+            toast.error(errorMessage);
           }
         }
 
@@ -102,10 +147,8 @@ class ApiClient {
 
   private async refreshToken(): Promise<void> {
     try {
-      // Call your refresh endpoint - using the correct endpoint
-      await authApi.refresh();
+      await this.axiosInstance.post("/auth/refresh-token");
     } catch (error) {
-      // If refresh fails, clear any stored auth state
       throw error;
     }
   }

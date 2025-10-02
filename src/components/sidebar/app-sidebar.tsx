@@ -1,5 +1,14 @@
 import { Calendar, Home, LogOut, Settings, Wrench } from "lucide-react";
-import { Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "../ui/sidebar";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from "../ui/sidebar";
 import { useNavigate } from "react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { TeamsMenu } from "./team-menu";
@@ -49,14 +58,14 @@ export function AppSidebar() {
               <SidebarMenuItem>
                 <TeamsMenu />
               </SidebarMenuItem>
-              {items.map(item => (
+              {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a
                       onClick={() => void navigate(item.url)}
                       tabIndex={0}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
+                        if (e.key === "Enter" || e.key === " ") {
                           e.preventDefault();
                           navigate(item.url);
                         }
@@ -84,7 +93,7 @@ export function AppSidebar() {
                     onClick={handleLogout}
                     tabIndex={0}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
+                      if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         handleLogout();
                       }
@@ -98,7 +107,6 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
       </SidebarContent>
     </Sidebar>
   );

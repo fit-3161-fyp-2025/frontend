@@ -88,30 +88,28 @@ const teamsSlice = createSlice({
       .addCase(fetchTeams.pending, (state) => {
         state.isFetchingTeams = true;
       })
+
       .addCase(fetchTeams.fulfilled, (state, action) => {
         state.isFetchingTeams = false;
         state.teams = action.payload;
 
-        // if there is a selected team, validate the selected team exists
-        if (
-          state.selectedTeam &&
-          !action.payload.find((team) => team.id === state.selectedTeam!.id)
-        ) {
-          const team = action.payload.length > 0 ? action.payload[0] : null;
-          state.selectedTeam = team;
-          saveSelectedTeamToStorage(team);
+        // Always re-select the up-to-date team object from the fetched list
+        let next: TeamModel | null = null;
+        if (state.selectedTeam) {
+          next =
+            action.payload.find((t) => t.id === state.selectedTeam!.id) ?? null;
         }
-
-        // Select first team if no team is selected and teams exist
-        else if (!state.selectedTeam && action.payload.length > 0) {
-          const team = action.payload[0];
-          state.selectedTeam = team;
-          saveSelectedTeamToStorage(team);
+        if (!next && action.payload.length > 0) {
+          next = action.payload[0];
         }
+        state.selectedTeam = next;
+        saveSelectedTeamToStorage(next);
       })
+
       .addCase(fetchTeams.rejected, (state) => {
         state.isFetchingTeams = false;
       })
+
       .addCase(removeTeam.fulfilled, (state, action) => {
         const removedTeamId = action.payload;
         state.teams = state.teams.filter((team) => team.id !== removedTeamId);
@@ -123,6 +121,7 @@ const teamsSlice = createSlice({
           saveSelectedTeamToStorage(newSelectedTeam);
         }
       })
+
       .addCase(removeTeam.rejected, (_, action) => {
         console.error("Failed to remove team:", action.payload);
       });

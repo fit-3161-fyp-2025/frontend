@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UserIcon, HashIcon, Trash2Icon } from "lucide-react";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useState, useEffect } from "react";
 import type { KanbanItemProps } from "./index";
 import type { Column, UserDetails } from "@/types/projects";
@@ -107,14 +108,11 @@ export function KanbanItemSheet({
     setEditValues({});
   };
 
-  const formatDateForInput = (date: unknown) => {
-    if (!date) return "";
-    const d = new Date(date as string);
-    return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
-  };
+  const { confirm, DialogEl: ConfirmDialog } = useConfirm();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
+      {ConfirmDialog}
       <SheetContent className="w-full sm:max-w-md p-2">
         {item && (
           <div className="flex flex-col h-full">
@@ -290,8 +288,15 @@ export function KanbanItemSheet({
                   variant="destructive"
                   size="lg"
                   onClick={() => {
-                    onDelete(item.id);
-                    onOpenChange(false);
+                    confirm({
+                      title: "Delete task?",
+                      description:
+                        "This will permanently delete the task. This action cannot be undone.",
+                      onConfirm: () => {
+                        onDelete?.(item.id);
+                        onOpenChange(false);
+                      },
+                    });
                   }}
                   className="w-full"
                 >

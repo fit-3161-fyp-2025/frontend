@@ -1,5 +1,11 @@
 import { apiClient } from "./client";
-import type { Project, ToDoItem } from "@/types/projects";
+import type {
+  addTodoStatus,
+  Project,
+  ToDoItem,
+  TodoStatus,
+} from "@/types/projects";
+import type { TeamModel } from "@/types/team";
 
 export interface ProjectResponse {
   project: Project;
@@ -72,24 +78,48 @@ export const projectsApi = {
     return response.data;
   },
 
-  async addTodoStatus(
-    projectId: string,
-    statusData: { name: string; color?: string }
-  ) {
+  async addTodoStatus(project_id: string, todoStatus: addTodoStatus) {
     const response = await apiClient.post(
-      `/projects/add-todo-status/${projectId}`,
-      statusData
+      `/projects/add-todo-status/${project_id}`,
+      todoStatus
     );
     return response.data;
   },
 
   async deleteTodoStatus(projectId: string, statusId: string) {
-    const response = await apiClient.delete(
+    const response = await apiClient.post(
       `/projects/delete-todo-status/${projectId}`,
-      {
-        data: { status_id: statusId },
-      }
+      { status_id: statusId }
     );
+
+    try {
+      return response.data;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  },
+
+  async reorderTodoStatus(projectId: string, todoStatuses: TodoStatus[]) {
+    const response = await apiClient.post(
+      `/projects/reorder-todo-items/${projectId}`,
+      todoStatuses
+    );
+    return response.data;
+  },
+
+  async updateTodoStatus(projectId: string, todoStatus: TodoStatus) {
+    const payload = {
+      status_id: todoStatus.id,
+      name: todoStatus.name,
+      color: todoStatus.color,
+    };
+
+    const response = await apiClient.post(
+      `/projects/update-todo-status/${projectId}`,
+      payload
+    );
+
     return response.data;
   },
 
@@ -106,6 +136,23 @@ export const projectsApi = {
       }
     );
     return response.data;
+  },
+
+  async getTeam(teamId: string): Promise<{ team: TeamModel }> {
+    try {
+      const response = await apiClient.get(`/teams/get-team/${teamId}`);
+      return response.data as { team: TeamModel };
+    } catch (error) {
+      console.error(`Error fetching team ${teamId}:`, error);
+      throw error;
+    }
+  },
+
+  async deleteProject(teamId: string, projectId: string): Promise<void> {
+    // Endpoint documented as DELETE /teams/delete-project/{team_id} with body { project_id }
+    await apiClient.delete(`/teams/delete-project/${teamId}`, {
+      data: { project_id: projectId },
+    });
   },
 
   // Budget: increase available budget
