@@ -74,7 +74,7 @@ export function Events() {
         start: new Date(createdEvent.event.start),
         end: new Date(createdEvent.event.end),
         color: createdEvent.event.colour,
-        location: "shi ok",
+        location: createdEvent.event.location,
       }
 
       setEvents([...events, formattedCreatedEvent]);

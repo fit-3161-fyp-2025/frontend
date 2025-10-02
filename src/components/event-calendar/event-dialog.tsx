@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { RiCalendarLine, RiDeleteBinLine, RiMailLine } from "@remixicon/react"
+import { RiCalendarLine, RiDeleteBinLine, RiMailLine, RiRefreshLine } from "@remixicon/react"
 import { format, isBefore } from "date-fns"
 
 import {
@@ -69,11 +69,30 @@ export function EventDialog({
   const [error, setError] = useState<string | null>(null)
   const [startDateOpen, setStartDateOpen] = useState(false)
   const [endDateOpen, setEndDateOpen] = useState(false)
+  const [loadingRSVPs, setLoadingRSVPs] = useState(false)
 
   // Debug log to check what event is being passed
   useEffect(() => {
     console.log("EventDialog received event:", event)
   }, [event])
+
+  // Function to fetch current RSVP data
+  const fetchRSVPData = async (eventId: string) => {
+    if (!eventId) return
+    
+    setLoadingRSVPs(true)
+    try {
+      const rsvpResponse = await eventApi.getRSVPs(eventId)
+      console.log("Fetched RSVP data:", rsvpResponse)
+      setGuests(rsvpResponse.rsvps || [])
+    } catch (error) {
+      console.error("Failed to fetch RSVP data:", error)
+      // Fallback to event.rsvp if API call fails
+      setGuests(event?.rsvp || [])
+    } finally {
+      setLoadingRSVPs(false)
+    }
+  }
 
   useEffect(() => {
     if (event) {
@@ -90,7 +109,15 @@ export function EventDialog({
       setAllDay(event.allDay || false)
       setLocation(event.location || "")
       setColor((event.color as EventColor) || "sky")
-      setGuests(event.rsvp || [])
+      
+      // Fetch current RSVP data from server instead of using cached data
+      if (event.id) {
+        fetchRSVPData(event.id)
+      } else {
+        // For new events, use the local rsvp data
+        setGuests(event.rsvp || [])
+      }
+      
       setError(null) // Reset error when opening dialog
     } else {
       resetForm()
@@ -465,7 +492,22 @@ export function EventDialog({
           </div>
 
           <div className="*:not-first:mt-1.5">
-            <Label htmlFor="guest-email">Invite Guests</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="guest-email">Invite Guests</Label>
+              {event?.id && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fetchRSVPData(event.id)}
+                  disabled={loadingRSVPs}
+                  aria-label="Refresh RSVP data"
+                >
+                  <RiRefreshLine size={14} className={loadingRSVPs ? "animate-spin" : ""} />
+                  <span className="ml-1 text-xs">Refresh</span>
+                </Button>
+              )}
+            </div>
             <div className="flex gap-2">
               <Input
                 id="guest-email"
@@ -486,7 +528,14 @@ export function EventDialog({
               </Button>
             </div>
 
-            {guests.length > 0 && (
+            {loadingRSVPs ? (
+              <div className="mt-3 flex items-center justify-center py-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <RiRefreshLine size={16} className="animate-spin" />
+                  <span>Loading RSVP data...</span>
+                </div>
+              </div>
+            ) : guests.length > 0 ? (
               <div className="mt-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
@@ -530,6 +579,10 @@ export function EventDialog({
                     )
                   })}
                 </div>
+              </div>
+            ) : event?.id && (
+              <div className="mt-3 text-sm text-muted-foreground text-center py-2">
+                No guests invited yet
               </div>
             )}
           </div>
