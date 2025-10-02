@@ -9,6 +9,13 @@ export interface CalendarEvent {
   allDay?: boolean
   color?: EventColor
   location?: string
+  rsvp?: RSVP[];
+}
+
+export interface RSVP {
+  id: string;
+  email: string;
+  status: "pending" | "accepted" | "declined";
 }
 
 export type EventColor =
@@ -18,3 +25,8 @@ export type EventColor =
   | "rose"
   | "emerald"
   | "orange"
+
+export interface EventGuest {
+  email: string;
+  status?: 'pending' | 'accepted' | 'declined';
+}

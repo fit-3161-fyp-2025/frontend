@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { RiCalendarLine, RiDeleteBinLine } from "@remixicon/react"
+import { RiCalendarLine, RiDeleteBinLine, RiMailLine } from "@remixicon/react"
 import { format, isBefore } from "date-fns"
 
 import {
@@ -36,7 +36,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import type { CalendarEvent, EventColor } from "./types"
+import type { CalendarEvent, EventColor, RSVP } from "./types"
+import { eventApi } from "@/api/events"
 
 interface EventDialogProps {
   event: CalendarEvent | null
@@ -62,6 +63,8 @@ export function EventDialog({
   const [allDay, setAllDay] = useState(false)
   const [location, setLocation] = useState("")
   const [color, setColor] = useState<EventColor>("sky")
+  const [guests, setGuests] = useState<RSVP[]>([])
+  const [guestEmail, setGuestEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [startDateOpen, setStartDateOpen] = useState(false)
   const [endDateOpen, setEndDateOpen] = useState(false)
@@ -86,6 +89,7 @@ export function EventDialog({
       setAllDay(event.allDay || false)
       setLocation(event.location || "")
       setColor((event.color as EventColor) || "sky")
+      setGuests(event.rsvp || [])
       setError(null) // Reset error when opening dialog
     } else {
       resetForm()
@@ -102,6 +106,8 @@ export function EventDialog({
     setAllDay(false)
     setLocation("")
     setColor("sky")
+    setGuests([])
+    setGuestEmail("")
     setError(null)
   }
 
@@ -127,6 +133,46 @@ export function EventDialog({
     }
     return options
   }, []) // Empty dependency array ensures this only runs once
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email)
+  }
+
+  const handleAddGuest = async () => {
+    const email = guestEmail.trim().toLowerCase()
+
+    if (!email) {
+      return
+    }
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address")
+      return
+    }
+
+    if (guests.some(g => g.email === email)) {
+      setError("This guest has already been added")
+      return
+    }
+
+    const response = event && await eventApi.inviteGuest(event.id, email);
+
+    response && setGuests([...guests, { id: response.rsvp_id, email, status: 'pending' }])
+    setGuestEmail("")
+    setError(null)
+  }
+
+  const handleRemoveGuest = (emailToRemove: string) => {
+    setGuests(guests.filter(g => g.email !== emailToRemove))
+  }
+
+  const handleGuestKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleAddGuest()
+    }
+  }
 
   const handleSave = () => {
     const start = new Date(startDate)
@@ -175,6 +221,7 @@ export function EventDialog({
       allDay,
       location,
       color,
+      rsvp: guests,
     })
   }
 
@@ -231,7 +278,7 @@ export function EventDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{event?.id ? "Edit Event" : "Create Event"}</DialogTitle>
           <DialogDescription className="sr-only">
@@ -415,6 +462,49 @@ export function EventDialog({
               onChange={(e) => setLocation(e.target.value)}
             />
           </div>
+
+          <div className="*:not-first:mt-1.5">
+            <Label htmlFor="guest-email">Invite Guests</Label>
+            <div className="flex gap-2">
+              <Input
+                id="guest-email"
+                type="email"
+                placeholder="Enter email address"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                onKeyDown={handleGuestKeyDown}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleAddGuest}
+                aria-label="Add guest"
+              >
+                <RiMailLine size={16} aria-hidden="true" />
+              </Button>
+            </div>
+
+            {guests.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  {guests.length} {guests.length === 1 ? 'guest' : 'guests'} invited
+                </p>
+                <div className="space-y-1.5">
+                  {guests.map((guest) => (
+                    <div
+                      key={guest.email}
+                      className="flex items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    >
+                      <span className="truncate">{guest.email}</span>
+                      <span>{guest.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
           <fieldset className="space-y-4">
             <legend className="text-foreground text-sm leading-none font-medium">
               Etiquette
