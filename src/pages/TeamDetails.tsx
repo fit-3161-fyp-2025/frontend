@@ -9,7 +9,14 @@ import { teamApi } from "@/api/team";
 import type { Project } from "@/types/projects";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useToast } from "@/components/ui/toast";
@@ -22,12 +29,17 @@ import { MockDataToggle } from "@/components/MockDataToggle";
 export function TeamDetails() {
 	const navigate = useNavigate();
 	const { teamId } = useParams();
-	const { teams, isFetchingTeams } = useSelector((state: RootState) => state.teams);
-	const team = teams.find(t => t.id === teamId);
+	const { teams, isFetchingTeams } = useSelector(
+		(state: RootState) => state.teams
+	);
+	const team = teams.find((t) => t.id === teamId);
 
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [details, setDetails] = useState<{ members: User[]; code: string } | null>(null);
+	const [details, setDetails] = useState<{
+		members: User[];
+		code: string;
+	} | null>(null);
 
 	const [memberIds, setMemberIds] = useState<string[]>([]);
 	const [execMemberIds, setExecMemberIds] = useState<string[]>([]);
@@ -132,11 +144,12 @@ export function TeamDetails() {
 		let isMounted = true;
 		setProjectLoading(true);
 		setProjectError(null);
-		projectsApi.getProject(selectedProjectId)
-			.then(res => {
+		projectsApi
+			.getProject(selectedProjectId)
+			.then((res) => {
 				if (isMounted) setProject(res.project);
 			})
-			.catch(e => {
+			.catch((e) => {
 				const message = e instanceof Error ? e.message : String(e);
 				if (isMounted) setProjectError(message);
 			})
@@ -216,16 +229,24 @@ export function TeamDetails() {
 				setActionMsg(null);
 				try {
 					await teamApi.kickMember(teamId, memberId);
-					setMemberIds(prev => prev.filter(id => id !== memberId));
-					setExecMemberIds(prev => prev.filter(id => id !== memberId));
+					setMemberIds((prev) => prev.filter((id) => id !== memberId));
+					setExecMemberIds((prev) => prev.filter((id) => id !== memberId));
 					setActionMsg("Member removed");
-					push({ title: "Removed", description: "Member removed from team", variant: "success" });
+					push({
+						title: "Removed",
+						description: "Member removed from team",
+						variant: "success",
+					});
 				} catch (e) {
 					const errorInfo = parseErrorMessage(e);
 					setActionMsg(`Failed to remove member: ${errorInfo.description}`);
-					push({ title: errorInfo.title, description: errorInfo.description, variant: "destructive" });
+					push({
+						title: errorInfo.title,
+						description: errorInfo.description,
+						variant: "destructive",
+					});
 				}
-			}
+			},
 		});
 	};
 
@@ -238,14 +259,22 @@ export function TeamDetails() {
 				setActionMsg(null);
 				try {
 					await teamApi.leave({ team_id: teamId });
-					push({ title: "Left team", description: "You have left the team", variant: "success" });
+					push({
+						title: "Left team",
+						description: "You have left the team",
+						variant: "success",
+					});
 					navigate("/teams");
 				} catch (e) {
 					const errorInfo = parseErrorMessage(e);
 					setActionMsg(`Failed to leave team: ${errorInfo.description}`);
-					push({ title: errorInfo.title, description: errorInfo.description, variant: "destructive" });
+					push({
+						title: errorInfo.title,
+						description: errorInfo.description,
+						variant: "destructive",
+					});
 				}
-			}
+			},
 		});
 	};
 
@@ -256,7 +285,11 @@ export function TeamDetails() {
 			push({ title: "Copied", description: "Invite code copied" });
 		} catch {
 			setActionMsg("Failed to copy invite code");
-			push({ title: "Error", description: "Failed to copy", variant: "destructive" });
+			push({
+				title: "Error",
+				description: "Failed to copy",
+				variant: "destructive",
+			});
 		}
 	};
 
@@ -518,7 +551,7 @@ export function TeamDetails() {
 	};
 
 	const renderMemberLabel = (memberId: string) => {
-		const byId = details?.members.find(m => m.id === memberId);
+		const byId = details?.members.find((m) => m.id === memberId);
 		if (byId) {
 			const name = [byId.first_name, byId.last_name].filter(Boolean).join(" ");
 			return name || byId.email;
@@ -563,12 +596,19 @@ export function TeamDetails() {
 						<CardHeader>
 							<CardTitle className="flex items-center gap-3">
 								Invite Code
-								<button className="text-sm text-purple-600 hover:underline" onClick={handleCopyInvite}>Copy</button>
+								<button
+									className="text-sm text-purple-600 hover:underline"
+									onClick={handleCopyInvite}
+								>
+									Copy
+								</button>
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							{details ? (
-								<code className="px-2 py-1 bg-gray-100 rounded">{details.code}</code>
+								<code className="px-2 py-1 bg-gray-100 rounded">
+									{details.code}
+								</code>
 							) : (
 								<Skeleton className="h-6 w-40" />
 							)}
