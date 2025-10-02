@@ -84,7 +84,15 @@ export function EventDialog({
     try {
       const rsvpResponse = await eventApi.getRSVPs(eventId)
       console.log("Fetched RSVP data:", rsvpResponse)
-      setGuests(rsvpResponse.rsvps || [])
+      
+      // Map backend field names to frontend field names
+      const mappedRSVPs = (rsvpResponse.rsvps || []).map(rsvp => ({
+        id: rsvp.id,
+        email: rsvp.email,
+        status: (rsvp as any).rsvp_status || rsvp.status || 'pending' // Handle both field names
+      }))
+      
+      setGuests(mappedRSVPs)
     } catch (error) {
       console.error("Failed to fetch RSVP data:", error)
       // Fallback to event.rsvp if API call fails
