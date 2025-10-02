@@ -28,3 +28,7 @@ export interface CreateEventPayload {
 export interface CreateEventRes {
   event: Event;
 }
+
+export interface DeleteEventPayload {
+  event_id: string;
+}

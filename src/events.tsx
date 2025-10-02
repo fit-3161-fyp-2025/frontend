@@ -1,4 +1,3 @@
-import { addDays, setHours, setMinutes } from "date-fns";
 import { EventCalendar, type CalendarEvent } from "./components/event-calendar";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -21,8 +20,6 @@ export function Events() {
               id: event.id,
               title: event.name,
               description: event.description,
-
-              // TODO: Replace with real date time
               start: new Date(event.start),
               end: new Date(event.end),
               color: event.colour,
@@ -75,7 +72,10 @@ export function Events() {
     )
   }
 
-  const handleEventDelete = (eventId: string) => {
+  const handleEventDelete = async (eventId: string) => {
+    if (!selectedTeam) return;
+
+    await eventApi.delete(selectedTeam.id, { event_id: eventId });
     setEvents(events.filter((event) => event.id !== eventId))
   }
 

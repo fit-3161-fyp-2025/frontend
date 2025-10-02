@@ -1,4 +1,4 @@
-import type { GetAllEventsRes, CreateEventPayload, CreateEventRes } from "@/types/events"
+import type { GetAllEventsRes, CreateEventPayload, CreateEventRes, DeleteEventPayload } from "@/types/events"
 import { apiClient } from "./client"
 
 export const eventApi = {
@@ -12,6 +12,7 @@ export const eventApi = {
     return response.data;
   },
 
-  // TODO: Delete event
-
+  delete: async (teamId: string, data: DeleteEventPayload): Promise<void> => {
+    await apiClient.post(`/teams/delete-event/${teamId}`, data);
+  },
 }
