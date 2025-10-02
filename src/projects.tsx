@@ -1,5 +1,5 @@
 import { Kanban } from "@/components/projects/kanban";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ListView } from "./components/projects/list-view";
 import { CreateTask } from "./components/projects/create-task";
 import { KanbanItemSheet } from "@/components/projects/item-sheet";
@@ -24,6 +24,7 @@ export default function Projects() {
     null
   );
   const [view, setView] = useState<"kanban" | "list">("kanban");
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const loadingStages = [
     "Fetching user teams...",
     "Loading available projects...",
@@ -77,6 +78,16 @@ export default function Projects() {
     }
   };
 
+  useEffect(() => {
+    if (
+      !isFetchingTeams &&
+      availableProjects.length === 0 &&
+      !isCreateProjectOpen
+    ) {
+      setIsCreateProjectOpen(true);
+    }
+  }, [isFetchingTeams, availableProjects.length, isCreateProjectOpen]);
+
   return (
     <div className="bg-background p-8 py-2">
       {ConfirmDialog}
@@ -100,7 +111,11 @@ export default function Projects() {
                     handleProjectChange={handleProjectChange}
                     proposedCounts={proposedCounts}
                   />
-                  <CreateProject handleCreateProject={handleCreateProject} />
+                  <CreateProject
+                    isOpen={isCreateProjectOpen}
+                    onClose={() => setIsCreateProjectOpen(false)}
+                    handleCreateProject={handleCreateProject}
+                  />
                   <DeleteProjectButton
                     handleDeleteProject={handleDeleteProject}
                     disabled={!selectedProjectId}
