@@ -108,7 +108,7 @@ export function PublicEvents() {
             <Sparkles className="h-8 w-8 text-primary" />
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-6">
-            Explore exciting events happening in your community. Click on any event to request an invitation!
+            Explore exciting events happening in your community. Click any event to request an invitation!
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -121,7 +121,7 @@ export function PublicEvents() {
             </div>
             <div className="flex items-center gap-2">
               <CalendarDays className="h-4 w-4 text-primary" />
-              <span>{events.length} events available</span>
+              <span>{events.filter(event => new Date(event.start) > new Date()).length} upcoming events</span>
             </div>
           </div>
         </div>
@@ -178,26 +178,6 @@ export function PublicEvents() {
           </div>
         )}
 
-        {/* Call to Action */}
-        <div className="bg-card rounded-lg border p-6 mb-8 text-center">
-          <h3 className="text-xl font-semibold mb-2">Ready to Join the Fun?</h3>
-          <p className="text-muted-foreground mb-4">
-            Click on any event below to request an RSVP invitation. It's that easy!
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button asChild>
-              <Link to="/signup">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Create Account
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link to="/login">
-                Already have an account?
-              </Link>
-            </Button>
-          </div>
-        </div>
 
         {/* Calendar Section */}
         <div className="bg-card rounded-lg border p-6">
@@ -206,7 +186,7 @@ export function PublicEvents() {
             Event Calendar
           </h2>
           <p className="text-muted-foreground mb-6">
-            Browse all events in calendar view. Click on any event to learn more and request an invitation.
+            Browse all events in calendar view.
           </p>
           
           <EventCalendar

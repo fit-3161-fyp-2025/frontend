@@ -155,7 +155,7 @@ export function LandingPage() {
             <div className="text-center mb-8">
               <h3 className="text-3xl font-bold text-foreground mb-4">Upcoming Events</h3>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Don't miss out on these exciting upcoming events. Click on any event to request an invitation!
+                Don't miss out on these exciting upcoming events.
               </p>
             </div>
             

@@ -10,6 +10,7 @@ import {
 } from "@/components/event-calendar/constants"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Calendar } from "@/components/ui/calendar"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -487,19 +488,47 @@ export function EventDialog({
 
             {guests.length > 0 && (
               <div className="mt-3 space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  {guests.length} {guests.length === 1 ? 'guest' : 'guests'} invited
-                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {guests.length} {guests.length === 1 ? 'guest' : 'guests'} invited
+                  </p>
+                  <div className="flex gap-2 text-xs">
+                    <span className="text-green-600">
+                      {guests.filter(g => g.status === 'accepted').length} accepted
+                    </span>
+                    <span className="text-red-600">
+                      {guests.filter(g => g.status === 'declined').length} declined
+                    </span>
+                    <span className="text-yellow-600">
+                      {guests.filter(g => g.status === 'pending').length} pending
+                    </span>
+                  </div>
+                </div>
                 <div className="space-y-1.5">
-                  {guests.map((guest) => (
-                    <div
-                      key={guest.email}
-                      className="flex items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    >
-                      <span className="truncate">{guest.email}</span>
-                      <span>{guest.status}</span>
-                    </div>
-                  ))}
+                  {guests.map((guest) => {
+                    const getStatusBadge = (status: string) => {
+                      switch (status) {
+                        case 'accepted':
+                          return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">Confirmed</Badge>
+                        case 'declined':
+                          return <Badge variant="destructive" className="bg-red-100 text-red-800 hover:bg-red-100">Declined</Badge>
+                        case 'pending':
+                          return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>
+                        default:
+                          return <Badge variant="outline">{status}</Badge>
+                      }
+                    }
+
+                    return (
+                      <div
+                        key={guest.email}
+                        className="flex items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      >
+                        <span className="truncate">{guest.email}</span>
+                        {getStatusBadge(guest.status)}
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             )}

@@ -34,6 +34,7 @@ interface WeekViewProps {
   events: CalendarEvent[]
   onEventSelect: (event: CalendarEvent) => void
   onEventCreate: (startTime: Date) => void
+  onDayClick?: (date: Date, hasEvents: boolean) => void
 }
 
 interface PositionedEvent {
@@ -50,6 +51,7 @@ export function WeekView({
   events,
   onEventSelect,
   onEventCreate,
+  onDayClick,
 }: WeekViewProps) {
   const days = useMemo(() => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 })
@@ -220,18 +222,32 @@ export function WeekView({
         <div className="text-muted-foreground/70 py-2 text-center text-sm">
           <span className="max-[479px]:sr-only">{format(new Date(), "O")}</span>
         </div>
-        {days.map((day) => (
-          <div
-            key={day.toString()}
-            className="data-today:text-foreground text-muted-foreground/70 py-2 text-center text-sm data-today:font-medium"
-            data-today={isToday(day) || undefined}
-          >
-            <span className="sm:hidden" aria-hidden="true">
-              {format(day, "E")[0]} {format(day, "d")}
-            </span>
-            <span className="max-sm:hidden">{format(day, "EEE dd")}</span>
-          </div>
-        ))}
+        {days.map((day) => {
+          const dayEvents = events.filter(event => isSameDay(new Date(event.start), day))
+          const hasEvents = dayEvents.length > 0
+          
+          return (
+            <div
+              key={day.toString()}
+              className="data-today:text-foreground text-muted-foreground/70 py-2 text-center text-sm data-today:font-medium cursor-pointer hover:bg-muted/50 transition-colors"
+              data-today={isToday(day) || undefined}
+              onClick={() => {
+                if (onDayClick) {
+                  onDayClick(day, hasEvents)
+                } else {
+                  const startTime = new Date(day)
+                  startTime.setHours(9, 0, 0, 0)
+                  onEventCreate(startTime)
+                }
+              }}
+            >
+              <span className="sm:hidden" aria-hidden="true">
+                {format(day, "E")[0]} {format(day, "d")}
+              </span>
+              <span className="max-sm:hidden">{format(day, "EEE dd")}</span>
+            </div>
+          )
+        })}
       </div>
 
       {showAllDaySection && (

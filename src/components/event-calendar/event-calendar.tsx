@@ -14,6 +14,7 @@ import {
   subWeeks,
 } from "date-fns"
 import {
+  CalendarDays,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -39,6 +40,8 @@ import { DayView } from "./day-view"
 import { EventDialog } from "./event-dialog"
 import { MonthView } from "./month-view"
 import { PublicRSVPDialog } from "./public-rsvp-dialog"
+import { PublicSignupDialog } from "./public-signup-dialog"
+import { DayEventsPopup } from "./day-events-popup"
 import { WeekView } from "./week-view"
 
 export interface EventCalendarProps {
@@ -65,6 +68,10 @@ export function EventCalendar({
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
   const [isPublicRSVPDialogOpen, setIsPublicRSVPDialogOpen] = useState(false)
+  const [isPublicSignupDialogOpen, setIsPublicSignupDialogOpen] = useState(false)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [isDayEventsPopupOpen, setIsDayEventsPopupOpen] = useState(false)
+  const [dayEventsDate, setDayEventsDate] = useState<Date | null>(null)
 
   // Add keyboard shortcuts for view switching
   useEffect(() => {
@@ -172,6 +179,28 @@ export function EventCalendar({
     setIsEventDialogOpen(true)
   }
 
+  const handlePublicEventCreate = (startTime: Date) => {
+    console.log("Public user clicked on date:", startTime) // Debug log
+    setSelectedDate(startTime)
+    setIsPublicSignupDialogOpen(true)
+  }
+
+  const handleDayClick = (date: Date, hasEvents: boolean) => {
+    if (hasEvents) {
+      setDayEventsDate(date)
+      setIsDayEventsPopupOpen(true)
+    } else {
+      // Handle empty day click as before
+      const startTime = new Date(date)
+      startTime.setHours(9, 0, 0, 0) // Default to 9 AM
+      if (publicMode) {
+        handlePublicEventCreate(startTime)
+      } else {
+        handleEventCreate(startTime)
+      }
+    }
+  }
+
   const handleEventSave = (event: CalendarEvent) => {
     if (event.id) {
       onEventUpdate?.(event)
@@ -262,7 +291,10 @@ export function EventCalendar({
 
   return (
     <div
-      className="flex flex-col rounded-lg border has-data-[slot=month-view]:flex-1"
+      className={cn(
+        "flex flex-col rounded-lg border has-data-[slot=month-view]:flex-1",
+        publicMode && "shadow-lg border-primary/20 bg-gradient-to-b from-background to-muted/10"
+      )}
       style={
         {
           "--event-height": `${EventHeight}px`,
@@ -275,13 +307,17 @@ export function EventCalendar({
         <div
           className={cn(
             "flex items-center justify-between p-2 sm:p-4",
+            publicMode && "bg-gradient-to-r from-primary/5 to-primary/10 rounded-t-lg border-b",
             className
           )}
         >
           <div className="flex items-center gap-1 sm:gap-4">
             <Button
               variant="outline"
-              className="max-[479px]:aspect-square max-[479px]:p-0!"
+              className={cn(
+                "max-[479px]:aspect-square max-[479px]:p-0!",
+                publicMode && "bg-primary/10 hover:bg-primary/20 border-primary/30"
+              )}
               onClick={handleToday}
             >
               <RiCalendarCheckLine
@@ -295,6 +331,7 @@ export function EventCalendar({
               <Button
                 variant="ghost"
                 size="icon"
+                className={cn(publicMode && "hover:bg-primary/10")}
                 onClick={handlePrevious}
                 aria-label="Previous"
               >
@@ -303,20 +340,29 @@ export function EventCalendar({
               <Button
                 variant="ghost"
                 size="icon"
+                className={cn(publicMode && "hover:bg-primary/10")}
                 onClick={handleNext}
                 aria-label="Next"
               >
                 <ChevronRightIcon size={16} aria-hidden="true" />
               </Button>
             </div>
-            <h2 className="text-sm font-semibold sm:text-lg md:text-xl">
-              {viewTitle}
-            </h2>
+            <div className="flex flex-col">
+              <h2 className="text-sm font-semibold sm:text-lg md:text-xl">
+                {viewTitle}
+              </h2>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="gap-1.5 max-[479px]:h-8">
+                <Button 
+                  variant="outline" 
+                  className={cn(
+                    "gap-1.5 max-[479px]:h-8",
+                    publicMode && "bg-background/80 hover:bg-background/90"
+                  )}
+                >
                   <span>
                     <span className="min-[480px]:hidden" aria-hidden="true">
                       {view.charAt(0).toUpperCase()}
@@ -367,37 +413,56 @@ export function EventCalendar({
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col">
+        <div className={cn(
+          "flex flex-1 flex-col",
+          publicMode && "bg-gradient-to-b from-transparent to-muted/5"
+        )}>
           {view === "month" && (
             <MonthView
               currentDate={currentDate}
               events={events}
               onEventSelect={handleEventSelect}
-              onEventCreate={handleEventCreate}
+              onEventCreate={publicMode ? handlePublicEventCreate : handleEventCreate}
+              onDayClick={handleDayClick}
             />
           )}
-          {view === "week" && (
-            <WeekView
-              currentDate={currentDate}
-              events={events}
-              onEventSelect={handleEventSelect}
-              onEventCreate={handleEventCreate}
-            />
-          )}
-          {view === "day" && (
-            <DayView
-              currentDate={currentDate}
-              events={events}
-              onEventSelect={handleEventSelect}
-              onEventCreate={handleEventCreate}
-            />
-          )}
+           {view === "week" && (
+             <WeekView
+               currentDate={currentDate}
+               events={events}
+               onEventSelect={handleEventSelect}
+               onEventCreate={publicMode ? handlePublicEventCreate : handleEventCreate}
+               onDayClick={handleDayClick}
+             />
+           )}
+           {view === "day" && (
+             <DayView
+               currentDate={currentDate}
+               events={events}
+               onEventSelect={handleEventSelect}
+               onEventCreate={publicMode ? handlePublicEventCreate : handleEventCreate}
+             />
+           )}
           {view === "agenda" && (
             <AgendaView
               currentDate={currentDate}
               events={events}
               onEventSelect={handleEventSelect}
             />
+          )}
+          
+          {publicMode && events.length === 0 && (
+            <div className="flex flex-1 items-center justify-center p-8">
+              <div className="text-center">
+                <CalendarDays className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                  No Events Yet
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  Check back soon for exciting events, or create an account to start organizing your own!
+                </p>
+              </div>
+            </div>
           )}
         </div>
 
@@ -412,13 +477,34 @@ export function EventCalendar({
           onDelete={handleEventDelete}
         />
 
-        <PublicRSVPDialog
-          event={selectedEvent}
-          isOpen={isPublicRSVPDialogOpen}
+         <PublicRSVPDialog
+           event={selectedEvent}
+           isOpen={isPublicRSVPDialogOpen}
+           onClose={() => {
+             setIsPublicRSVPDialogOpen(false)
+             setSelectedEvent(null)
+           }}
+         />
+
+        <PublicSignupDialog
+          selectedDate={selectedDate}
+          isOpen={isPublicSignupDialogOpen}
           onClose={() => {
-            setIsPublicRSVPDialogOpen(false)
-            setSelectedEvent(null)
+            setIsPublicSignupDialogOpen(false)
+            setSelectedDate(null)
           }}
+        />
+
+        <DayEventsPopup
+          date={dayEventsDate}
+          events={events}
+          isOpen={isDayEventsPopupOpen}
+          onClose={() => {
+            setIsDayEventsPopupOpen(false)
+            setDayEventsDate(null)
+          }}
+          onEventSelect={handleEventSelect}
+          publicMode={publicMode}
         />
       </CalendarDndProvider>
     </div>
