@@ -38,6 +38,7 @@ import { CalendarDndProvider } from "./calendar-dnd-context"
 import { DayView } from "./day-view"
 import { EventDialog } from "./event-dialog"
 import { MonthView } from "./month-view"
+import { PublicRSVPDialog } from "./public-rsvp-dialog"
 import { WeekView } from "./week-view"
 
 export interface EventCalendarProps {
@@ -47,6 +48,7 @@ export interface EventCalendarProps {
   onEventDelete?: (eventId: string) => void
   className?: string
   initialView?: CalendarView
+  publicMode?: boolean
 }
 
 export function EventCalendar({
@@ -56,11 +58,13 @@ export function EventCalendar({
   onEventDelete,
   className,
   initialView = "month",
+  publicMode = false,
 }: EventCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<CalendarView>(initialView)
   const [isEventDialogOpen, setIsEventDialogOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
+  const [isPublicRSVPDialogOpen, setIsPublicRSVPDialogOpen] = useState(false)
 
   // Add keyboard shortcuts for view switching
   useEffect(() => {
@@ -132,7 +136,11 @@ export function EventCalendar({
   const handleEventSelect = (event: CalendarEvent) => {
     console.log("Event selected:", event) // Debug log
     setSelectedEvent(event)
-    setIsEventDialogOpen(true)
+    if (publicMode) {
+      setIsPublicRSVPDialogOpen(true)
+    } else {
+      setIsEventDialogOpen(true)
+    }
   }
 
   const handleEventCreate = (startTime: Date) => {
@@ -339,21 +347,23 @@ export function EventCalendar({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button
-              className="max-[479px]:aspect-square max-[479px]:p-0!"
-              size="sm"
-              onClick={() => {
-                setSelectedEvent(null) // Ensure we're creating a new event
-                setIsEventDialogOpen(true)
-              }}
-            >
-              <PlusIcon
-                className="opacity-60 sm:-ms-1"
-                size={16}
-                aria-hidden="true"
-              />
-              <span className="max-sm:sr-only">New event</span>
-            </Button>
+            {!publicMode && (
+              <Button
+                className="max-[479px]:aspect-square max-[479px]:p-0!"
+                size="sm"
+                onClick={() => {
+                  setSelectedEvent(null) // Ensure we're creating a new event
+                  setIsEventDialogOpen(true)
+                }}
+              >
+                <PlusIcon
+                  className="opacity-60 sm:-ms-1"
+                  size={16}
+                  aria-hidden="true"
+                />
+                <span className="max-sm:sr-only">New event</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -400,6 +410,15 @@ export function EventCalendar({
           }}
           onSave={handleEventSave}
           onDelete={handleEventDelete}
+        />
+
+        <PublicRSVPDialog
+          event={selectedEvent}
+          isOpen={isPublicRSVPDialogOpen}
+          onClose={() => {
+            setIsPublicRSVPDialogOpen(false)
+            setSelectedEvent(null)
+          }}
         />
       </CalendarDndProvider>
     </div>
