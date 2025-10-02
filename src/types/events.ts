@@ -1,4 +1,5 @@
 import type { EventColor } from "@/components/event-calendar";
+import type { RSVP } from "@/components/event-calendar/types";
 
 export interface Event {
   id: string;
@@ -31,4 +32,12 @@ export interface CreateEventRes {
 
 export interface DeleteEventPayload {
   event_id: string;
+}
+
+export interface GetRSVPResponse {
+  rsvps: RSVP[];
+}
+
+export interface InviteRSVPResponse {
+  rsvp_id: string;
 }
