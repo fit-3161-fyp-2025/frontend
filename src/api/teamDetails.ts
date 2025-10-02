@@ -43,6 +43,17 @@ export const teamDetailsApi = {
       // Fall through to dev mock
     }
 
+    // Dev-only mock members for testing UI with known short code
+    if (import.meta.env.DEV && code === "hjrisp") {
+      const mockEmails = [
+        "alice@example.com",
+        "bob@example.com",
+        "carol@example.com",
+        "dave@example.com",
+      ];
+      const members: User[] = memberIds.map((id, idx) => ({ id, email: mockEmails[idx % mockEmails.length] }));
+      return { code, members };
+    }
     return {
       code,
       members: [],

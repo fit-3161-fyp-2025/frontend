@@ -15,7 +15,7 @@ export function ManageTeams() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { teams } = useSelector((state: RootState) => state.teams);
-  const [viewMode, setViewMode] = useState<"table" | "card">("table");
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
   useEffect(() => {
     dispatch(fetchTeams());
@@ -64,7 +64,7 @@ export function ManageTeams() {
           Card View
         </button>
       </div>
-
+      
       {viewMode === "table" ? (
         <div className="overflow-x-auto">
           <table className="min-w-[400px] w-full border border-gray-200 rounded-lg bg-white">

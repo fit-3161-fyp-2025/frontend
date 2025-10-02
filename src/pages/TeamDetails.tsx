@@ -896,7 +896,6 @@ export function TeamDetails() {
 						</CardContent>
 					</Card>
 
-
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center justify-between">
@@ -1192,7 +1191,6 @@ export function TeamDetails() {
 							)}
 						</CardContent>
 					</Card>
-
 
 					<Card>
 						<CardHeader>
