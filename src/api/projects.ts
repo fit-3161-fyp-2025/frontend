@@ -177,7 +177,7 @@ export const projectsApi = {
     return response.data;
   },
 
-  async approveTodo(todoId: string): Promise<void> {
-    await apiClient.post(`/projects/approve-todo/${todoId}`);
+  async approveTodo(projectId: string, todoId: string): Promise<void> {
+    await apiClient.post(`/projects/approve-todo/${projectId}/${todoId}`);
   },
 };

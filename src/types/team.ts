@@ -63,4 +63,6 @@ export interface UserTeamsState {
   isFetchingTeams: boolean;
   selectedTeam: TeamModel | null;
   selectedProjectId: string | null;
+  reloadProject: boolean;
+  reloadProjectTodoId: string | null;
 }

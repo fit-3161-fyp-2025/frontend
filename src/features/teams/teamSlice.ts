@@ -48,6 +48,8 @@ const initialState: UserTeamsState = {
   isFetchingTeams: false,
   selectedTeam: getSelectedTeamFromStorage(),
   selectedProjectId: null,
+  reloadProject: false,
+  reloadProjectTodoId: null,
 };
 
 export const fetchTeams = createAsyncThunk("teams/fetchTeams", async () => {
@@ -84,9 +86,14 @@ const teamsSlice = createSlice({
       state.selectedTeam = null;
     },
 
-    // Store project id too
     setSelectedProjectId: (state, action) => {
       state.selectedProjectId = action.payload;
+    },
+    reloadCurrentProject: (state, action: PayloadAction<string | null>) => {
+      state.reloadProjectTodoId = action.payload || null;
+    },
+    setReloadProjectTodoId: (state, action: PayloadAction<string | null>) => {
+      state.reloadProjectTodoId = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -141,6 +148,8 @@ export const {
   setSelectedTeamById,
   clearSelectedTeam,
   setSelectedProjectId,
+  reloadCurrentProject,
+  setReloadProjectTodoId,
 } = teamsSlice.actions;
 
 export default teamsSlice.reducer;

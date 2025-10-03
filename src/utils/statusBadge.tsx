@@ -9,7 +9,6 @@ export function ListViewStatusBadge({
   status,
   color,
 }: ListViewStatusBadgeProps) {
-  console.log(color);
   return (
     <Badge
       className={`text-xs ${color ? `bg-[${color}] text-white` : "bg-muted"}`}

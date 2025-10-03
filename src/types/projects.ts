@@ -56,5 +56,6 @@ export interface Feature {
   description: string;
   column: string;
   owner: UserDetails;
+  isProposed?: boolean;
   [key: string]: unknown;
 }

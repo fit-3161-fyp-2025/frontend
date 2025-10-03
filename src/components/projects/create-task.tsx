@@ -22,7 +22,7 @@ import { useState } from "react";
 import { projectsApi } from "@/api/projects";
 import type { UserDetails } from "@/types/projects";
 import { toast } from "sonner";
-import { userIsExecutive } from "@/hooks/userIsExecutive";
+import { useIsExecutive } from "@/hooks/useIsExecutive";
 
 export function CreateTask({
   project,
@@ -35,7 +35,7 @@ export function CreateTask({
   users: UserDetails[];
   onCreated: () => void;
 }) {
-  const isExecutive = userIsExecutive();
+  const isExecutive = useIsExecutive();
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
