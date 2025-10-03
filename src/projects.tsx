@@ -1,37 +1,43 @@
 import { Kanban } from "@/components/projects/kanban";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import clsx from "clsx";
 import { ListView } from "./components/projects/list-view";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
 import { CreateTask } from "./components/projects/create-task";
 import { KanbanItemSheet } from "@/components/projects/item-sheet";
 import type { KanbanItemProps } from "@/components/projects";
 import { ProgressLoading } from "@/components/ProgressLoading";
 import SelectProject from "@/components/projects/select-project";
-import { useSelector, useDispatch } from "react-redux";
-import { type AppDispatch, type RootState } from "./lib/store";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useProjectData } from "./hooks/useProjectData";
-import { Trash2Icon } from "lucide-react";
 import CreateProject from "./components/projects/create-project";
+import { DeleteProjectButton } from "./components/projects/delete-project";
+import { AddColumnDialog } from "./components/projects/add-column";
+import { ViewToggle } from "./components/projects/view-toggle";
+import { useIsExecutive } from "./hooks/useIsExecutive";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "./components/ui/tooltip";
+
+import { useSelector, useDispatch } from "react-redux";
+import { type AppDispatch, type RootState } from "./lib/store";
+import {
+  setSelectedProjectId,
+  setReloadProjectTodoId,
+} from "@/features/teams/teamSlice";
 
 export default function Projects() {
-  const { teams, isFetchingTeams, selectedTeam } = useSelector(
-    (state: RootState) => state.teams
-  );
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
+  const {
+    teams,
+    isFetchingTeams,
+    selectedTeam,
+    selectedProjectId,
+    reloadProjectTodoId,
+  } = useSelector((state: RootState) => state.teams);
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+  const hasCheckedInitialState = useRef(false);
   const [selectedItem, setSelectedItem] = useState<KanbanItemProps | null>(
     null
   );
@@ -46,14 +52,14 @@ export default function Projects() {
   ];
 
   const dispatch = useDispatch<AppDispatch>();
-  const { confirm, DialogEl: ConfirmDialog } = useConfirm();
+  const isExecutive = useIsExecutive() ?? false;
+  const { DialogEl: ConfirmDialog } = useConfirm();
 
   const {
     loading,
     loadingStage,
     availableProjects,
-    selectedProjectId,
-    setSelectedProjectId,
+    proposedCounts,
     project,
     features,
     setFeatures,
@@ -69,13 +75,22 @@ export default function Projects() {
     isAddingColumn,
     setIsAddingColumn,
     addColumn,
-  } = useProjectData({ dispatch, teams, isFetchingTeams, selectedTeam });
+    isInitialLoad,
+  } = useProjectData({
+    dispatch,
+    teams,
+    isFetchingTeams,
+    selectedTeam,
+    selectedProjectId: selectedProjectId ?? "",
+    isExecutive,
+  });
 
-  // Column updates will be received via the Kanban `onColumnUpdated` prop.
+  const hasProjects =
+    (availableProjects?.length ?? 0) > 0 && !!selectedProjectId;
 
   const handleProjectChange = async (projectId: string) => {
     try {
-      setSelectedProjectId(projectId);
+      dispatch(setSelectedProjectId(projectId));
       await loadProjectData(projectId);
     } catch (err) {
       console.log(
@@ -84,67 +99,105 @@ export default function Projects() {
     }
   };
 
+  // Update reload useEffect to handle optimistic delete
+  useEffect(() => {
+    if (reloadProjectTodoId && selectedProjectId && !loading) {
+      setFeatures((prev) => prev.filter((f) => f.id !== reloadProjectTodoId));
+      dispatch(setReloadProjectTodoId(null));
+      loadProjectData(selectedProjectId);
+    }
+  }, [
+    reloadProjectTodoId,
+    selectedProjectId,
+    loading,
+    loadProjectData,
+    dispatch,
+  ]);
+
+  useEffect(() => {
+    // Only check after initial load is truly complete
+    if (isInitialLoad || loading) return;
+
+    if (
+      !hasCheckedInitialState.current &&
+      availableProjects.length === 0 &&
+      selectedTeam
+    ) {
+      hasCheckedInitialState.current = true;
+      setIsCreateProjectOpen(true);
+    }
+  }, [isInitialLoad, loading, availableProjects.length, selectedTeam]);
+
   return (
-    <div className="min-h-screen bg-background p-8 py-2">
+    <div className="bg-background p-8 py-2">
       {ConfirmDialog}
       {loading ? (
         <ProgressLoading stages={loadingStages} currentStage={loadingStage} />
       ) : (
         <>
-          <div className="flex items-start justify-between py-1 mb-4 z-10 relative">
+          <div className="flex items-start justify-between mt-2 mb-2">
             <div className="flex-1">
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <div>
                   <p className="text-xs text-muted-foreground">
                     Team: {selectedTeam?.name} • {availableProjects.length}{" "}
                     project(s)
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <SelectProject
-                    availableProjects={availableProjects}
-                    selectedProjectId={selectedProjectId}
-                    handleProjectChange={handleProjectChange}
-                  />
-                  {/* Add Column button removed; use the Kanban end-card instead */}
-                  <Dialog
-                    open={isCreateDialogOpen}
-                    onOpenChange={setIsCreateDialogOpen}
-                  >
-                    <DialogTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="py-6 px-4.5 border-green-400 text-green-600 hover:bg-green-50 text-xl font-bold"
-                      >
-                        +
-                      </Button>
-                    </DialogTrigger>
-                    <CreateProject
-                      onClose={() => setIsCreateDialogOpen(false)}
-                      handleCreateProject={handleCreateProject}
+                <TooltipProvider>
+                  <div className="flex items-center gap-2">
+                    <SelectProject
+                      availableProjects={availableProjects}
+                      selectedProjectId={selectedProjectId}
+                      handleProjectChange={handleProjectChange}
+                      proposedCounts={proposedCounts}
                     />
-                  </Dialog>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    className="py-6 px-6 border-red-400 text-red-500 hover:bg-red-50"
-                    title="Delete project"
-                    disabled={!selectedProjectId}
-                    onClick={() =>
-                      confirm({
-                        title: "Delete project?",
-                        description:
-                          "This will permanently delete the project and its tasks. This action cannot be undone.",
-                        onConfirm: handleDeleteProject,
-                      })
-                    }
-                  >
-                    <Trash2Icon className="h-4 w-4" />
-                  </Button>
-                </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <CreateProject
+                            open={isCreateProjectOpen}
+                            onOpenChange={setIsCreateProjectOpen}
+                            handleCreateProject={async (name, description) => {
+                              const success = await handleCreateProject(
+                                name,
+                                description
+                              );
+                              if (success) {
+                                setIsCreateProjectOpen(false);
+                              }
+                              return success;
+                            }}
+                            disabled={!isExecutive}
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      {!isExecutive && (
+                        <TooltipContent>
+                          <p>Only executives can create projects</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <DeleteProjectButton
+                            handleDeleteProject={handleDeleteProject}
+                            disabled={!selectedProjectId || !isExecutive}
+                          />
+                        </div>
+                      </TooltipTrigger>
+                      {!isExecutive && (
+                        <TooltipContent>
+                          <p>Only executives can delete projects</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </div>
+                </TooltipProvider>
               </div>
             </div>
+
             <div className="flex flex-col items-end space-y-2">
               <CreateTask
                 project={project}
@@ -152,99 +205,19 @@ export default function Projects() {
                 users={users}
                 onCreated={() => loadProjectData(selectedProjectId || "")}
               />
-              <div className="flex items-center space-x-2 mt-4">
-                <Label htmlFor="view-switch" className="text-sm font-medium">
-                  Kanban
-                </Label>
-                <Switch
-                  id="view-switch"
-                  checked={view === "list"}
-                  onCheckedChange={(checked) =>
-                    setView(checked ? "list" : "kanban")
-                  }
-                />
-                <Label htmlFor="view-switch" className="text-sm font-medium">
-                  List
-                </Label>
-              </div>
+              <ViewToggle view={view} onViewChange={setView} />
             </div>
           </div>
 
-          {/* Modal dialog for Add Column (opened from Kanban's extraColumn) */}
-          <Dialog open={isAddingColumn} onOpenChange={setIsAddingColumn}>
-            <DialogContent className="sm:max-w-[425px]">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  addColumn();
-                }}
-              >
-                <DialogHeader>
-                  <DialogTitle>Add Column</DialogTitle>
-                  <DialogDescription className="mb-2">
-                    Enter a title and pick a colour for the new column.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="grid gap-4">
-                  <div className="grid gap-3">
-                    <Label htmlFor="column-title">Column Title</Label>
-                    <input
-                      id="column-title"
-                      value={newColumn.name}
-                      onChange={(e) =>
-                        setNewColumn({ ...newColumn, name: e.target.value })
-                      }
-                      placeholder="Enter column title"
-                      required
-                      className="w-full rounded border px-2 py-1 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
-                    />
-                  </div>
-                  <div className="grid gap-3">
-                    <Label className="text-sm">Column Colour Label</Label>
-                    <div className="flex gap-2 my-2">
-                      {[
-                        "#ef4444",
-                        "#f97316",
-                        "#f59e0b",
-                        "#10b981",
-                        "#06b6d4",
-                        "#3b82f6",
-                        "#6366f1",
-                        "#8b5cf6",
-                        "#ec4899",
-                      ].map((c) => (
-                        <button
-                          key={c}
-                          type="button"
-                          onClick={() =>
-                            setNewColumn({ ...newColumn, color: c })
-                          }
-                          className={
-                            "w-8 h-8 rounded-full border-2 " +
-                            (newColumn.color === c
-                              ? "ring-2 ring-offset-1"
-                              : "")
-                          }
-                          style={{ background: c }}
-                          aria-label={`select ${c}`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline" type="button">
-                      Cancel
-                    </Button>
-                  </DialogClose>
-                  <Button type="submit">Add Column</Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+          {hasProjects && (
+            <AddColumnDialog
+              open={isAddingColumn}
+              onOpenChange={setIsAddingColumn}
+              newColumn={newColumn}
+              setNewColumn={setNewColumn}
+              onSubmit={addColumn}
+            />
+          )}
 
           {view === "kanban" ? (
             <Kanban
@@ -253,18 +226,41 @@ export default function Projects() {
               project={project}
               onFeaturesChange={setFeatures}
               onSelect={setSelectedItem}
+              allowDrag={isExecutive ?? undefined}
               onColumnUpdated={() => {
                 if (selectedProjectId) void loadProjectData(selectedProjectId);
               }}
               extraColumn={
-                <div
-                  onClick={() => setIsAddingColumn(true)}
-                  className="cursor-pointer rounded-md border-2 border-dashed border-muted-foreground/30 h-full p-3 flex items-start justify-center"
-                >
-                  <div className="text-sm text-muted-foreground">
-                    + Add Column
-                  </div>
-                </div>
+                hasProjects ? (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div
+                          onClick={() => {
+                            if (isExecutive) {
+                              setIsAddingColumn(true);
+                            }
+                          }}
+                          className={clsx(
+                            "rounded-md border-2 border-dashed h-full p-3 flex items-start justify-center",
+                            isExecutive
+                              ? "border-muted-foreground/30 cursor-pointer hover:border-muted-foreground"
+                              : "border-muted-foreground/20 cursor-not-allowed opacity-50"
+                          )}
+                        >
+                          <div className="text-sm text-muted-foreground">
+                            + Add Column
+                          </div>
+                        </div>
+                      </TooltipTrigger>
+                      {!isExecutive && (
+                        <TooltipContent>
+                          <p>Only executives can add columns</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
+                ) : undefined
               }
             />
           ) : (

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
-type Props = {
+type ColumnProp = {
   currentColor?: string;
   onChangeColor: (color: string) => void;
   onDelete: () => void;
@@ -22,7 +22,7 @@ export function KanbanColDropdown({
   currentColor,
   onChangeColor,
   onDelete,
-}: Props) {
+}: ColumnProp) {
   const [open, setOpen] = useState(false);
   const { confirm, DialogEl } = useConfirm();
 
@@ -36,6 +36,7 @@ export function KanbanColDropdown({
     "#6366f1",
     "#8b5cf6",
     "#ec4899",
+    "#8e8e8eff",
   ];
 
   const handleDelete = () => {
@@ -53,15 +54,26 @@ export function KanbanColDropdown({
     <>
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm">
-            <MoreHorizontal />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="rounded-md hover:scale-115 hover:ring-2 transform transition-all duration-150"
+            aria-label="Column options"
+            title="Column options"
+          >
+            <MoreHorizontal
+              className={
+                "h-4 w-4 transition-transform duration-150 " +
+                (open ? "rotate-90 text-foreground" : "text-muted-foreground")
+              }
+            />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-[220px]">
-          <DropdownMenuLabel>Column</DropdownMenuLabel>
+        <DropdownMenuContent align="end" className="w-[240px]">
+          <DropdownMenuLabel>Status Column</DropdownMenuLabel>
           <DropdownMenuGroup>
             <div className="p-2">
-              <div className="text-xs text-muted-foreground mb-2">Color</div>
+              <div className="text-xs text-muted-foreground mb-2">Colour</div>
               <div className="flex flex-wrap gap-2">
                 {colors.map((c) => (
                   <button
@@ -73,7 +85,7 @@ export function KanbanColDropdown({
                     }}
                     aria-label={`Set color ${c}`}
                     className={
-                      "w-7 h-7 rounded-full border-2" +
+                      "w-7 h-7 rounded-full border-2 hover:scale-120" +
                       (currentColor === c ? " ring-2 ring-offset-1" : "")
                     }
                     style={{ background: c }}

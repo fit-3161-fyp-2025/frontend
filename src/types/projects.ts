@@ -28,25 +28,34 @@ export interface ToDoItem {
   approved: boolean;
 }
 
-export type Column = {
-  id: string;
-  name: string;
-  color: string;
-};
-
-export type UserDetails = {
+export interface UserDetails {
   id: string;
   email: string;
   first_name: string;
   last_name: string;
-};
+}
 
-export type Feature = {
+export interface TodoItemsResponse {
+  todos: ToDoItem[];
+}
+
+export interface ProposedTodosResponse {
+  proposed_todos: ToDoItem[];
+}
+
+export interface Column {
+  id: string;
+  name: string;
+  color: string;
+  [key: string]: unknown;
+}
+
+export interface Feature {
   id: string;
   name: string;
   description: string;
-  startAt: Date;
-  endAt: Date;
   column: string;
   owner: UserDetails;
-};
+  isProposed?: boolean;
+  [key: string]: unknown;
+}

@@ -13,6 +13,7 @@ import { projectsApi } from "@/api/projects";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { KanbanColDropdown } from "./kanban-col-dropdown";
+import { cn } from "@/lib/utils";
 
 interface KanbanProps {
   columns: Column[];
@@ -26,6 +27,7 @@ interface KanbanProps {
     action: "rename" | "delete" | "color";
     color?: string;
   }) => void;
+  allowDrag?: boolean;
 }
 
 export function Kanban({
@@ -36,6 +38,7 @@ export function Kanban({
   onSelect,
   extraColumn,
   onColumnUpdated,
+  allowDrag,
 }: KanbanProps) {
   const prevFeaturesRef = useRef<Feature[]>([]);
 
@@ -56,7 +59,6 @@ export function Kanban({
     });
 
     if (movedFeature && project) {
-      // Update the todo item status in the backend
       projectsApi
         .updateTodo(project.id, {
           id: movedFeature.id,
@@ -75,14 +77,10 @@ export function Kanban({
   }, [features, project]);
 
   const handleKanbanChange = (value: React.SetStateAction<Feature[]>) => {
-    // Handle both direct values and function updates
     const newFeatures = typeof value === "function" ? value(features) : value;
-
-    // Update the features through the parent callback
     onFeaturesChange(newFeatures);
   };
 
-  // Extracted ColumnView so hooks run in a component, not inside a render callback
   function ColumnView({ column }: { column: Column }) {
     const [editingName, setEditingName] = useState(false);
     const [nameValue, setNameValue] = useState(column.name);
@@ -104,7 +102,7 @@ export function Kanban({
           name: trimmed,
           color: column.color,
         });
-        toast.success("Column renamed");
+        toast.success("Column renamed: " + trimmed);
         setEditingName(false);
         onColumnUpdated?.({ id: column.id, action: "rename" });
       } catch (err) {
@@ -116,53 +114,55 @@ export function Kanban({
     return (
       <KanbanBoard id={column.id} key={column.id}>
         <KanbanHeader>
-          <div className="flex items-center gap-2">
-            <div
-              className="h-2 w-2 rounded-full"
-              style={{ backgroundColor: column.color }}
-            />
-            {editingName ? (
-              <Input
-                value={nameValue}
-                onChange={(e) => setNameValue(e.target.value)}
-                className="w-40"
-                autoFocus
-                onBlur={() => saveName()}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    saveName();
-                  }
-                  if (e.key === "Escape") {
-                    setEditingName(false);
-                    setNameValue(column.name);
-                  }
-                }}
+          <div className="flex items-center justify-between w-full">
+            <div className="flex items-center gap-2">
+              <div
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: column.color }}
               />
-            ) : (
-              <span
-                className="cursor-pointer"
-                onClick={() => setEditingName(true)}
-                title="Click to rename"
-              >
-                {column.name}
-              </span>
-            )}
+              {editingName ? (
+                <Input
+                  value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
+                  autoFocus
+                  onBlur={() => saveName()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      saveName();
+                    }
+                    if (e.key === "Escape") {
+                      setEditingName(false);
+                      setNameValue(column.name);
+                    }
+                  }}
+                />
+              ) : (
+                <span
+                  className="cursor-pointer max-w-[13rem] truncate block"
+                  onClick={() => setEditingName(true)}
+                  title={column.name}
+                >
+                  {column.name}
+                </span>
+              )}
+            </div>
             <div className="ml-2">
               <KanbanColDropdown
                 currentColor={column.color}
                 onChangeColor={async (c: string) => {
                   if (!project) return;
-                  try {
-                    onColumnUpdated?.({
-                      id: column.id,
-                      action: "color",
-                      color: c,
-                    });
-                    toast.success("Column color updated");
-                  } catch (err) {
-                    toast.error("Failed to update column colour");
-                  }
+                  await projectsApi.updateTodoStatus(project.id, {
+                    id: column.id,
+                    name: column.name,
+                    color: c,
+                  });
+                  onColumnUpdated?.({
+                    id: column.id,
+                    action: "color",
+                    color: c,
+                  });
+                  toast.success("Column color updated");
                 }}
                 onDelete={async () => {
                   if (!project) return;
@@ -188,16 +188,28 @@ export function Kanban({
               name={feature.name}
               owner={feature.owner}
               onClick={() => onSelect(feature)}
+              disabled={!allowDrag || !!feature.isProposed}
             >
-              <div className="flex items-start justify-between gap-2 ">
-                <div className="flex flex-col gap-1">
-                  <p className="m-0 flex-1 font-medium text-sm">
+              <div
+                className={cn(
+                  "flex items-start justify-between gap-1",
+                  feature.isProposed ? "opacity-50" : ""
+                )}
+              >
+                {" "}
+                <div className="flex flex-col gap-2">
+                  <p className="font-medium text-sm line-clamp-1 truncate max-w-70">
                     {feature.name}
                   </p>
                 </div>
                 {feature.owner && <KanbanAvatar owner={feature.owner} />}
               </div>
-              <div className="text-muted-foreground text-xs w-70 line-clamp-1">
+              <div
+                className={cn(
+                  "text-muted-foreground text-xs max-w-60 line-clamp-1 truncate",
+                  feature.isProposed ? "opacity-50" : ""
+                )}
+              >
                 {feature.description}
               </div>
             </KanbanCard>

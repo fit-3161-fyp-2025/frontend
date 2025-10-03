@@ -22,6 +22,7 @@ import { useState } from "react";
 import { projectsApi } from "@/api/projects";
 import type { UserDetails } from "@/types/projects";
 import { toast } from "sonner";
+import { useIsExecutive } from "@/hooks/useIsExecutive";
 
 export function CreateTask({
   project,
@@ -34,6 +35,8 @@ export function CreateTask({
   users: UserDetails[];
   onCreated: () => void;
 }) {
+  const isExecutive = useIsExecutive();
+
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -41,6 +44,8 @@ export function CreateTask({
   const [assigneeId, setAssigneeId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isProposeMode = isExecutive === false;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,14 +80,18 @@ export function CreateTask({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="lg">Create Task</Button>
+        <Button>{isProposeMode ? "Propose Task" : "Create Task"}</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] overflow-auto">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>New Task</DialogTitle>
+            <DialogTitle>
+              {isProposeMode ? "Propose New Task" : "New Task"}
+            </DialogTitle>
             <DialogDescription className="mb-4 px-1">
-              Fill in the details for the new task.
+              {isProposeMode
+                ? "Propose a new task for approval."
+                : "Fill in the details for the new task."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
@@ -97,7 +106,7 @@ export function CreateTask({
                 required
               />
             </div>
-            <div className="grid gap-3">
+            <div className="grid gap-3 break-words">
               <Label htmlFor="task-description-1">Task Description</Label>
               <Input
                 id="task-description-1"
@@ -155,7 +164,11 @@ export function CreateTask({
               </Button>
             </DialogClose>
             <Button type="submit" disabled={loading || !statusId}>
-              {loading ? "Creating..." : "Create task"}
+              {loading
+                ? "Submitting..."
+                : isProposeMode
+                ? "Propose Task"
+                : "Create task"}
             </Button>
           </DialogFooter>
         </form>

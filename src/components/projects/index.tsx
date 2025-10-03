@@ -81,7 +81,7 @@ export const KanbanBoard = ({ id, children, className }: KanbanBoardProps) => {
   return (
     <div
       className={cn(
-        "flex size-full min-h-40 flex-col divide-y overflow-hidden rounded-md border bg-secondary text-xs shadow-sm ring-2 transition-all",
+        "flex size-full h-[calc(100vh-25vh)] flex-col divide-y overflow-hidden rounded-md border bg-secondary text-xs shadow-sm ring-2 transition-all",
         isOver ? "ring-primary" : "ring-transparent",
         className
       )}
@@ -96,6 +96,7 @@ export type KanbanCardProps<T extends KanbanItemProps = KanbanItemProps> = T & {
   children?: ReactNode;
   className?: string;
   onClick?: () => void;
+  disabled: boolean;
 };
 
 export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
@@ -104,6 +105,7 @@ export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
   children,
   className,
   onClick,
+  disabled,
 }: KanbanCardProps<T>) => {
   const {
     attributes,
@@ -113,7 +115,8 @@ export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
     transform,
     isDragging,
   } = useSortable({
-    id,
+    id: id as string,
+    disabled,
   });
   const { activeCardId } = useContext(KanbanContext) as KanbanContextProps;
 
@@ -129,10 +132,11 @@ export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
           className={cn(
             "cursor-grab gap-4 rounded-md p-3 shadow-sm relative group",
             isDragging && "pointer-events-none cursor-grabbing opacity-30",
+            disabled && "cursor-default",
             className
           )}
-          {...attributes}
-          {...listeners}
+          {...(disabled ? {} : attributes)}
+          {...(disabled ? {} : listeners)}
         >
           {children ?? <p className="m-0 font-medium text-sm">{name}</p>}
           {onClick && (
@@ -160,6 +164,7 @@ export const KanbanCard = <T extends KanbanItemProps = KanbanItemProps>({
             className={cn(
               "cursor-grab gap-4 rounded-md p-3 shadow-sm ring-2 ring-primary",
               isDragging && "cursor-grabbing",
+              disabled && "cursor-default",
               className
             )}
           >
@@ -344,17 +349,18 @@ export const KanbanProvider = <
         sensors={sensors}
         {...props}
       >
-        <div
-          className={cn("overflow-x-auto max-w-full py-2 min-w-0", className)}
-        >
-          <div className="inline-flex items-start gap-4 min-h-[8rem] px-2 min-w-0">
+        <div className={cn("overflow-x-auto", className)}>
+          <div className="inline-flex items-start ">
             {columns.map((column) => (
-              <div key={column.id} className="flex-shrink-0 min-w-[14rem]">
+              <div
+                key={column.id}
+                className="min-w-[24rem] min-h-[45rem] px-1.25"
+              >
                 {children(column)}
               </div>
             ))}
             {extraColumn && (
-              <div className="flex-shrink-0 min-w-[14rem]">{extraColumn}</div>
+              <div className="min-w-[12rem] m-2">{extraColumn}</div>
             )}
           </div>
         </div>

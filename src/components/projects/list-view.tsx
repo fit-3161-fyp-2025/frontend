@@ -10,7 +10,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { KanbanItemProps } from "@/components/projects/index";
 import type { Column } from "@/types/projects";
-import { ListViewAvatar } from "@/components/ui/user-avatar";
+import { KanbanAvatar } from "@/components/ui/user-avatar";
 import { ListViewStatusBadge } from "@/utils/statusBadge";
 
 type ListViewProps = {
@@ -26,9 +26,13 @@ export function ListView({
   columns = [],
   onSelect,
 }: ListViewProps) {
-  const getColumnName = (columnId: string) => {
-    const column = columns.find((col) => col.id === columnId);
-    return column?.name || columnId;
+  const getColumnDetails = (columnId: string) => {
+    return (
+      columns.find((col) => col.id === columnId) || {
+        name: columnId,
+        color: undefined,
+      }
+    );
   };
 
   return (
@@ -43,26 +47,35 @@ export function ListView({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {items.map((item: KanbanItemProps) => (
-            <TableRow
-              key={item.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => onSelect(item)}
-            >
-              <TableCell className="font-medium">{item.name}</TableCell>
-              <TableCell>
-                <ListViewStatusBadge
-                  status={getColumnName(item.column ?? "")}
-                />
-              </TableCell>
-              <TableCell>
-                <ListViewAvatar owner={item.owner} />
-              </TableCell>
-              <TableCell>
-                <div className="text-sm w-20">{item.description}</div>
-              </TableCell>
-            </TableRow>
-          ))}
+          {items.map((item: KanbanItemProps) => {
+            const column = getColumnDetails(item.column ?? "");
+            return (
+              <TableRow
+                key={item.id}
+                className={cn(
+                  "cursor-pointer hover:bg-muted/50",
+                  item.isProposed ? "opacity-50" : ""
+                )}
+                onClick={() => onSelect(item)}
+              >
+                <TableCell className="font-medium max-w-25 truncate">
+                  {item.name}
+                </TableCell>
+                <TableCell className="max-w-5 truncate">
+                  <ListViewStatusBadge
+                    status={column.name}
+                    color={column.color}
+                  />
+                </TableCell>
+                <TableCell className="max-w-15 truncate">
+                  <KanbanAvatar owner={item.owner} />
+                </TableCell>
+                <TableCell className="max-w-35 truncate">
+                  <div className="text-sm w-20">{item.description}</div>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
       <ScrollBar orientation="vertical" />

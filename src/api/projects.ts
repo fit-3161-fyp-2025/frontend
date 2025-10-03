@@ -2,6 +2,7 @@ import { apiClient } from "./client";
 import type {
   addTodoStatus,
   Project,
+  ProposedTodosResponse,
   ToDoItem,
   TodoStatus,
 } from "@/types/projects";
@@ -167,5 +168,16 @@ export const projectsApi = {
     await apiClient.post(`/projects/spend-budget/${projectId}`, undefined, {
       params: { amount },
     });
+  },
+
+  async getProposedTodos(projectId: string): Promise<ProposedTodosResponse> {
+    const response = await apiClient.get<ProposedTodosResponse>(
+      `/projects/get-proposed-todos/${projectId}`
+    );
+    return response.data;
+  },
+
+  async approveTodo(projectId: string, todoId: string): Promise<void> {
+    await apiClient.post(`/projects/approve-todo/${projectId}/${todoId}`);
   },
 };

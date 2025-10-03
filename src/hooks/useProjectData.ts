@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   type Column,
   type UserDetails,
@@ -11,7 +11,7 @@ import {
 import { projectsApi } from "@/api/projects";
 import { authApi } from "@/api/auth";
 import { toast } from "sonner";
-import { fetchTeams } from "@/features/teams/teamSlice";
+import { fetchTeams, setSelectedProjectId } from "@/features/teams/teamSlice";
 import type { AppDispatch } from "@/lib/store";
 
 type UseProjectDataParams = {
@@ -19,6 +19,8 @@ type UseProjectDataParams = {
   teams: any[];
   isFetchingTeams: boolean;
   selectedTeam: any | null | undefined;
+  selectedProjectId: string;
+  isExecutive: boolean | null;
 };
 
 export function useProjectData({
@@ -26,8 +28,9 @@ export function useProjectData({
   teams,
   isFetchingTeams,
   selectedTeam,
+  selectedProjectId,
+  isExecutive,
 }: UseProjectDataParams) {
-  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [project, setProject] = useState<Project | null>(null);
   const [features, setFeatures] = useState<Feature[]>([]);
   const [columns, setColumns] = useState<Column[]>([]);
@@ -40,8 +43,14 @@ export function useProjectData({
   const [loading, setLoading] = useState(true);
   const [loadingStage, setLoadingStage] = useState(0);
   const [availableProjects, setAvailableProjects] = useState<Project[]>([]);
+  const [proposedCounts, setProposedCounts] = useState<Record<string, number>>(
+    {}
+  );
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const hasFetchedTeamsRef = useRef(false);
+  const [rawTodos, setRawTodos] = useState<ToDoItem[]>([]);
+  const [rawProposed, setRawProposed] = useState<ToDoItem[]>([]);
 
   // Helper to ensure color values are valid hex (prepend '#' if missing)
   const ensureHexColor = (c: string | undefined | null) => {
@@ -84,19 +93,77 @@ export function useProjectData({
         console.log("Failed to fetch users:", err);
       }
     })();
-  }, [teams, project]);
+  }, [teams]);
 
-  const loadProjectData = async (projectId: string) => {
+  // Load available projects when selectedTeam changes
+  useEffect(() => {
+    (async () => {
+      if (isFetchingTeams || !selectedTeam) return;
+
+      setLoading(true);
+      setLoadingStage(0);
+
+      try {
+        setLoadingStage(1);
+
+        const projectPromises = selectedTeam.project_ids.map((id: string) =>
+          projectsApi.getProject(id)
+        );
+
+        setLoadingStage(2);
+
+        const projectResponses = await Promise.all(projectPromises);
+
+        setAvailableProjects(projectResponses.map((r) => r.project));
+
+        // Fetch proposed counts if executive
+        if (isExecutive === true) {
+          const proposedPromises = projectResponses.map((r) =>
+            projectsApi
+              .getProposedTodos(r.project.id)
+              .then((res) => res.proposed_todos.length)
+          );
+          const counts = await Promise.all(proposedPromises);
+          const newProposedCounts = projectResponses.reduce((acc, r, i) => {
+            acc[r.project.id] = counts[i];
+            return acc;
+          }, {} as Record<string, number>);
+          setProposedCounts(newProposedCounts);
+        }
+
+        // Set initial selected project if none selected
+        if (!selectedProjectId && projectResponses.length > 0) {
+          const firstProjectId = projectResponses[0].project.id;
+          dispatch(setSelectedProjectId(firstProjectId));
+          await loadProjectData(firstProjectId);
+        } else if (selectedProjectId) {
+          await loadProjectData(selectedProjectId);
+        }
+      } catch (err) {
+        console.error("Failed to load projects:", err);
+      } finally {
+        setLoading(false);
+        setIsInitialLoad(false);
+      }
+    })();
+  }, [isFetchingTeams, selectedTeam?.id, dispatch]);
+
+  const loadProjectData = useCallback(async (projectId: string) => {
     try {
       setLoadingStage(3);
 
-      const [projectResponse, todoItemsResponse] = await Promise.all([
-        projectsApi.getProject(projectId),
-        (async () => {
-          setLoadingStage(4);
-          return await projectsApi.getTodoItems(projectId);
-        })(),
-      ]);
+      const [projectResponse, todoItemsResponse, proposedResponse] =
+        await Promise.all([
+          projectsApi.getProject(projectId),
+          (async () => {
+            setLoadingStage(4);
+            return await projectsApi.getTodoItems(projectId);
+          })(),
+          (async () => {
+            const res = await projectsApi.getProposedTodos(projectId);
+            return res;
+          })(),
+        ]);
 
       setLoadingStage(5);
 
@@ -109,186 +176,104 @@ export function useProjectData({
             name: status.name,
             color: ensureHexColor(status.color),
           }));
-
         setColumns(statusColumns);
-        // Debug: log columns to inspect colors
-        // eslint-disable-next-line no-console
-        console.log("loaded columns:", statusColumns);
       }
 
-      if (todoItemsResponse.todos) {
-        const convertedFeatures: Feature[] = todoItemsResponse.todos.map(
-          (item: ToDoItem) => ({
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            startAt: new Date(),
-            endAt: new Date(),
-            column: item.status_id,
-            owner: users.find((u) => u.id === item.assignee_id) || {
-              id: "no-user-found",
-              first_name: "No",
-              last_name: "User",
-              email: "",
-            },
-          })
-        );
-        setFeatures(convertedFeatures);
-      }
+      setRawTodos(todoItemsResponse.todos || []);
+      setRawProposed(proposedResponse.proposed_todos || []);
+
+      setProposedCounts((prev) => ({
+        ...prev,
+        [projectId]: proposedResponse.proposed_todos.length,
+      }));
     } catch (err) {
-      console.log(
-        err instanceof Error ? err.message : "Failed to load project data"
-      );
-      throw err;
+      console.error(err);
+    } finally {
+      setLoadingStage(6);
     }
-  };
+  }, []);
 
+  // Effect to convert rawTodos and rawProposed to features once users/columns are ready
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        setLoading(true);
-        setLoadingStage(1);
+    if (rawTodos.length === 0 && rawProposed.length === 0) return;
 
-        if (teams.length === 0) {
-          toast.error("Create a new team", { id: "no-team" });
-          throw new Error("No teams found for current user");
-        }
+    const convertToFeatures = (
+      items: ToDoItem[],
+      isProposed: boolean
+    ): Feature[] =>
+      items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        column: item.status_id,
+        owner: users.find((u) => u.id === item.assignee_id) || {
+          id: "",
+          email: "",
+          first_name: "",
+          last_name: "",
+        },
+        isProposed,
+      }));
 
-        if (selectedTeam == null) {
-          throw new Error("No team selected");
-        }
+    const approvedFeatures = convertToFeatures(rawTodos, false);
+    const proposedFeatures = convertToFeatures(rawProposed, true);
 
-        if (selectedTeam.project_ids.length === 0) {
-          toast.warning("No project found. Please create a new project", {
-            id: "no-projects",
-          });
+    const proposedIds = new Set(proposedFeatures.map((p) => p.id));
+    const filteredApproved = approvedFeatures.filter(
+      (a) => !proposedIds.has(a.id)
+    );
 
-          setAvailableProjects([]);
-          return;
-        }
+    setFeatures([...proposedFeatures, ...filteredApproved]);
+  }, [rawTodos, rawProposed, users, isExecutive]);
 
-        setLoadingStage(2);
-        const projectPromises = selectedTeam.project_ids.map(
-          async (projectId: string) => {
-            return await projectsApi.getProject(projectId);
-          }
-        );
-
-        const results = await Promise.allSettled(
-          projectPromises as Promise<any>[]
-        );
-        const validProjects = results
-          .filter((r) => r.status === "fulfilled" && r.value && r.value.project)
-          .map((r: any) => r.value.project);
-
-        setAvailableProjects(validProjects);
-
-        if (validProjects.length <= 0) {
-          toast.error("No valid projects could be loaded.", {
-            id: "no-projects",
-          });
-          throw new Error("No valid projects could be loaded");
-        }
-
-        const nextId =
-          (selectedProjectId &&
-            validProjects.some((p: any) => p.id === selectedProjectId) &&
-            selectedProjectId) ||
-          validProjects[0].id;
-
-        setSelectedProjectId(nextId);
-        await loadProjectData(nextId);
-      } catch (err) {
-        console.log(
-          err instanceof Error ? err.message : "Failed to fetch project data"
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (!isFetchingTeams && teams.length > 0) {
-      fetchProjects();
-    }
-  }, [isFetchingTeams, teams, selectedTeam]);
-
-  const handleCreateProject = async (
-    name: string,
-    description: string
-  ): Promise<boolean> => {
-    if (!selectedTeam && teams.length === 0) {
-      console.log("No team available to create project");
-      return false;
-    }
-
-    if (!name.trim()) {
-      return false;
-    }
+  const handleCreateProject = async (name: string, description: string) => {
+    if (!selectedTeam) return false;
 
     try {
       setLoading(true);
-      setLoadingStage(1); // Creating project
 
-      const teamId = selectedTeam?.id || "";
       const response = await projectsApi.createProject(
-        teamId,
-        name.trim(),
-        description.trim()
+        selectedTeam.id,
+        name,
+        description
       );
 
       if (response.project) {
         setAvailableProjects((prev) => [...prev, response.project]);
         setSelectedProjectId(response.project.id);
-
-        // Load project data in background; resolve true immediately so callers can close dialogs
-        loadProjectData(response.project.id).catch((e) => {
-          console.error("Failed to load project after create:", e);
-        });
-
-        try {
-          await dispatch(fetchTeams()).unwrap();
-        } catch (e) {
-          console.log("Failed to refresh teams", e);
-        }
-
-        toast.success("New Project Created", { id: "new-project" });
+        dispatch(setSelectedProjectId(response.project.id));
+        await loadProjectData(response.project.id);
+        toast.success("Project created", { id: "project-created" });
+        await dispatch(fetchTeams()).unwrap();
         return true;
       }
+
+      return false;
     } catch (err) {
-      console.log(
-        err instanceof Error ? err.message : "Failed to create project"
-      );
+      console.error(err);
+      toast.error("Failed to create project", { id: "project-create-failed" });
+      return false;
     } finally {
       setLoading(false);
     }
-    return false;
   };
 
   const handleDeleteProject = async () => {
     if (!selectedTeam || !selectedProjectId) return;
+
     try {
       setLoading(true);
       await projectsApi.deleteProject(selectedTeam.id, selectedProjectId);
 
-      // Remove from local list
       setAvailableProjects((prev) =>
         prev.filter((p) => p.id !== selectedProjectId)
       );
 
-      // Choose next project if any
-      const remaining = availableProjects.filter(
-        (p) => p.id !== selectedProjectId
-      );
-      const next = remaining[0]?.id || "";
-      setSelectedProjectId(next);
-      if (next) {
-        await loadProjectData(next);
-      } else {
-        // Clear project-related state when none left
-        setProject(null);
-        setFeatures([]);
-        setColumns([]);
-      }
+      setSelectedProjectId("");
+      dispatch(setSelectedProjectId(null)); // Dispatch to Redux
+      setProject(null);
+      setFeatures([]);
+      setColumns([]);
 
       // Refresh teams so project_ids updates
       try {
@@ -325,6 +310,10 @@ export function useProjectData({
     const currentFeature = features.find((f) => f.id === itemId);
     if (!currentFeature) return;
 
+    // keep a copy to allow rollback on failure
+    const prevFeaturesSnapshot = [...features];
+
+    // optimistic UI update
     setFeatures((prevFeatures) =>
       prevFeatures.map((feature) =>
         feature.id === itemId ? { ...feature, ...updates } : feature
@@ -339,10 +328,21 @@ export function useProjectData({
         status_id: (updates as any).column ?? currentFeature.column,
         assignee_id: (updates as any).owner?.id ?? currentFeature.owner.id,
       };
-      projectsApi.updateTodo(project.id, apiData).catch((err) => {
-        toast(err, { id: "update-todo-failed" });
-        console.error("Failed to update todo:", err);
-      });
+
+      // Call API and show toast on success; revert optimistic update on failure.
+      projectsApi
+        .updateTodo(project.id, apiData)
+        .then(() => {
+          toast.success("Edit Applied", { id: `update-todo-${itemId}` });
+        })
+        .catch((err) => {
+          // rollback optimistic update
+          setFeatures(prevFeaturesSnapshot);
+          toast.error("Failed to update task", {
+            id: `update-todo-failed-${itemId}`,
+          });
+          console.error("Failed to update todo:", err);
+        });
     }
   };
 
@@ -406,5 +406,7 @@ export function useProjectData({
     isAddingColumn,
     setIsAddingColumn,
     addColumn,
+    proposedCounts,
+    isInitialLoad,
   } as const;
 }

@@ -8,14 +8,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserIcon, HashIcon, Trash2Icon } from "lucide-react";
+import { UserIcon, HashIcon, Trash2Icon, CornerDownRight } from "lucide-react";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useState, useEffect } from "react";
 import type { KanbanItemProps } from "./index";
 import type { Column, UserDetails } from "@/types/projects";
 
 import { ItemSheetAvatar } from "@/components/ui/user-avatar";
-import { ItemSheetStatusBadge } from "@/utils/statusBadge";
+import { ListViewStatusBadge } from "@/utils/statusBadge";
 
 // Reusable editable wrapper component
 const EditableField = ({
@@ -46,11 +46,13 @@ type KanbanItemSheetProps = {
   onUpdate?: (itemId: string, updates: Partial<KanbanItemProps>) => void;
   columns?: Column[];
   users?: UserDetails[];
+  onApprove?: (itemId: string) => void;
 };
 
 export function KanbanItemSheet({
   item,
   open,
+  onApprove,
   onOpenChange,
   onDelete,
   onUpdate,
@@ -66,26 +68,34 @@ export function KanbanItemSheet({
     endAt?: string;
   }>({});
 
+  const [localItem, setLocalItem] = useState<KanbanItemProps | null>(
+    item ?? null
+  );
+
+  useEffect(() => {
+    setLocalItem(item ?? null);
+  }, [item]);
+
   // Reset editing state when sheet opens/closes
   useEffect(() => {
     if (!open) {
       setEditingField(null);
       setEditValues({});
     }
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-      }
-    };
-    document.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () =>
-      document.removeEventListener("keydown", handleKeyDown, { capture: true });
   }, [open]);
 
-  const getColumnName = (columnId: string) => {
+  const getColumnName = (columnId: string | undefined) => {
+    if (!columnId) return "Unassigned";
     const column = columns.find((col) => col.id === columnId);
-    return column?.name || columnId;
+    return column?.name || "Unassigned";
   };
+
+  const getColumnColor = (columnId: string | undefined) => {
+    if (!columnId) return undefined;
+    const column = columns.find((col) => col.id === columnId);
+    return column?.color;
+  };
+
   const startEdit = (field: string, currentValue: any) => {
     setEditingField(field);
     setEditValues({ [field]: currentValue });
@@ -94,12 +104,18 @@ export function KanbanItemSheet({
   const saveEdit = (field: string) => {
     if (
       onUpdate &&
-      item &&
+      localItem &&
       editValues[field as keyof typeof editValues] !== undefined
     ) {
       const value = editValues[field as keyof typeof editValues];
-      onUpdate(item.id, { [field]: value });
+
+      setLocalItem((prev) => {
+        const updated = prev ? { ...prev, [field]: value } : prev;
+        if (updated) onUpdate(updated.id, { [field]: value });
+        return updated;
+      });
     }
+
     cancelEdit();
   };
 
@@ -114,36 +130,42 @@ export function KanbanItemSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       {ConfirmDialog}
       <SheetContent className="w-full sm:max-w-md p-2">
-        {item && (
+        {localItem && (
           <div className="flex flex-col h-full">
             {/* Header */}
             <SheetHeader className="border-b-4 p-4">
-              <div className="space-y-4 space-x-4">
+              <div className="space-y-4 space-x-4 break-words">
                 {/* Title Section */}
                 {editingField === "name" ? (
-                  <Input
-                    value={editValues.name || ""}
-                    onChange={(e) => setEditValues({ name: e.target.value })}
-                    className="text-2xl font-semibold"
-                    autoFocus
-                    onBlur={() => saveEdit("name")}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") saveEdit("name");
-                      if (e.key === "Escape") cancelEdit();
-                    }}
-                  />
+                  <div>
+                    <Input
+                      value={editValues.name || ""}
+                      onChange={(e) => setEditValues({ name: e.target.value })}
+                      className="text-2xl font-semibold"
+                      autoFocus
+                      onBlur={() => saveEdit("name")}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveEdit("name");
+                        if (e.key === "Escape") cancelEdit();
+                      }}
+                    />
+                    <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                      <CornerDownRight className="h-4 w-4" aria-hidden="true" />
+                      <span>Enter to save</span>
+                    </div>
+                  </div>
                 ) : (
                   <EditableField
-                    canEdit={!!onUpdate}
-                    onClick={() => startEdit("name", item.name)}
+                    canEdit={!!onUpdate && !localItem.isProposed}
+                    onClick={() => startEdit("name", localItem!.name)}
                     className="space-x-6 text-2xl font-semibold leading-tight cursor-pointer hover:bg-muted/70 hover:shadow-sm rounded-lg px-2 py-1 transition-all duration-200 border-2 border-transparent hover:border-muted-foreground/20"
                   >
-                    {item.name}
+                    {localItem!.name}
                   </EditableField>
                 )}
 
                 {/* Status Section */}
-                <div className="flex items-center gap-2 text-base">
+                <div className="flex items-center gap-2 text-base overflow-auto">
                   <span className="text-base text-muted-foreground">
                     Status:
                   </span>
@@ -151,16 +173,21 @@ export function KanbanItemSheet({
                     <Select
                       value={editValues.column || ""}
                       onValueChange={(value) => {
-                        if (onUpdate && item) {
-                          onUpdate(item.id, { column: value });
-                        }
+                        setLocalItem((prev) => {
+                          const updated = prev
+                            ? { ...prev, column: value }
+                            : prev;
+                          if (updated && onUpdate)
+                            onUpdate(updated.id, { column: value });
+                          return updated;
+                        });
                         cancelEdit();
                       }}
                     >
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className="flex-0 max-w-80">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="truncate">
                         {columns.map((col) => (
                           <SelectItem key={col.id} value={col.id}>
                             {col.name}
@@ -170,11 +197,14 @@ export function KanbanItemSheet({
                     </Select>
                   ) : (
                     <EditableField
-                      canEdit={!!onUpdate}
-                      onClick={() => startEdit("column", item.column)}
+                      canEdit={!!onUpdate && !localItem.isProposed}
+                      onClick={() =>
+                        startEdit("column", localItem!.column || "")
+                      }
                     >
-                      <ItemSheetStatusBadge
-                        status={getColumnName(item.column ?? "")}
+                      <ListViewStatusBadge
+                        status={getColumnName(localItem!.column)}
+                        color={getColumnColor(localItem!.column)}
                       />
                     </EditableField>
                   )}
@@ -193,11 +223,18 @@ export function KanbanItemSheet({
                 <div className="pl-6">
                   {editingField === "owner" ? (
                     <Select
-                      defaultValue={(item.owner as any)?.id || ""}
+                      defaultValue={(localItem!.owner as any)?.id || ""}
                       onValueChange={(value) => {
                         const selectedUser = users.find((u) => u.id === value);
-                        if (selectedUser && onUpdate && item) {
-                          onUpdate(item.id, { owner: selectedUser });
+                        if (selectedUser && onUpdate) {
+                          setLocalItem((prev) => {
+                            const updated = prev
+                              ? { ...prev, owner: selectedUser }
+                              : prev;
+                            if (updated)
+                              onUpdate(updated.id, { owner: selectedUser });
+                            return updated;
+                          });
                         }
                         cancelEdit();
                       }}
@@ -215,11 +252,11 @@ export function KanbanItemSheet({
                     </Select>
                   ) : (
                     <EditableField
-                      canEdit={!!onUpdate}
-                      onClick={() => startEdit("owner", item.owner)}
+                      canEdit={!!onUpdate && !localItem.isProposed}
+                      onClick={() => startEdit("owner", localItem!.owner)}
                     >
                       <div className="flex items-center gap-2">
-                        <ItemSheetAvatar owner={item.owner} />
+                        <ItemSheetAvatar owner={localItem!.owner} />
                       </div>
                     </EditableField>
                   )}
@@ -231,35 +268,49 @@ export function KanbanItemSheet({
                 <div className="flex items-center gap-2 text-base font-medium text-foreground">
                   <span>Description</span>
                 </div>
-                <div className="pl-0">
+                <div className="pl-0 break-words">
                   {editingField === "description" ? (
-                    <textarea
-                      value={editValues.description || ""}
-                      onChange={(e) =>
-                        setEditValues({
-                          ...editValues,
-                          description: e.target.value,
-                        })
-                      }
-                      placeholder="Enter task description..."
-                      className="w-full min-h-[120px] p-3 text-sm border border-input rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-                      autoFocus
-                      onBlur={() => saveEdit("description")}
-                      onKeyDown={(e) => {
-                        if (e.key === "Escape") cancelEdit();
-                      }}
-                    />
+                    <div>
+                      <textarea
+                        value={editValues.description || ""}
+                        onChange={(e) =>
+                          setEditValues({
+                            ...editValues,
+                            description: e.target.value,
+                          })
+                        }
+                        placeholder="Enter task description..."
+                        className="w-full min-h-[120px] p-3 text-sm border border-input rounded-md bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                        autoFocus
+                        onBlur={() => saveEdit("description")}
+                        onKeyDown={(e) => {
+                          if (e.key === "Escape") cancelEdit();
+                          // Enter (without Shift) saves and closes edit
+                          if (e.key === "Enter" && !e.shiftKey) {
+                            e.preventDefault();
+                            saveEdit("description");
+                          }
+                        }}
+                      />
+                      <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                        <CornerDownRight
+                          className="h-4 w-4"
+                          aria-hidden="true"
+                        />
+                        <span>Enter to save (Shift+Enter for newline)</span>
+                      </div>
+                    </div>
                   ) : (
                     <EditableField
-                      canEdit={!!onUpdate}
+                      canEdit={!!onUpdate && !localItem.isProposed}
                       onClick={() =>
-                        startEdit("description", item?.description || "")
+                        startEdit("description", localItem?.description || "")
                       }
                       className="cursor-pointer hover:bg-muted/70 hover:shadow-sm rounded-lg p-3 transition-all duration-200 border-2 border-transparent hover:border-muted-foreground/20 min-h-[80px] block"
                     >
-                      {item?.description ? (
+                      {localItem?.description ? (
                         <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                          {item.description}
+                          {localItem.description}
                         </div>
                       ) : (
                         <span className="text-sm text-muted-foreground italic">
@@ -280,7 +331,7 @@ export function KanbanItemSheet({
                   <HashIcon className="h-4 w-4" />
                   Task ID
                   <div className="p-4 text-sm text-muted-foreground">
-                    {item.id}
+                    {localItem!.id}
                   </div>
                 </div>
 
@@ -293,7 +344,7 @@ export function KanbanItemSheet({
                       description:
                         "This will permanently delete the task. This action cannot be undone.",
                       onConfirm: () => {
-                        onDelete?.(item.id);
+                        if (localItem) onDelete?.(localItem.id);
                         onOpenChange(false);
                       },
                     });

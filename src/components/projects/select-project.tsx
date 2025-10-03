@@ -5,41 +5,61 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-type Project = {
-  id: string;
-  name: string;
-  description?: string | null;
-};
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import type { Project } from "@/types/projects";
 
 type SelectProjectProps = {
   availableProjects: Project[];
-  selectedProjectId?: string | null;
-  handleProjectChange: (value: string) => void;
+  selectedProjectId: string | null;
+  handleProjectChange: (projectId: string) => void;
+  proposedCounts?: Record<string, number>;
 };
 
 export default function SelectProject({
   availableProjects,
   selectedProjectId,
   handleProjectChange,
+  proposedCounts,
 }: SelectProjectProps) {
   return (
-    <Select value={selectedProjectId || ""} onValueChange={handleProjectChange}>
-      <SelectTrigger className="flex-start w-[255px] py-6.5">
-        <SelectValue className="text-left truncate" />
-      </SelectTrigger>
-      <SelectContent className="text-left">
-        {availableProjects.map((proj) => (
-          <SelectItem key={proj.id} value={proj.id}>
-            <div className="grid grid-rows-2">
-              <div className="text-left font-medium">{proj.name}</div>
-              {proj.description && (
-                <div className="text-left text-xs">{proj.description}</div>
+    <TooltipProvider>
+      <Select
+        value={selectedProjectId ?? ""}
+        onValueChange={handleProjectChange}
+      >
+        <SelectTrigger className="w-[180px] hover:bg-purple-50">
+          <SelectValue placeholder="Select project" />
+        </SelectTrigger>
+        <SelectContent>
+          {availableProjects.map((project) => (
+            <SelectItem
+              key={project.id}
+              value={project.id}
+              className="flex justify-between items-center"
+            >
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="truncate max-w-[120px]">{project.name}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{project.description}</p>
+                </TooltipContent>
+              </Tooltip>
+              {(proposedCounts?.[project.id] ?? 0) > 0 && (
+                <Badge variant="destructive" className="ml-2">
+                  {proposedCounts?.[project.id] ?? 0}
+                </Badge>
               )}
-            </div>
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </TooltipProvider>
   );
 }
