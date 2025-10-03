@@ -37,9 +37,18 @@ export const authApi = {
   },
 
   login: async (data: FormData): Promise<AuthResponse> => {
+    const params = new URLSearchParams();
+    const username = data.get("username");
+    const password = data.get("password");
+    if (username !== null) params.append("username", String(username));
+    if (password !== null) params.append("password", String(password));
+
     const response = await apiClient.post<AuthResponse>(
       "/auth/set-token",
-      data
+      params,
+      {
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }
     );
     return response.data;
   },
