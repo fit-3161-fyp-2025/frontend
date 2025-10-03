@@ -1,4 +1,4 @@
-import type { GetAllEventsRes, CreateEventPayload, CreateEventRes, DeleteEventPayload } from "@/types/events"
+import type { GetAllEventsRes, CreateEventPayload, CreateEventRes, DeleteEventPayload, GetRSVPResponse, InviteRSVPResponse } from "@/types/events"
 import { apiClient } from "./client"
 
 export const eventApi = {
@@ -14,5 +14,15 @@ export const eventApi = {
 
   delete: async (teamId: string, data: DeleteEventPayload): Promise<void> => {
     await apiClient.post(`/teams/delete-event/${teamId}`, data);
+  },
+
+  getRSVPs: async (eventId: string): Promise<GetRSVPResponse> => {
+    const response = await apiClient.get<GetRSVPResponse>(`/events/get-event-rsvps/${eventId}`);
+    return response.data;
+  },
+
+  inviteGuest: async (eventId: string, email: string): Promise<InviteRSVPResponse> => {
+    const response = await apiClient.post<InviteRSVPResponse>(`/events/send-rsvp-email/${eventId}`, { email: email });
+    return response.data;
   },
 }

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "./lib/store";
 import { eventApi } from "./api/events";
+import type { RSVP } from "./components/event-calendar/types";
 
 export function Events() {
   const { selectedTeam } = useSelector((state: RootState) => state.teams);
@@ -14,9 +15,24 @@ export function Events() {
 
       try {
         const fetchedEvents = await eventApi.getAll(selectedTeam.id);
-        setEvents(
-          fetchedEvents.events.map(event => {
-            return ({
+
+        const eventsWithRSVPs = await Promise.all(
+          fetchedEvents.events.map(async (event) => {
+            let guests: RSVP[] = [];
+
+            if (event.rsvp_ids && event.rsvp_ids.length > 0) {
+              try {
+                const rsvpResponse = await eventApi.getRSVPs(event.id);
+                guests = rsvpResponse.rsvps.map(rsvp => ({
+                  id: rsvp.id,
+                  email: rsvp.email,
+                  status: rsvp.status,
+                }));
+              } catch (error) {
+                console.error(`Failed to fetch RSVPs for event ${event.id}:`, error);
+              }
+            }
+            return {
               id: event.id,
               title: event.name,
               description: event.description,
@@ -24,9 +40,12 @@ export function Events() {
               end: new Date(event.end),
               color: event.colour,
               location: event.location,
-            })
+              rsvp: guests,
+            };
           })
         );
+
+        setEvents(eventsWithRSVPs);
       } catch (error) {
         console.error("Failed to fetch events:", error);
       }
@@ -55,7 +74,7 @@ export function Events() {
         start: new Date(createdEvent.event.start),
         end: new Date(createdEvent.event.end),
         color: createdEvent.event.colour,
-        location: "shi ok",
+        location: createdEvent.event.location,
       }
 
       setEvents([...events, formattedCreatedEvent]);

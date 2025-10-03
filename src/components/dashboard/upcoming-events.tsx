@@ -135,20 +135,11 @@ export function UpcomingEvents({ events, isLoading = false }: UpcomingEventsProp
                     )}
 
                     {/* RSVP Status */}
-                    <div className="flex items-center justify-between pt-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Users className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {event.rsvp_ids.length} RSVPs
-                        </span>
-                      </div>
-                      
-                      <Badge 
-                        variant={event.public ? "default" : "secondary"}
-                        className="text-xs"
-                      >
-                        {event.public ? "Public" : "Private"}
-                      </Badge>
+                    <div className="flex items-center gap-2 text-sm pt-2">
+                      <Users className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        {event.rsvp_ids.length} RSVPs
+                      </span>
                     </div>
                   </div>
                 </div>

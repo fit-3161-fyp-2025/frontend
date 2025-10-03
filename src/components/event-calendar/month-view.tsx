@@ -32,6 +32,7 @@ interface MonthViewProps {
   events: CalendarEvent[]
   onEventSelect: (event: CalendarEvent) => void
   onEventCreate: (startTime: Date) => void
+  onDayClick?: (date: Date, hasEvents: boolean) => void
 }
 
 export function MonthView({
@@ -39,6 +40,7 @@ export function MonthView({
   events,
   onEventSelect,
   onEventCreate,
+  onDayClick,
 }: MonthViewProps) {
   const days = useMemo(() => {
     const monthStart = startOfMonth(currentDate)
@@ -135,9 +137,14 @@ export function MonthView({
                     id={cellId}
                     date={day}
                     onClick={() => {
-                      const startTime = new Date(day)
-                      startTime.setHours(DefaultStartHour, 0, 0)
-                      onEventCreate(startTime)
+                      if (onDayClick) {
+                        const hasEvents = allEvents.length > 0
+                        onDayClick(day, hasEvents)
+                      } else {
+                        const startTime = new Date(day)
+                        startTime.setHours(DefaultStartHour, 0, 0)
+                        onEventCreate(startTime)
+                      }
                     }}
                   >
                     <div className="group-data-today:bg-primary group-data-today:text-primary-foreground mt-1 inline-flex size-6 items-center justify-center rounded-full text-sm">
