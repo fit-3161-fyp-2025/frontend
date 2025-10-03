@@ -52,7 +52,6 @@ type KanbanItemSheetProps = {
 export function KanbanItemSheet({
   item,
   open,
-  onApprove,
   onOpenChange,
   onDelete,
   onUpdate,
