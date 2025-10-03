@@ -10,7 +10,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import type { KanbanItemProps } from "@/components/projects/index";
 import type { Column } from "@/types/projects";
-import { ListViewAvatar } from "@/components/ui/user-avatar";
+import { KanbanAvatar } from "@/components/ui/user-avatar";
 import { ListViewStatusBadge } from "@/utils/statusBadge";
 
 type ListViewProps = {
@@ -52,7 +52,10 @@ export function ListView({
             return (
               <TableRow
                 key={item.id}
-                className="cursor-pointer hover:bg-muted/50"
+                className={cn(
+                  "cursor-pointer hover:bg-muted/50",
+                  item.isProposed ? "opacity-50" : ""
+                )}
                 onClick={() => onSelect(item)}
               >
                 <TableCell className="font-medium max-w-25 truncate">
@@ -65,7 +68,7 @@ export function ListView({
                   />
                 </TableCell>
                 <TableCell className="max-w-15 truncate">
-                  <ListViewAvatar owner={item.owner} />
+                  <KanbanAvatar owner={item.owner} />
                 </TableCell>
                 <TableCell className="max-w-35 truncate">
                   <div className="text-sm w-20">{item.description}</div>

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAppSelector } from "@/hooks/redux";
 import { authApi } from "@/api/auth";
 
-export function userIsExecutive() {
+export function useIsExecutive() {
   const [isExecutive, setIsExecutive] = useState<boolean | null>(null);
   const { selectedTeam } = useAppSelector((state) => state.teams);
 

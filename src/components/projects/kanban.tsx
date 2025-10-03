@@ -13,6 +13,7 @@ import { projectsApi } from "@/api/projects";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { KanbanColDropdown } from "./kanban-col-dropdown";
+import { cn } from "@/lib/utils";
 
 interface KanbanProps {
   columns: Column[];
@@ -187,9 +188,15 @@ export function Kanban({
               name={feature.name}
               owner={feature.owner}
               onClick={() => onSelect(feature)}
-              disabled={!allowDrag}
+              disabled={!allowDrag || !!feature.isProposed}
             >
-              <div className="flex items-start justify-between gap-1">
+              <div
+                className={cn(
+                  "flex items-start justify-between gap-1",
+                  feature.isProposed ? "opacity-50" : ""
+                )}
+              >
+                {" "}
                 <div className="flex flex-col gap-2">
                   <p className="font-medium text-sm line-clamp-1 truncate max-w-70">
                     {feature.name}
@@ -197,7 +204,12 @@ export function Kanban({
                 </div>
                 {feature.owner && <KanbanAvatar owner={feature.owner} />}
               </div>
-              <div className="text-muted-foreground text-xs max-w-60 line-clamp-1 truncate">
+              <div
+                className={cn(
+                  "text-muted-foreground text-xs max-w-60 line-clamp-1 truncate",
+                  feature.isProposed ? "opacity-50" : ""
+                )}
+              >
                 {feature.description}
               </div>
             </KanbanCard>

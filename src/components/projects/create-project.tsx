@@ -11,15 +11,17 @@ import { Dialog, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Plus } from "lucide-react";
 
 type CreateProjectProps = {
-  isOpen?: boolean;
-  onClose?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
   handleCreateProject: (name: string, description: string) => Promise<boolean>;
+  disabled?: boolean;
 };
 
 export default function CreateProject({
-  isOpen = false,
-  onClose,
+  open,
+  onOpenChange,
   handleCreateProject,
+  disabled = false,
 }: CreateProjectProps) {
   const [newProjectName, setNewProjectName] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
@@ -36,14 +38,18 @@ export default function CreateProject({
     );
     if (success) {
       resetForm();
-      onClose?.();
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="default" size="icon" className="hover:scale-115">
+        <Button
+          variant="default"
+          size="icon"
+          className="hover:scale-115"
+          disabled={disabled}
+        >
           <Plus className="h-4 w-4" />
         </Button>
       </DialogTrigger>

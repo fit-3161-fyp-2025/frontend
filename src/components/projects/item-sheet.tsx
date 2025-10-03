@@ -46,11 +46,13 @@ type KanbanItemSheetProps = {
   onUpdate?: (itemId: string, updates: Partial<KanbanItemProps>) => void;
   columns?: Column[];
   users?: UserDetails[];
+  onApprove?: (itemId: string) => void;
 };
 
 export function KanbanItemSheet({
   item,
   open,
+  onApprove,
   onOpenChange,
   onDelete,
   onUpdate,
@@ -82,9 +84,16 @@ export function KanbanItemSheet({
     }
   }, [open]);
 
-  const getColumnName = (columnId: string) => {
+  const getColumnName = (columnId: string | undefined) => {
+    if (!columnId) return "Unassigned";
     const column = columns.find((col) => col.id === columnId);
-    return column?.name || columnId;
+    return column?.name || "Unassigned";
+  };
+
+  const getColumnColor = (columnId: string | undefined) => {
+    if (!columnId) return undefined;
+    const column = columns.find((col) => col.id === columnId);
+    return column?.color;
   };
 
   const startEdit = (field: string, currentValue: any) => {
@@ -147,7 +156,7 @@ export function KanbanItemSheet({
                   </div>
                 ) : (
                   <EditableField
-                    canEdit={!!onUpdate}
+                    canEdit={!!onUpdate && !localItem.isProposed}
                     onClick={() => startEdit("name", localItem!.name)}
                     className="space-x-6 text-2xl font-semibold leading-tight cursor-pointer hover:bg-muted/70 hover:shadow-sm rounded-lg px-2 py-1 transition-all duration-200 border-2 border-transparent hover:border-muted-foreground/20"
                   >
@@ -188,11 +197,14 @@ export function KanbanItemSheet({
                     </Select>
                   ) : (
                     <EditableField
-                      canEdit={!!onUpdate}
-                      onClick={() => startEdit("column", localItem!.column)}
+                      canEdit={!!onUpdate && !localItem.isProposed}
+                      onClick={() =>
+                        startEdit("column", localItem!.column || "")
+                      }
                     >
                       <ListViewStatusBadge
-                        status={getColumnName(localItem!.column ?? "")}
+                        status={getColumnName(localItem!.column)}
+                        color={getColumnColor(localItem!.column)}
                       />
                     </EditableField>
                   )}
@@ -240,7 +252,7 @@ export function KanbanItemSheet({
                     </Select>
                   ) : (
                     <EditableField
-                      canEdit={!!onUpdate}
+                      canEdit={!!onUpdate && !localItem.isProposed}
                       onClick={() => startEdit("owner", localItem!.owner)}
                     >
                       <div className="flex items-center gap-2">
@@ -290,7 +302,7 @@ export function KanbanItemSheet({
                     </div>
                   ) : (
                     <EditableField
-                      canEdit={!!onUpdate}
+                      canEdit={!!onUpdate && !localItem.isProposed}
                       onClick={() =>
                         startEdit("description", localItem?.description || "")
                       }

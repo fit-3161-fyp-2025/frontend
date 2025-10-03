@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
   type Column,
   type UserDetails,
@@ -13,7 +13,6 @@ import { authApi } from "@/api/auth";
 import { toast } from "sonner";
 import { fetchTeams, setSelectedProjectId } from "@/features/teams/teamSlice";
 import type { AppDispatch } from "@/lib/store";
-import { userIsExecutive } from "@/hooks/userIsExecutive";
 
 type UseProjectDataParams = {
   dispatch: AppDispatch;
@@ -21,6 +20,7 @@ type UseProjectDataParams = {
   isFetchingTeams: boolean;
   selectedTeam: any | null | undefined;
   selectedProjectId: string;
+  isExecutive: boolean | null;
 };
 
 export function useProjectData({
@@ -29,6 +29,7 @@ export function useProjectData({
   isFetchingTeams,
   selectedTeam,
   selectedProjectId,
+  isExecutive,
 }: UseProjectDataParams) {
   const [project, setProject] = useState<Project | null>(null);
   const [features, setFeatures] = useState<Feature[]>([]);
@@ -45,9 +46,11 @@ export function useProjectData({
   const [proposedCounts, setProposedCounts] = useState<Record<string, number>>(
     {}
   );
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const hasFetchedTeamsRef = useRef(false);
-  const isExecutive = userIsExecutive();
+  const [rawTodos, setRawTodos] = useState<ToDoItem[]>([]);
+  const [rawProposed, setRawProposed] = useState<ToDoItem[]>([]);
 
   // Helper to ensure color values are valid hex (prepend '#' if missing)
   const ensureHexColor = (c: string | undefined | null) => {
@@ -90,7 +93,7 @@ export function useProjectData({
         console.log("Failed to fetch users:", err);
       }
     })();
-  }, [teams, project]);
+  }, [teams]);
 
   // Load available projects when selectedTeam changes
   useEffect(() => {
@@ -131,8 +134,7 @@ export function useProjectData({
         // Set initial selected project if none selected
         if (!selectedProjectId && projectResponses.length > 0) {
           const firstProjectId = projectResponses[0].project.id;
-          setSelectedProjectId(firstProjectId);
-          dispatch(setSelectedProjectId(firstProjectId)); // Dispatch to Redux
+          dispatch(setSelectedProjectId(firstProjectId));
           await loadProjectData(firstProjectId);
         } else if (selectedProjectId) {
           await loadProjectData(selectedProjectId);
@@ -141,21 +143,27 @@ export function useProjectData({
         console.error("Failed to load projects:", err);
       } finally {
         setLoading(false);
+        setIsInitialLoad(false);
       }
     })();
-  }, [isFetchingTeams, selectedTeam, isExecutive, dispatch]);
+  }, [isFetchingTeams, selectedTeam?.id, dispatch]);
 
-  const loadProjectData = async (projectId: string) => {
+  const loadProjectData = useCallback(async (projectId: string) => {
     try {
       setLoadingStage(3);
 
-      const [projectResponse, todoItemsResponse] = await Promise.all([
-        projectsApi.getProject(projectId),
-        (async () => {
-          setLoadingStage(4);
-          return await projectsApi.getTodoItems(projectId);
-        })(),
-      ]);
+      const [projectResponse, todoItemsResponse, proposedResponse] =
+        await Promise.all([
+          projectsApi.getProject(projectId),
+          (async () => {
+            setLoadingStage(4);
+            return await projectsApi.getTodoItems(projectId);
+          })(),
+          (async () => {
+            const res = await projectsApi.getProposedTodos(projectId);
+            return res;
+          })(),
+        ]);
 
       setLoadingStage(5);
 
@@ -168,33 +176,55 @@ export function useProjectData({
             name: status.name,
             color: ensureHexColor(status.color),
           }));
-
         setColumns(statusColumns);
       }
 
-      if (todoItemsResponse.todos) {
-        const convertedFeatures: Feature[] = todoItemsResponse.todos.map(
-          (item: ToDoItem) => ({
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            column: item.status_id,
-            owner: users.find((u) => u.id === item.assignee_id) || {
-              id: "",
-              email: "",
-              first_name: "",
-              last_name: "",
-            },
-          })
-        );
-        setFeatures(convertedFeatures);
-      }
+      setRawTodos(todoItemsResponse.todos || []);
+      setRawProposed(proposedResponse.proposed_todos || []);
+
+      setProposedCounts((prev) => ({
+        ...prev,
+        [projectId]: proposedResponse.proposed_todos.length,
+      }));
     } catch (err) {
       console.error(err);
     } finally {
       setLoadingStage(6);
     }
-  };
+  }, []);
+
+  // Effect to convert rawTodos and rawProposed to features once users/columns are ready
+  useEffect(() => {
+    if (rawTodos.length === 0 && rawProposed.length === 0) return;
+
+    const convertToFeatures = (
+      items: ToDoItem[],
+      isProposed: boolean
+    ): Feature[] =>
+      items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        column: item.status_id,
+        owner: users.find((u) => u.id === item.assignee_id) || {
+          id: "",
+          email: "",
+          first_name: "",
+          last_name: "",
+        },
+        isProposed,
+      }));
+
+    const approvedFeatures = convertToFeatures(rawTodos, false);
+    const proposedFeatures = convertToFeatures(rawProposed, true);
+
+    const proposedIds = new Set(proposedFeatures.map((p) => p.id));
+    const filteredApproved = approvedFeatures.filter(
+      (a) => !proposedIds.has(a.id)
+    );
+
+    setFeatures([...proposedFeatures, ...filteredApproved]);
+  }, [rawTodos, rawProposed, users, isExecutive]);
 
   const handleCreateProject = async (name: string, description: string) => {
     if (!selectedTeam) return false;
@@ -377,6 +407,6 @@ export function useProjectData({
     setIsAddingColumn,
     addColumn,
     proposedCounts,
-    isExecutive,
+    isInitialLoad,
   } as const;
 }
