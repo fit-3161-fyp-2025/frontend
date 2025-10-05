@@ -6,6 +6,7 @@ import Projects from "@/projects";
 import { Events } from "@/events";
 import { LogIn } from "@/login";
 import { SignUp } from "@/signup";
+import Error from "@/error";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import { JoinCreateTeam } from "./JoinCreateTeam";
@@ -94,6 +95,7 @@ function App() {
               <Route index element={<ManageTeams />} />
               <Route path=":teamId" element={<TeamDetails />} />
             </Route>
+            <Route path="*" element={<Error />} />
           </Routes>
         </ToastProvider>
       </AuthProvider>
