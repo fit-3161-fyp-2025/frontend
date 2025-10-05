@@ -59,8 +59,8 @@ export default function CreateProject({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-1 items-center gap-4">
-            <Label htmlFor="project-name" className="text-right">
-              Project Name:
+            <Label htmlFor="project-name" className="text-left">
+              Project Name
             </Label>
             <Input
               id="project-name"
@@ -71,8 +71,8 @@ export default function CreateProject({
             />
           </div>
           <div className="grid grid-cols-1 items-center gap-4">
-            <Label htmlFor="project-description" className="text-right">
-              Project Description:
+            <Label htmlFor="project-description" className="text-left">
+              Project Description
             </Label>
             <Input
               id="project-description"
