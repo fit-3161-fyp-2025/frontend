@@ -6,7 +6,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, MapPin, Users, ArrowRight } from "lucide-react";
 import type { EventModel } from "@/types/team";
 // import { formatDistanceToNow } from "date-fns";
@@ -17,23 +16,26 @@ interface UpcomingEventsProps {
   isLoading?: boolean;
 }
 
-export function UpcomingEvents({ events, isLoading = false }: UpcomingEventsProps) {
+export function UpcomingEvents({
+  events,
+  isLoading = false,
+}: UpcomingEventsProps) {
   const navigate = useNavigate();
 
   // Sort events by start date, get next 3 upcoming events
   const upcomingEvents = events
-    .filter(event => new Date(event.start) > new Date())
+    .filter((event) => new Date(event.start) > new Date())
     .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
     .slice(0, 3);
 
   const formatEventTime = (dateStr: string) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -67,17 +69,13 @@ export function UpcomingEvents({ events, isLoading = false }: UpcomingEventsProp
             <Calendar className="h-5 w-5" />
             <CardTitle>Upcoming Events</CardTitle>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate("/events")}
-          >
+          <Button variant="ghost" size="sm" onClick={() => navigate("/events")}>
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
         <CardDescription>
-          {upcomingEvents.length > 0 
-            ? `${upcomingEvents.length} events coming up` 
+          {upcomingEvents.length > 0
+            ? `${upcomingEvents.length} events coming up`
             : "No upcoming events"}
         </CardDescription>
       </CardHeader>
@@ -86,9 +84,9 @@ export function UpcomingEvents({ events, isLoading = false }: UpcomingEventsProp
           <div className="text-center py-8 text-muted-foreground">
             <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No upcoming events</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               className="mt-4"
               onClick={() => navigate("/events")}
             >
@@ -98,8 +96,8 @@ export function UpcomingEvents({ events, isLoading = false }: UpcomingEventsProp
         ) : (
           <div className="space-y-4">
             {upcomingEvents.map((event) => (
-              <div 
-                key={event.id} 
+              <div
+                key={event.id}
                 className="border rounded-lg p-4 hover:bg-accent/50 transition-colors cursor-pointer"
                 onClick={() => navigate("/events")}
               >
@@ -114,8 +112,8 @@ export function UpcomingEvents({ events, isLoading = false }: UpcomingEventsProp
                         </p>
                       )}
                     </div>
-                    <div 
-                      className="w-3 h-3 rounded-full flex-shrink-0 mt-1" 
+                    <div
+                      className="w-3 h-3 rounded-full flex-shrink-0 mt-1"
                       style={{ backgroundColor: event.colour }}
                     />
                   </div>
@@ -126,7 +124,7 @@ export function UpcomingEvents({ events, isLoading = false }: UpcomingEventsProp
                       <Clock className="h-3 w-3" />
                       <span>{formatEventTime(event.start)}</span>
                     </div>
-                    
+
                     {event.location && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="h-3 w-3" />
@@ -135,30 +133,21 @@ export function UpcomingEvents({ events, isLoading = false }: UpcomingEventsProp
                     )}
 
                     {/* RSVP Status */}
-                    <div className="flex items-center justify-between pt-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Users className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-muted-foreground">
-                          {event.rsvp_ids.length} RSVPs
-                        </span>
-                      </div>
-                      
-                      <Badge 
-                        variant={event.public ? "default" : "secondary"}
-                        className="text-xs"
-                      >
-                        {event.public ? "Public" : "Private"}
-                      </Badge>
+                    <div className="flex items-center gap-2 text-sm pt-2">
+                      <Users className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">
+                        {event.rsvp_ids.length} RSVPs
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
-            
+
             {/* View All Button */}
             {events.length > 3 && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full mt-4"
                 onClick={() => navigate("/events")}
               >

@@ -1,17 +1,23 @@
-import { useEffect, useMemo, useState } from "react"
-import { RiCalendarLine, RiDeleteBinLine } from "@remixicon/react"
-import { format, isBefore } from "date-fns"
+import { useEffect, useMemo, useState } from "react";
+import {
+  RiCalendarLine,
+  RiDeleteBinLine,
+  RiMailLine,
+  RiRefreshLine,
+} from "@remixicon/react";
+import { format, isBefore } from "date-fns";
 
 import {
   DefaultEndHour,
   DefaultStartHour,
   EndHour,
   StartHour,
-} from "@/components/event-calendar/constants"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/event-calendar/constants";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -19,31 +25,32 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+} from "@/components/ui/popover";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import type { CalendarEvent, EventColor } from "./types"
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import type { CalendarEvent, EventColor, RSVP } from "./types";
+import { eventApi } from "@/api/events";
 
 interface EventDialogProps {
-  event: CalendarEvent | null
-  isOpen: boolean
-  onClose: () => void
-  onSave: (event: CalendarEvent) => void
-  onDelete: (eventId: string) => void
+  event: CalendarEvent | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (event: CalendarEvent) => void;
+  onDelete: (eventId: string) => void;
 }
 
 export function EventDialog({
@@ -53,90 +60,170 @@ export function EventDialog({
   onSave,
   onDelete,
 }: EventDialogProps) {
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [startDate, setStartDate] = useState<Date>(new Date())
-  const [endDate, setEndDate] = useState<Date>(new Date())
-  const [startTime, setStartTime] = useState(`${DefaultStartHour}:00`)
-  const [endTime, setEndTime] = useState(`${DefaultEndHour}:00`)
-  const [allDay, setAllDay] = useState(false)
-  const [location, setLocation] = useState("")
-  const [color, setColor] = useState<EventColor>("sky")
-  const [error, setError] = useState<string | null>(null)
-  const [startDateOpen, setStartDateOpen] = useState(false)
-  const [endDateOpen, setEndDateOpen] = useState(false)
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [startDate, setStartDate] = useState<Date>(new Date());
+  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [startTime, setStartTime] = useState(`${DefaultStartHour}:00`);
+  const [endTime, setEndTime] = useState(`${DefaultEndHour}:00`);
+  const [allDay, setAllDay] = useState(false);
+  const [location, setLocation] = useState("");
+  const [color, setColor] = useState<EventColor>("sky");
+  const [guests, setGuests] = useState<RSVP[]>([]);
+  const [guestEmail, setGuestEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
+  const [loadingRSVPs, setLoadingRSVPs] = useState(false);
 
   // Debug log to check what event is being passed
   useEffect(() => {
-    console.log("EventDialog received event:", event)
-  }, [event])
+    console.log("EventDialog received event:", event);
+  }, [event]);
+
+  // Function to fetch current RSVP data
+  const fetchRSVPData = async (eventId: string) => {
+    if (!eventId) return;
+
+    setLoadingRSVPs(true);
+    try {
+      const rsvpResponse = await eventApi.getRSVPs(eventId);
+      console.log("Fetched RSVP data:", rsvpResponse);
+
+      // Map backend field names to frontend field names
+      const mappedRSVPs = (rsvpResponse.rsvps || []).map((rsvp) => ({
+        id: rsvp.id,
+        email: rsvp.email,
+        status: (rsvp as any).rsvp_status || rsvp.status || "pending", // Handle both field names
+      }));
+
+      setGuests(mappedRSVPs);
+    } catch (error) {
+      console.error("Failed to fetch RSVP data:", error);
+      // Fallback to event.rsvp if API call fails
+      setGuests(event?.rsvp || []);
+    } finally {
+      setLoadingRSVPs(false);
+    }
+  };
 
   useEffect(() => {
     if (event) {
-      setTitle(event.title || "")
-      setDescription(event.description || "")
+      setTitle(event.title || "");
+      setDescription(event.description || "");
 
-      const start = new Date(event.start)
-      const end = new Date(event.end)
+      const start = new Date(event.start);
+      const end = new Date(event.end);
 
-      setStartDate(start)
-      setEndDate(end)
-      setStartTime(formatTimeForInput(start))
-      setEndTime(formatTimeForInput(end))
-      setAllDay(event.allDay || false)
-      setLocation(event.location || "")
-      setColor((event.color as EventColor) || "sky")
-      setError(null) // Reset error when opening dialog
+      setStartDate(start);
+      setEndDate(end);
+      setStartTime(formatTimeForInput(start));
+      setEndTime(formatTimeForInput(end));
+      setAllDay(event.allDay || false);
+      setLocation(event.location || "");
+      setColor((event.color as EventColor) || "sky");
+
+      // Fetch current RSVP data from server instead of using cached data
+      if (event.id) {
+        fetchRSVPData(event.id);
+      } else {
+        // For new events, use the local rsvp data
+        setGuests(event.rsvp || []);
+      }
+
+      setError(null); // Reset error when opening dialog
     } else {
-      resetForm()
+      resetForm();
     }
-  }, [event])
+  }, [event]);
 
   const resetForm = () => {
-    setTitle("")
-    setDescription("")
-    setStartDate(new Date())
-    setEndDate(new Date())
-    setStartTime(`${DefaultStartHour}:00`)
-    setEndTime(`${DefaultEndHour}:00`)
-    setAllDay(false)
-    setLocation("")
-    setColor("sky")
-    setError(null)
-  }
+    setTitle("");
+    setDescription("");
+    setStartDate(new Date());
+    setEndDate(new Date());
+    setStartTime(`${DefaultStartHour}:00`);
+    setEndTime(`${DefaultEndHour}:00`);
+    setAllDay(false);
+    setLocation("");
+    setColor("sky");
+    setGuests([]);
+    setGuestEmail("");
+    setError(null);
+  };
 
   const formatTimeForInput = (date: Date) => {
-    const hours = date.getHours().toString().padStart(2, "0")
-    const minutes = Math.floor(date.getMinutes() / 15) * 15
-    return `${hours}:${minutes.toString().padStart(2, "0")}`
-  }
+    const hours = date.getHours().toString().padStart(2, "0");
+    const minutes = Math.floor(date.getMinutes() / 15) * 15;
+    return `${hours}:${minutes.toString().padStart(2, "0")}`;
+  };
 
   // Memoize time options so they're only calculated once
   const timeOptions = useMemo(() => {
-    const options = []
+    const options = [];
     for (let hour = StartHour; hour <= EndHour; hour++) {
       for (let minute = 0; minute < 60; minute += 15) {
-        const formattedHour = hour.toString().padStart(2, "0")
-        const formattedMinute = minute.toString().padStart(2, "0")
-        const value = `${formattedHour}:${formattedMinute}`
+        const formattedHour = hour.toString().padStart(2, "0");
+        const formattedMinute = minute.toString().padStart(2, "0");
+        const value = `${formattedHour}:${formattedMinute}`;
         // Use a fixed date to avoid unnecessary date object creations
-        const date = new Date(2000, 0, 1, hour, minute)
-        const label = format(date, "h:mm a")
-        options.push({ value, label })
+        const date = new Date(2000, 0, 1, hour, minute);
+        const label = format(date, "h:mm a");
+        options.push({ value, label });
       }
     }
-    return options
-  }, []) // Empty dependency array ensures this only runs once
+    return options;
+  }, []); // Empty dependency array ensures this only runs once
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleAddGuest = async () => {
+    const email = guestEmail.trim().toLowerCase();
+
+    if (!email) {
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
+    if (guests.some((g) => g.email === email)) {
+      setError("This guest has already been added");
+      return;
+    }
+
+    const response = event && (await eventApi.inviteGuest(event.id, email));
+
+    response &&
+      setGuests([
+        ...guests,
+        { id: response.rsvp_id, email, status: "pending" },
+      ]);
+    setGuestEmail("");
+    setError(null);
+  };
+
+  const handleGuestKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddGuest();
+    }
+  };
 
   const handleSave = () => {
-    const start = new Date(startDate)
-    const end = new Date(endDate)
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
     if (!allDay) {
       const [startHours = 0, startMinutes = 0] = startTime
         .split(":")
-        .map(Number)
-      const [endHours = 0, endMinutes = 0] = endTime.split(":").map(Number)
+        .map(Number);
+      const [endHours = 0, endMinutes = 0] = endTime.split(":").map(Number);
 
       if (
         startHours < StartHour ||
@@ -146,25 +233,25 @@ export function EventDialog({
       ) {
         setError(
           `Selected time must be between ${StartHour}:00 and ${EndHour}:00`
-        )
-        return
+        );
+        return;
       }
 
-      start.setHours(startHours, startMinutes, 0)
-      end.setHours(endHours, endMinutes, 0)
+      start.setHours(startHours, startMinutes, 0);
+      end.setHours(endHours, endMinutes, 0);
     } else {
-      start.setHours(0, 0, 0, 0)
-      end.setHours(23, 59, 59, 999)
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
     }
 
     // Validate that end date is not before start date
     if (isBefore(end, start)) {
-      setError("End date cannot be before start date")
-      return
+      setError("End date cannot be before start date");
+      return;
     }
 
     // Use generic title if empty
-    const eventTitle = title.trim() ? title : "(no title)"
+    const eventTitle = title.trim() ? title : "(no title)";
 
     onSave({
       id: event?.id || "",
@@ -175,63 +262,64 @@ export function EventDialog({
       allDay,
       location,
       color,
-    })
-  }
+      rsvp: guests,
+    });
+  };
 
   const handleDelete = () => {
     if (event?.id) {
-      onDelete(event.id)
+      onDelete(event.id);
     }
-  }
+  };
 
   // Updated color options to match types.ts
   const colorOptions: Array<{
-    value: EventColor
-    label: string
-    bgClass: string
-    borderClass: string
+    value: EventColor;
+    label: string;
+    bgClass: string;
+    borderClass: string;
   }> = [
-      {
-        value: "sky",
-        label: "Sky",
-        bgClass: "bg-sky-400 data-[state=checked]:bg-sky-400",
-        borderClass: "border-sky-400 data-[state=checked]:border-sky-400",
-      },
-      {
-        value: "amber",
-        label: "Amber",
-        bgClass: "bg-amber-400 data-[state=checked]:bg-amber-400",
-        borderClass: "border-amber-400 data-[state=checked]:border-amber-400",
-      },
-      {
-        value: "violet",
-        label: "Violet",
-        bgClass: "bg-violet-400 data-[state=checked]:bg-violet-400",
-        borderClass: "border-violet-400 data-[state=checked]:border-violet-400",
-      },
-      {
-        value: "rose",
-        label: "Rose",
-        bgClass: "bg-rose-400 data-[state=checked]:bg-rose-400",
-        borderClass: "border-rose-400 data-[state=checked]:border-rose-400",
-      },
-      {
-        value: "emerald",
-        label: "Emerald",
-        bgClass: "bg-emerald-400 data-[state=checked]:bg-emerald-400",
-        borderClass: "border-emerald-400 data-[state=checked]:border-emerald-400",
-      },
-      {
-        value: "orange",
-        label: "Orange",
-        bgClass: "bg-orange-400 data-[state=checked]:bg-orange-400",
-        borderClass: "border-orange-400 data-[state=checked]:border-orange-400",
-      },
-    ]
+    {
+      value: "sky",
+      label: "Sky",
+      bgClass: "bg-sky-400 data-[state=checked]:bg-sky-400",
+      borderClass: "border-sky-400 data-[state=checked]:border-sky-400",
+    },
+    {
+      value: "amber",
+      label: "Amber",
+      bgClass: "bg-amber-400 data-[state=checked]:bg-amber-400",
+      borderClass: "border-amber-400 data-[state=checked]:border-amber-400",
+    },
+    {
+      value: "violet",
+      label: "Violet",
+      bgClass: "bg-violet-400 data-[state=checked]:bg-violet-400",
+      borderClass: "border-violet-400 data-[state=checked]:border-violet-400",
+    },
+    {
+      value: "rose",
+      label: "Rose",
+      bgClass: "bg-rose-400 data-[state=checked]:bg-rose-400",
+      borderClass: "border-rose-400 data-[state=checked]:border-rose-400",
+    },
+    {
+      value: "emerald",
+      label: "Emerald",
+      bgClass: "bg-emerald-400 data-[state=checked]:bg-emerald-400",
+      borderClass: "border-emerald-400 data-[state=checked]:border-emerald-400",
+    },
+    {
+      value: "orange",
+      label: "Orange",
+      bgClass: "bg-orange-400 data-[state=checked]:bg-orange-400",
+      borderClass: "border-orange-400 data-[state=checked]:border-orange-400",
+    },
+  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{event?.id ? "Edit Event" : "Create Event"}</DialogTitle>
           <DialogDescription className="sr-only">
@@ -300,13 +388,13 @@ export function EventDialog({
                     defaultMonth={startDate}
                     onSelect={(date) => {
                       if (date) {
-                        setStartDate(date)
+                        setStartDate(date);
                         // If end date is before the new start date, update it to match the start date
                         if (isBefore(endDate, date)) {
-                          setEndDate(date)
+                          setEndDate(date);
                         }
-                        setError(null)
-                        setStartDateOpen(false)
+                        setError(null);
+                        setStartDateOpen(false);
                       }
                     }}
                   />
@@ -369,9 +457,9 @@ export function EventDialog({
                     disabled={{ before: startDate }}
                     onSelect={(date) => {
                       if (date) {
-                        setEndDate(date)
-                        setError(null)
-                        setEndDateOpen(false)
+                        setEndDate(date);
+                        setError(null);
+                        setEndDateOpen(false);
                       }
                     }}
                   />
@@ -415,6 +503,133 @@ export function EventDialog({
               onChange={(e) => setLocation(e.target.value)}
             />
           </div>
+
+          <div className="*:not-first:mt-1.5">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="guest-email">Invite Guests</Label>
+              {event?.id && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fetchRSVPData(event.id)}
+                  disabled={loadingRSVPs}
+                  aria-label="Refresh RSVP data"
+                >
+                  <RiRefreshLine
+                    size={14}
+                    className={loadingRSVPs ? "animate-spin" : ""}
+                  />
+                  <span className="ml-1 text-xs">Refresh</span>
+                </Button>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                id="guest-email"
+                type="email"
+                placeholder="Enter email address"
+                value={guestEmail}
+                onChange={(e) => setGuestEmail(e.target.value)}
+                onKeyDown={handleGuestKeyDown}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={handleAddGuest}
+                aria-label="Add guest"
+              >
+                <RiMailLine size={16} aria-hidden="true" />
+              </Button>
+            </div>
+
+            {loadingRSVPs ? (
+              <div className="mt-3 flex items-center justify-center py-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <RiRefreshLine size={16} className="animate-spin" />
+                  <span>Loading RSVP data...</span>
+                </div>
+              </div>
+            ) : guests.length > 0 ? (
+              <div className="mt-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    {guests.length} {guests.length === 1 ? "guest" : "guests"}{" "}
+                    invited
+                  </p>
+                  <div className="flex gap-2 text-xs">
+                    <span className="text-green-600">
+                      {guests.filter((g) => g.status === "accepted").length}{" "}
+                      accepted
+                    </span>
+                    <span className="text-red-600">
+                      {guests.filter((g) => g.status === "declined").length}{" "}
+                      declined
+                    </span>
+                    <span className="text-yellow-600">
+                      {guests.filter((g) => g.status === "pending").length}{" "}
+                      pending
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  {guests.map((guest) => {
+                    const getStatusBadge = (status: string) => {
+                      switch (status) {
+                        case "accepted":
+                          return (
+                            <Badge
+                              variant="default"
+                              className="bg-green-100 text-green-800 hover:bg-green-100"
+                            >
+                              Confirmed
+                            </Badge>
+                          );
+                        case "declined":
+                          return (
+                            <Badge
+                              variant="destructive"
+                              className="bg-red-100 text-red-800 hover:bg-red-100"
+                            >
+                              Declined
+                            </Badge>
+                          );
+                        case "pending":
+                          return (
+                            <Badge
+                              variant="secondary"
+                              className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                            >
+                              Pending
+                            </Badge>
+                          );
+                        default:
+                          return <Badge variant="outline">{status}</Badge>;
+                      }
+                    };
+
+                    return (
+                      <div
+                        key={guest.email}
+                        className="flex items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      >
+                        <span className="truncate">{guest.email}</span>
+                        {getStatusBadge(guest.status)}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              event?.id && (
+                <div className="mt-3 text-sm text-muted-foreground text-center py-2">
+                  No guests invited yet
+                </div>
+              )
+            )}
+          </div>
+
           <fieldset className="space-y-4">
             <legend className="text-foreground text-sm leading-none font-medium">
               Etiquette
@@ -461,5 +676,5 @@ export function EventDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,13 +1,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import z from "zod"
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
 import { Button } from "./components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "./components/ui/form";
 import { Input } from "./components/ui/input";
 import { Link, useNavigate } from "react-router";
 import { useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
+import { CalendarDays, ArrowLeft, Home } from "lucide-react";
 
 const signUpFormSchema = z.object({
   first_name: z.string().min(1, "First name is required"),
@@ -21,7 +22,7 @@ const signUpFormSchema = z.object({
 });
 
 export function SignUp() {
-  const { register, isLoading } = useAuth();
+  const { register, isLoading, isAuthenticated } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -51,94 +52,129 @@ export function SignUp() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex justify-center items-center">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Sign Up</CardTitle>
-          <CardDescription>
-            Enter your email below to create your account.
-          </CardDescription>
-          <CardAction>
-            <Button variant="link">
-              <Link to="/login">Log In</Link>
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
+      {/* Header */}
+      <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <CalendarDays className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold">ClubSync</h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button variant="ghost" asChild>
+              <Link to="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Link>
             </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
-              {error}
-            </div>
-          )}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
-              <FormField
-                control={form.control}
-                name="first_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John" type="text" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="last_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Doe" type="text" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="johndoe@example.com" type="email" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="passwordConfirmation"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating Account..." : "Sign Up"}
+            {isAuthenticated && (
+              <Button variant="outline" asChild>
+                <Link to="/dashboard">
+                  <Home className="mr-2 h-4 w-4" />
+                  Dashboard
+                </Link>
               </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div className="flex justify-center items-center min-h-[calc(100vh-80px)] p-4">
+        <Card className="w-full max-w-md shadow-lg">
+          <CardHeader className="text-center">
+            <CardTitle className="text-2xl">Create Account</CardTitle>
+            <CardDescription>
+              Join ClubSync to manage your teams and events
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {error && (
+              <div className="text-destructive text-sm p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                {error}
+              </div>
+            )}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="first_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>First Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="John" type="text" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="last_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Last Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Doe" type="text" {...field} />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="johndoe@example.com" type="email" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="passwordConfirmation"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" disabled={isLoading} className="w-full">
+                  {isLoading ? "Creating Account..." : "Sign Up"}
+                </Button>
+              </form>
+            </Form>
+            
+            <div className="text-center">
+              <p className="text-sm text-muted-foreground">
+                Already have an account?{" "}
+                <Link to="/login" className="text-primary hover:underline font-medium">
+                  Log in here
+                </Link>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
