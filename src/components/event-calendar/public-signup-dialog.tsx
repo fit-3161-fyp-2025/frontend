@@ -1,4 +1,4 @@
-import { Calendar, UserPlus, Sparkles } from "lucide-react";
+import { Calendar, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { Link } from "react-router";
 
@@ -41,7 +41,9 @@ export function PublicSignupDialog({
         <div className="space-y-4">
           {/* Benefits */}
           <div className="space-y-3">
-            <h4 className="font-medium">ClubSync provides comprehensive event management:</h4>
+            <h4 className="font-medium">
+              ClubSync provides comprehensive event management:
+            </h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 bg-primary rounded-full" />
@@ -64,7 +66,11 @@ export function PublicSignupDialog({
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
-          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="w-full sm:w-auto"
+          >
             Not Now
           </Button>
           <Button asChild className="w-full sm:w-auto">

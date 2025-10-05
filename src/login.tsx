@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { Button } from "./components/ui/button";
 import {
   Card,
-  CardAction,
   CardContent,
   CardDescription,
   CardHeader,
@@ -50,7 +49,7 @@ export function LogIn() {
 
       // If user has teams, navigate to dashboard, otherwise prompt user to
       // create/join a team.
-      teams.length === 0 ? navigate('/teams/join') : navigate('/dashboard');
+      teams.length === 0 ? navigate("/teams/join") : navigate("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     }
@@ -138,11 +137,14 @@ export function LogIn() {
                 </Button>
               </form>
             </Form>
-            
+
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Don't have an account?{" "}
-                <Link to="/signup" className="text-primary hover:underline font-medium">
+                <Link
+                  to="/signup"
+                  className="text-primary hover:underline font-medium"
+                >
                   Sign up here
                 </Link>
               </p>
