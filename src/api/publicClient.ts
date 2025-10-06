@@ -1,6 +1,9 @@
-import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse } from "axios";
-
-const API_BASE_URL = "http://localhost:8000/api";
+import axios, {
+  type AxiosInstance,
+  type AxiosRequestConfig,
+  type AxiosResponse,
+} from "axios";
+import { API_BASE_URL } from "./client";
 
 class PublicApiClient {
   private axiosInstance: AxiosInstance;
