@@ -1,7 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router";
 import { Layout } from "@/layout";
 import { Dashboard } from "@/dashboard";
-import { Settings } from "@/settings";
 import Projects from "@/projects";
 import { Events } from "@/events";
 import { LogIn } from "@/login";
@@ -70,17 +69,6 @@ function App() {
               }
             >
               <Route index element={<Projects />} />
-            </Route>
-
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Settings />} />
             </Route>
 
             <Route

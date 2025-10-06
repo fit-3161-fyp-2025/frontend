@@ -1,4 +1,4 @@
-import { Calendar, Home, LogOut, Settings, Wrench } from "lucide-react";
+import { Calendar, Home, LogOut, Wrench } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -28,11 +28,6 @@ const items = [
     title: "Projects",
     url: "/projects",
     icon: Wrench,
-  },
-  {
-    title: "Settings",
-    url: "/settings",
-    icon: Settings,
   },
 ];
 
