@@ -195,8 +195,6 @@ export function useProjectData({
 
   // Effect to convert rawTodos and rawProposed to features once users/columns are ready
   useEffect(() => {
-    if (rawTodos.length === 0 && rawProposed.length === 0) return;
-
     const convertToFeatures = (
       items: ToDoItem[],
       isProposed: boolean
@@ -384,6 +382,12 @@ export function useProjectData({
       setLoading(false);
     }
   };
+
+  // Load project data when selectedProjectId changes (but not during initial load)
+  useEffect(() => {
+    if (isInitialLoad || !selectedProjectId) return;
+    loadProjectData(selectedProjectId);
+  }, [selectedProjectId, isInitialLoad, loadProjectData]);
 
   return {
     loading,
