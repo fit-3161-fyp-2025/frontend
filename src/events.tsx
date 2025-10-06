@@ -86,7 +86,18 @@ export function Events() {
     }
   };
 
-  const handleEventUpdate = (updatedEvent: CalendarEvent) => {
+  const handleEventUpdate = async (updatedEvent: CalendarEvent) => {
+    const formattedEvent = {
+      name: updatedEvent.title,
+      description: updatedEvent.description ?? "No description",
+      start: updatedEvent.start.toISOString(),
+      end: updatedEvent.end.toISOString(),
+      colour: updatedEvent.color ?? "rose",
+      location: updatedEvent.location ?? "No location",
+    }
+
+    await eventApi.update(updatedEvent.id, formattedEvent);
+
     setEvents(
       events.map((event) =>
         event.id === updatedEvent.id ? updatedEvent : event

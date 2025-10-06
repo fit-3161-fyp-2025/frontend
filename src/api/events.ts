@@ -16,6 +16,10 @@ export const eventApi = {
     await apiClient.post(`/teams/delete-event/${teamId}`, data);
   },
 
+  update: async (eventId: string, data: CreateEventPayload): Promise<void> => {
+    await apiClient.post(`/events/update-event-details/${eventId}`, data);
+  },
+
   getRSVPs: async (eventId: string): Promise<GetRSVPResponse> => {
     const response = await apiClient.get<GetRSVPResponse>(`/events/get-event-rsvps/${eventId}`);
     return response.data;
