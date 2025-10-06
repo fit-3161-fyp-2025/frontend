@@ -4,8 +4,10 @@ import { useSelector } from "react-redux";
 import type { RootState } from "./lib/store";
 import { eventApi } from "./api/events";
 import type { RSVP } from "./components/event-calendar/types";
+import { useIsExecutive } from "./hooks/useIsExecutive";
 
 export function Events() {
+  const isExecutive = useIsExecutive();
   const { selectedTeam } = useSelector((state: RootState) => state.teams);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
@@ -58,7 +60,7 @@ export function Events() {
   }, [selectedTeam]);
 
   const handleEventAdd = async (event: CalendarEvent) => {
-    if (!selectedTeam) return;
+    if (!selectedTeam || !isExecutive) return;
 
     try {
       const createdEvent = await eventApi.create(selectedTeam.id, {
@@ -87,6 +89,8 @@ export function Events() {
   };
 
   const handleEventUpdate = async (updatedEvent: CalendarEvent) => {
+    if (!isExecutive) return;
+
     const formattedEvent = {
       name: updatedEvent.title,
       description: updatedEvent.description ?? "No description",
@@ -106,7 +110,7 @@ export function Events() {
   };
 
   const handleEventDelete = async (eventId: string) => {
-    if (!selectedTeam) return;
+    if (!selectedTeam || !isExecutive) return;
 
     await eventApi.delete(selectedTeam.id, { event_id: eventId });
     setEvents(events.filter((event) => event.id !== eventId));
@@ -119,6 +123,7 @@ export function Events() {
         onEventAdd={handleEventAdd}
         onEventUpdate={handleEventUpdate}
         onEventDelete={handleEventDelete}
+        isExec={isExecutive}
       />
     </div>
   );
