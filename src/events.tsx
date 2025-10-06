@@ -7,7 +7,7 @@ import type { RSVP } from "./components/event-calendar/types";
 
 export function Events() {
   const { selectedTeam } = useSelector((state: RootState) => state.teams);
-  const [events, setEvents] = useState<CalendarEvent[]>([])
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -23,13 +23,16 @@ export function Events() {
             if (event.rsvp_ids && event.rsvp_ids.length > 0) {
               try {
                 const rsvpResponse = await eventApi.getRSVPs(event.id);
-                guests = rsvpResponse.rsvps.map(rsvp => ({
+                guests = rsvpResponse.rsvps.map((rsvp) => ({
                   id: rsvp.id,
                   email: rsvp.email,
                   status: rsvp.status,
                 }));
               } catch (error) {
-                console.error(`Failed to fetch RSVPs for event ${event.id}:`, error);
+                console.error(
+                  `Failed to fetch RSVPs for event ${event.id}:`,
+                  error
+                );
               }
             }
             return {
@@ -49,7 +52,7 @@ export function Events() {
       } catch (error) {
         console.error("Failed to fetch events:", error);
       }
-    }
+    };
 
     fetchEvents();
   }, [selectedTeam]);
@@ -75,33 +78,31 @@ export function Events() {
         end: new Date(createdEvent.event.end),
         color: createdEvent.event.colour,
         location: createdEvent.event.location,
-      }
+      };
 
       setEvents([...events, formattedCreatedEvent]);
     } catch (error) {
       console.error("Failed to create event");
     }
-  }
+  };
 
   const handleEventUpdate = (updatedEvent: CalendarEvent) => {
     setEvents(
       events.map((event) =>
         event.id === updatedEvent.id ? updatedEvent : event
       )
-    )
-  }
+    );
+  };
 
   const handleEventDelete = async (eventId: string) => {
     if (!selectedTeam) return;
 
     await eventApi.delete(selectedTeam.id, { event_id: eventId });
-    setEvents(events.filter((event) => event.id !== eventId))
-  }
+    setEvents(events.filter((event) => event.id !== eventId));
+  };
 
   return (
     <div className="min-h-screen bg-background p-8">
-      <h1 className="text-3xl font-bold text-left mb-8">Events</h1>
-
       <EventCalendar
         events={events}
         onEventAdd={handleEventAdd}
