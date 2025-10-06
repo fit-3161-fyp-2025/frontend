@@ -1,4 +1,4 @@
-import { Calendar, Home, LogOut, Wrench } from "lucide-react";
+import { Calendar, Home, Wrench } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router";
 import { useAuth } from "@/contexts/AuthContext";
 import { TeamsMenu } from "./team-menu";
+import { NavUser } from "./nav-user";
 
 const items = [
   {
@@ -33,7 +34,7 @@ const items = [
 
 export function AppSidebar() {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -80,27 +81,7 @@ export function AppSidebar() {
         <div className="flex-1" />
 
         <SidebarGroup className="mt-auto">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <a
-                    onClick={handleLogout}
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.preventDefault();
-                        handleLogout();
-                      }
-                    }}
-                  >
-                    <LogOut />
-                    <span>Logout</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
+          <NavUser user={user} onLogout={handleLogout} />
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
