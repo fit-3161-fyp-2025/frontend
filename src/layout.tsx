@@ -20,6 +20,7 @@ function RouteHeaderSetter() {
       "/dashboard": "Dashboard",
       "/events": "Events",
       "/settings": "Settings",
+      "/teams": "Manage Teams",
       "/login": "",
       "/signup": "",
     };
@@ -64,9 +65,15 @@ export function Layout() {
     excludeRoutes: ["/login", "/signup", "/"],
   });
 
+  const location = useLocation();
+
+  // Hide sidebar for team details pages (when viewing a specific team)
+  // Show sidebar for manage teams page and other pages
+  const shouldShowSidebar = !location.pathname.match(/^\/teams\/[^\/]+$/);
+
   return (
     <SidebarProvider>
-      <AppSidebar />
+      {shouldShowSidebar && <AppSidebar />}
       <PageHeaderProvider>
         <RouteHeaderSetter />
         <main className="m-4 w-full min-w-0">

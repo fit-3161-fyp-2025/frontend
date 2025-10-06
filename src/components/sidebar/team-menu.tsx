@@ -13,7 +13,6 @@ import {
 } from "../ui/select";
 import { fetchTeams, setSelectedTeamById } from "@/features/teams/teamSlice";
 import { Button } from "../ui/button";
-import { useNavigate } from "react-router";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -24,7 +23,6 @@ import {
 
 export function TeamsMenu() {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const { state: sidebarState } = useSidebar();
   const [isOpen, setIsOpen] = useState(false);
   const { teams, isFetchingTeams, selectedTeam } = useSelector(
@@ -37,11 +35,6 @@ export function TeamsMenu() {
 
   const handleTeamChange = (teamId: string) => {
     dispatch(setSelectedTeamById(teamId));
-  };
-
-  const navToManageTeam = () => {
-    setIsOpen(false);
-    navigate("/teams");
   };
 
   // When the sidebar is collapsed we show a compact avatar-only trigger with tooltip
@@ -90,9 +83,6 @@ export function TeamsMenu() {
                   {team.name}
                 </SelectItem>
               ))}
-              <Button className="w-full mt-2" onClick={navToManageTeam}>
-                Manage Teams
-              </Button>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -121,9 +111,6 @@ export function TeamsMenu() {
               {team.name}
             </SelectItem>
           ))}
-          <Button className="w-full mt-2" onClick={navToManageTeam}>
-            Manage Teams
-          </Button>
         </SelectGroup>
       </SelectContent>
     </Select>

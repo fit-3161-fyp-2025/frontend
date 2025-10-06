@@ -16,7 +16,8 @@ import { useToast } from "@/components/ui/toast";
 import { parseErrorMessage } from "@/utils/errorParser";
 import { DeleteTeamDialog } from "@/components/team/DeleteTeamDialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { MockDataToggle } from "@/components/MockDataToggle";
+// import { MockDataToggle } from "@/components/MockDataToggle";
+import { usePageHeader } from "@/contexts/PageHeaderContext";
 
 export function TeamDetails() {
   const navigate = useNavigate();
@@ -72,6 +73,7 @@ export function TeamDetails() {
   const { user, isLoading } = useAuth();
   const { confirm, DialogEl } = useConfirm();
   const { push } = useToast();
+  const { setHeader } = usePageHeader();
 
   useEffect(() => {
     if (!teamId) return;
@@ -97,6 +99,25 @@ export function TeamDetails() {
         setExecMemberIds(teamRes.team.exec_member_ids || []);
         const pids = teamRes.team.project_ids || [];
         setTeamProjectIds(pids);
+
+        // Set breadcrumb header
+        setHeader(
+          <div className="w-full">
+            <div className="flex flex-col gap-1 py-1">
+              <nav className="text-sm text-muted-foreground">
+                <span
+                  className="hover:text-foreground cursor-pointer"
+                  onClick={() => navigate("/teams")}
+                >
+                  Manage Teams
+                </span>
+                <span className="mx-2">›</span>
+                <span className="text-foreground">{teamRes.team.name}</span>
+              </nav>
+            </div>
+          </div>
+        );
+
         if (pids.length > 0) {
           setSelectedProjectId(pids[0]);
           const entries = await Promise.all(
@@ -562,13 +583,13 @@ export function TeamDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8 space-y-6">
+    <div className="min-h-screen bg-background p-6 space-y-6">
       {/* Mock Data Toggle */}
-      <MockDataToggle />
+      {/* <MockDataToggle /> */}
 
       {DialogEl}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-xl font-bold">
           {team?.name ||
             (isFetchingTeams ? "Loading team..." : `Team ${teamId}`)}
         </h1>
@@ -1152,27 +1173,39 @@ export function TeamDetails() {
                                     style={{
                                       width: `${Math.min(
                                         100,
-                                        (projectsBudgetData[projectId]
-                                          .budget_spent /
-                                          (projectsBudgetData[projectId]
-                                            .budget_available +
+                                        (() => {
+                                          const totalBudget =
                                             projectsBudgetData[projectId]
-                                              .budget_spent)) *
-                                          100
+                                              .budget_available +
+                                            projectsBudgetData[projectId]
+                                              .budget_spent;
+                                          return totalBudget > 0
+                                            ? (projectsBudgetData[projectId]
+                                                .budget_spent /
+                                                totalBudget) *
+                                                100
+                                            : 0;
+                                        })()
                                       )}%`,
                                     }}
                                   ></div>
                                 </div>
                                 <p className="text-xs text-gray-600 mt-1">
-                                  {(
-                                    (projectsBudgetData[projectId]
-                                      .budget_spent /
-                                      (projectsBudgetData[projectId]
+                                  {(() => {
+                                    const totalBudget =
+                                      projectsBudgetData[projectId]
                                         .budget_available +
-                                        projectsBudgetData[projectId]
-                                          .budget_spent)) *
-                                    100
-                                  ).toFixed(1)}
+                                      projectsBudgetData[projectId]
+                                        .budget_spent;
+                                    return totalBudget > 0
+                                      ? (
+                                          (projectsBudgetData[projectId]
+                                            .budget_spent /
+                                            totalBudget) *
+                                          100
+                                        ).toFixed(1)
+                                      : "0.0";
+                                  })()}
                                   % spent
                                 </p>
                               </div>
