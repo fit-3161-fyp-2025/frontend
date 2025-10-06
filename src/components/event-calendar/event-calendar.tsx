@@ -52,7 +52,7 @@ export interface EventCalendarProps {
   className?: string
   initialView?: CalendarView
   publicMode?: boolean
-  isExec: boolean | null
+  isExec?: boolean | null
 }
 
 export function EventCalendar({
