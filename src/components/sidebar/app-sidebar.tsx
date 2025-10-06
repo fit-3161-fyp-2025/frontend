@@ -1,4 +1,4 @@
-import { Calendar, Home, Wrench } from "lucide-react";
+import { Calendar, Home, Users, Wrench } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,6 +29,11 @@ const items = [
     title: "Projects",
     url: "/projects",
     icon: Wrench,
+  },
+  {
+    title: "Manage Teams",
+    url: "/teams",
+    icon: Users,
   },
 ];
 

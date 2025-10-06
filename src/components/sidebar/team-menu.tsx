@@ -39,11 +39,6 @@ export function TeamsMenu() {
     dispatch(setSelectedTeamById(teamId));
   };
 
-  const navToManageTeam = () => {
-    setIsOpen(false);
-    navigate("/teams");
-  };
-
   // When the sidebar is collapsed we show a compact avatar-only trigger with tooltip
   // otherwise show the full Select control.
   const isCollapsed = sidebarState === "collapsed";
@@ -90,9 +85,6 @@ export function TeamsMenu() {
                   {team.name}
                 </SelectItem>
               ))}
-              <Button className="w-full mt-2" onClick={navToManageTeam}>
-                Manage Teams
-              </Button>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -121,9 +113,6 @@ export function TeamsMenu() {
               {team.name}
             </SelectItem>
           ))}
-          <Button className="w-full mt-2" onClick={navToManageTeam}>
-            Manage Teams
-          </Button>
         </SelectGroup>
       </SelectContent>
     </Select>

@@ -1152,27 +1152,39 @@ export function TeamDetails() {
                                     style={{
                                       width: `${Math.min(
                                         100,
-                                        (projectsBudgetData[projectId]
-                                          .budget_spent /
-                                          (projectsBudgetData[projectId]
-                                            .budget_available +
+                                        (() => {
+                                          const totalBudget =
                                             projectsBudgetData[projectId]
-                                              .budget_spent)) *
-                                          100
+                                              .budget_available +
+                                            projectsBudgetData[projectId]
+                                              .budget_spent;
+                                          return totalBudget > 0
+                                            ? (projectsBudgetData[projectId]
+                                                .budget_spent /
+                                                totalBudget) *
+                                                100
+                                            : 0;
+                                        })()
                                       )}%`,
                                     }}
                                   ></div>
                                 </div>
                                 <p className="text-xs text-gray-600 mt-1">
-                                  {(
-                                    (projectsBudgetData[projectId]
-                                      .budget_spent /
-                                      (projectsBudgetData[projectId]
+                                  {(() => {
+                                    const totalBudget =
+                                      projectsBudgetData[projectId]
                                         .budget_available +
-                                        projectsBudgetData[projectId]
-                                          .budget_spent)) *
-                                    100
-                                  ).toFixed(1)}
+                                      projectsBudgetData[projectId]
+                                        .budget_spent;
+                                    return totalBudget > 0
+                                      ? (
+                                          (projectsBudgetData[projectId]
+                                            .budget_spent /
+                                            totalBudget) *
+                                          100
+                                        ).toFixed(1)
+                                      : "0.0";
+                                  })()}
                                   % spent
                                 </p>
                               </div>
