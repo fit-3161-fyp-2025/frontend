@@ -16,7 +16,7 @@ import { useToast } from "@/components/ui/toast";
 import { parseErrorMessage } from "@/utils/errorParser";
 import { DeleteTeamDialog } from "@/components/team/DeleteTeamDialog";
 import { useAuth } from "@/contexts/AuthContext";
-import { MockDataToggle } from "@/components/MockDataToggle";
+// import { MockDataToggle } from "@/components/MockDataToggle";
 import { usePageHeader } from "@/contexts/PageHeaderContext";
 
 export function TeamDetails() {

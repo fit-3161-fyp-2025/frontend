@@ -13,7 +13,6 @@ import {
 } from "../ui/select";
 import { fetchTeams, setSelectedTeamById } from "@/features/teams/teamSlice";
 import { Button } from "../ui/button";
-import { useNavigate } from "react-router";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -24,7 +23,6 @@ import {
 
 export function TeamsMenu() {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const { state: sidebarState } = useSidebar();
   const [isOpen, setIsOpen] = useState(false);
   const { teams, isFetchingTeams, selectedTeam } = useSelector(
