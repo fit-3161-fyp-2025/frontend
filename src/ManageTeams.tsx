@@ -15,7 +15,7 @@ export function ManageTeams() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { teams } = useSelector((state: RootState) => state.teams);
-  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
+  const [viewMode, setViewMode] = useState<"table" | "card">("table");
 
   useEffect(() => {
     dispatch(fetchTeams());
@@ -43,12 +43,10 @@ export function ManageTeams() {
 
   return (
     <div className="min-h-screen bg-background p-8">
-      <h1 className="text-3xl font-bold text-left mb-8">Manage Teams</h1>
-
-      <h2 className="text-xl font-bold text-left mb-4">My Teams</h2>
+      <h3 className="text-xl font-bold text-left mb-4">Available Teams</h3>
       <div className="mb-4">
         <button
-          className={`mr-2 px-4 py-2 rounded ${
+          className={`mr-2 px-3 py-2 rounded text-sm ${
             viewMode === "table" ? "bg-purple-500 text-white" : "bg-gray-200"
           }`}
           onClick={() => setViewMode("table")}
@@ -56,7 +54,7 @@ export function ManageTeams() {
           List View
         </button>
         <button
-          className={`px-4 py-2 rounded ${
+          className={`px-3 py-2 rounded text-sm ${
             viewMode === "card" ? "bg-purple-500 text-white" : "bg-gray-200"
           }`}
           onClick={() => setViewMode("card")}
@@ -64,7 +62,7 @@ export function ManageTeams() {
           Card View
         </button>
       </div>
-      
+
       {viewMode === "table" ? (
         <div className="overflow-x-auto">
           <table className="min-w-[400px] w-full border border-gray-200 rounded-lg bg-white">
