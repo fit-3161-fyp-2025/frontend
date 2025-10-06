@@ -52,6 +52,7 @@ export interface EventCalendarProps {
   className?: string
   initialView?: CalendarView
   publicMode?: boolean
+  isExec?: boolean | null
 }
 
 export function EventCalendar({
@@ -62,6 +63,7 @@ export function EventCalendar({
   className,
   initialView = "month",
   publicMode = false,
+  isExec,
 }: EventCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [view, setView] = useState<CalendarView>(initialView)
@@ -145,13 +147,15 @@ export function EventCalendar({
     setSelectedEvent(event)
     if (publicMode) {
       setIsPublicRSVPDialogOpen(true)
-    } else {
+    } else if (isExec) {
       setIsEventDialogOpen(true)
     }
   }
 
   const handleEventCreate = (startTime: Date) => {
     console.log("Creating new event at:", startTime) // Debug log
+
+    if (!isExec) return;
 
     // Snap to 15-minute intervals
     const minutes = startTime.getMinutes()
@@ -356,8 +360,8 @@ export function EventCalendar({
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className={cn(
                     "gap-1.5 max-[479px]:h-8",
                     publicMode && "bg-background/80 hover:bg-background/90"
@@ -393,7 +397,7 @@ export function EventCalendar({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {!publicMode && (
+            {!publicMode && isExec && (
               <Button
                 className="max-[479px]:aspect-square max-[479px]:p-0!"
                 size="sm"
@@ -426,23 +430,23 @@ export function EventCalendar({
               onDayClick={handleDayClick}
             />
           )}
-           {view === "week" && (
-             <WeekView
-               currentDate={currentDate}
-               events={events}
-               onEventSelect={handleEventSelect}
-               onEventCreate={publicMode ? handlePublicEventCreate : handleEventCreate}
-               onDayClick={handleDayClick}
-             />
-           )}
-           {view === "day" && (
-             <DayView
-               currentDate={currentDate}
-               events={events}
-               onEventSelect={handleEventSelect}
-               onEventCreate={publicMode ? handlePublicEventCreate : handleEventCreate}
-             />
-           )}
+          {view === "week" && (
+            <WeekView
+              currentDate={currentDate}
+              events={events}
+              onEventSelect={handleEventSelect}
+              onEventCreate={publicMode ? handlePublicEventCreate : handleEventCreate}
+              onDayClick={handleDayClick}
+            />
+          )}
+          {view === "day" && (
+            <DayView
+              currentDate={currentDate}
+              events={events}
+              onEventSelect={handleEventSelect}
+              onEventCreate={publicMode ? handlePublicEventCreate : handleEventCreate}
+            />
+          )}
           {view === "agenda" && (
             <AgendaView
               currentDate={currentDate}
@@ -450,7 +454,7 @@ export function EventCalendar({
               onEventSelect={handleEventSelect}
             />
           )}
-          
+
           {publicMode && events.length === 0 && (
             <div className="flex flex-1 items-center justify-center p-8">
               <div className="text-center">
@@ -477,14 +481,14 @@ export function EventCalendar({
           onDelete={handleEventDelete}
         />
 
-         <PublicRSVPDialog
-           event={selectedEvent}
-           isOpen={isPublicRSVPDialogOpen}
-           onClose={() => {
-             setIsPublicRSVPDialogOpen(false)
-             setSelectedEvent(null)
-           }}
-         />
+        <PublicRSVPDialog
+          event={selectedEvent}
+          isOpen={isPublicRSVPDialogOpen}
+          onClose={() => {
+            setIsPublicRSVPDialogOpen(false)
+            setSelectedEvent(null)
+          }}
+        />
 
         <PublicSignupDialog
           selectedDate={selectedDate}
