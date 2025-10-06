@@ -157,7 +157,8 @@ export function CreateTask({
             </div>
             {error && <div className="text-red-500 text-xs">{error}</div>}
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="mt-6">
             <DialogClose asChild>
               <Button variant="outline" type="button">
                 Cancel
