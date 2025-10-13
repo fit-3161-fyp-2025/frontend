@@ -76,11 +76,6 @@ export function EventDialog({
   const [endDateOpen, setEndDateOpen] = useState(false);
   const [loadingRSVPs, setLoadingRSVPs] = useState(false);
 
-  // Debug log to check what event is being passed
-  useEffect(() => {
-    console.log("EventDialog received event:", event);
-  }, [event]);
-
   // Function to fetch current RSVP data
   const fetchRSVPData = async (eventId: string) => {
     if (!eventId) return;
@@ -88,7 +83,6 @@ export function EventDialog({
     setLoadingRSVPs(true);
     try {
       const rsvpResponse = await eventApi.getRSVPs(eventId);
-      console.log("Fetched RSVP data:", rsvpResponse);
 
       // Map backend field names to frontend field names
       const mappedRSVPs = (rsvpResponse.rsvps || []).map((rsvp) => ({
