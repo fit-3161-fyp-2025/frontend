@@ -124,9 +124,24 @@ export function useDashboardData() {
 
         const activeProjectsCount = projects.length;
 
-        // For now, we'll simulate some completed tasks count
-        // In a real app, you'd track completion timestamps
-        const totalTasksCompleted = Math.floor(allTodos.length * 0.7); // Simulate 70% completion
+        // Calculate actual completed tasks based on tasks in the rightmost column
+        // The rightmost column is the last status in each project's todo_statuses array
+        let totalTasksCompleted = 0;
+        
+        projects.forEach((project) => {
+          if (project.todo_statuses && project.todo_statuses.length > 0) {
+            // Get the last status ID (rightmost column)
+            const lastStatusId = project.todo_statuses[project.todo_statuses.length - 1].id;
+            
+            // Count todos in this project that are in the last status
+            const projectTodos = allTodos.filter(todo => {
+              // Find which project this todo belongs to by checking if it's in the project's todo_ids
+              return project.todo_ids.includes(todo.id) && todo.status_id === lastStatusId;
+            });
+            
+            totalTasksCompleted += projectTodos.length;
+          }
+        });
 
         // Filter tasks assigned to current user and enrich with project info
         const userTasks: UserTaskWithProject[] = allTodos
