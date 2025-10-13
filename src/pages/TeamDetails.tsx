@@ -574,9 +574,6 @@ export function TeamDetails() {
 
   return (
     <div className="min-h-screen bg-background p-6 space-y-6">
-      {/* Mock Data Toggle */}
-      {/* <MockDataToggle /> */}
-
       {DialogEl}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">
@@ -600,7 +597,6 @@ export function TeamDetails() {
           </button>
         </div>
       </div>
-      <p className="text-muted-foreground">Team ID: {teamId}</p>
 
       {loading && (
         <div className="space-y-4">
@@ -660,11 +656,6 @@ export function TeamDetails() {
                     </Badge>
                   </div>
                 </div>
-                {team?.short_id && (
-                  <div className="bg-muted rounded px-2 py-1">
-                    <code>#{team.short_id}</code>
-                  </div>
-                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
