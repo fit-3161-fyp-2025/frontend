@@ -1,12 +1,28 @@
 import { useLocation, useNavigate } from "react-router";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
 import { useState } from "react";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "./components/ui/input-otp";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "./components/ui/input-otp";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormDescription, FormField, FormItem } from "./components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+} from "./components/ui/form";
 import { Button } from "./components/ui/button";
 import { useAuth } from "./contexts/AuthContext";
 import { useAppDispatch } from "./hooks/redux";
@@ -16,7 +32,7 @@ const OTPFormSchema = z.object({
   verification_code: z.string().min(6, {
     message: "Your one-time code must be at 6 characters",
   }),
-})
+});
 
 export function EmailVerification() {
   const { state } = useLocation();
@@ -42,10 +58,11 @@ export function EmailVerification() {
 
       teams.length === 0 ? navigate("/teams/join") : navigate("/dashboard");
     } catch (error) {
-      const errMsg = error instanceof Error ? error.message : "Failed to verify, try again";
+      const errMsg =
+        error instanceof Error ? error.message : "Failed to verify, try again";
       setError(errMsg);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background flex justify-center items-center">
@@ -59,7 +76,7 @@ export function EmailVerification() {
         </CardHeader>
         <CardContent>
           {error && (
-            <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
+            <div className="text-destructive text-sm mb-4 p-2 bg-destructive/10 rounded">
               {error}
             </div>
           )}

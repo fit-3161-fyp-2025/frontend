@@ -1,6 +1,13 @@
 import type { TeamModel } from "@/types/team";
 // Removed Card, CardContent imports
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogTitle, DialogTrigger } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import { Button } from "../ui/button";
 import { useState } from "react";
 import type { User } from "@/types/auth";
@@ -8,13 +15,21 @@ import { useNavigate } from "react-router";
 
 export interface ViewTeamDetailsDialogProps {
   team: TeamModel;
-  getTeamDetails: (teamId: string) => Promise<{ members: User[]; code: string }>;
+  getTeamDetails: (
+    teamId: string
+  ) => Promise<{ members: User[]; code: string }>;
 }
 
-export function ViewTeamDetailsDialog({ team, getTeamDetails }: ViewTeamDetailsDialogProps) {
+export function ViewTeamDetailsDialog({
+  team,
+  getTeamDetails,
+}: ViewTeamDetailsDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [details, setDetails] = useState<{ members: User[]; code: string } | null>(null);
+  const [details, setDetails] = useState<{
+    members: User[];
+    code: string;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -47,25 +62,37 @@ export function ViewTeamDetailsDialog({ team, getTeamDetails }: ViewTeamDetailsD
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" onClick={handleOpen} style={{ marginLeft: 8 }}>View Details</Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-xs sm:text-sm ml-2"
+          onClick={handleOpen}
+        >
+          View Details
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogTitle>Team Details</DialogTitle>
         {loading ? (
           <DialogDescription>Loading...</DialogDescription>
         ) : error ? (
-          <DialogDescription className="text-red-500">
+          <DialogDescription className="text-destructive">
             {error}
             <br />
             <span style={{ fontSize: "0.9em", color: "#888" }}>
-              Please check if the backend endpoint is working and returning the expected data.<br />
+              Please check if the backend endpoint is working and returning the
+              expected data.
+              <br />
               Team ID: {team.id}
             </span>
           </DialogDescription>
         ) : details ? (
           <>
             <DialogDescription>
-              <strong>Short Code:</strong> {details.code || <span style={{color: 'gray'}}>No code available</span>}
+              <strong>Short Code:</strong>{" "}
+              {details.code || (
+                <span style={{ color: "gray" }}>No code available</span>
+              )}
             </DialogDescription>
             <DialogDescription>
               <strong>Members:</strong>
@@ -76,17 +103,21 @@ export function ViewTeamDetailsDialog({ team, getTeamDetails }: ViewTeamDetailsD
                   ))}
                 </ul>
               ) : (
-                <span style={{color: 'gray'}}>No members found</span>
+                <span style={{ color: "gray" }}>No members found</span>
               )}
             </DialogDescription>
           </>
         ) : (
           <DialogDescription>
-            <span style={{color: 'gray'}}>No details available for this team.</span>
+            <span style={{ color: "gray" }}>
+              No details available for this team.
+            </span>
           </DialogDescription>
         )}
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setIsOpen(false)}>Close</Button>
+          <Button variant="ghost" onClick={() => setIsOpen(false)}>
+            Close
+          </Button>
           <Button onClick={openFullPage}>Open full page</Button>
         </DialogFooter>
       </DialogContent>
