@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useMemo } from "react"
-import { RiCalendarEventLine } from "@remixicon/react"
-import { addDays, format, isToday } from "date-fns"
+import { useMemo } from "react";
+import { RiCalendarEventLine } from "@remixicon/react";
+import { addDays, format, isToday } from "date-fns";
 
-import { AgendaDaysToShow } from "./constants"
-import type { CalendarEvent } from "./types"
-import { EventItem } from "./event-item"
-import { getAgendaEventsForDay } from "./utils"
+import { AgendaDaysToShow } from "./constants";
+import type { CalendarEvent } from "./types";
+import { EventItem } from "./event-item";
+import { getAgendaEventsForDay } from "./utils";
 
 interface AgendaViewProps {
-  currentDate: Date
-  events: CalendarEvent[]
-  onEventSelect: (event: CalendarEvent) => void
+  currentDate: Date;
+  events: CalendarEvent[];
+  onEventSelect: (event: CalendarEvent) => void;
 }
 
 export function AgendaView({
@@ -22,22 +22,20 @@ export function AgendaView({
 }: AgendaViewProps) {
   // Show events for the next days based on constant
   const days = useMemo(() => {
-    console.log("Agenda view updating with date:", currentDate.toISOString())
     return Array.from({ length: AgendaDaysToShow }, (_, i) =>
       addDays(new Date(currentDate), i)
-    )
-  }, [currentDate])
+    );
+  }, [currentDate]);
 
   const handleEventClick = (event: CalendarEvent, e: React.MouseEvent) => {
-    e.stopPropagation()
-    console.log("Agenda view event clicked:", event)
-    onEventSelect(event)
-  }
+    e.stopPropagation();
+    onEventSelect(event);
+  };
 
   // Check if there are any days with events
   const hasEvents = days.some(
     (day) => getAgendaEventsForDay(events, day).length > 0
-  )
+  );
 
   return (
     <div className="border-border/70 border-t px-4">
@@ -54,9 +52,9 @@ export function AgendaView({
         </div>
       ) : (
         days.map((day) => {
-          const dayEvents = getAgendaEventsForDay(events, day)
+          const dayEvents = getAgendaEventsForDay(events, day);
 
-          if (dayEvents.length === 0) return null
+          if (dayEvents.length === 0) return null;
 
           return (
             <div
@@ -80,9 +78,9 @@ export function AgendaView({
                 ))}
               </div>
             </div>
-          )
+          );
         })
       )}
     </div>
-  )
+  );
 }

@@ -93,7 +93,6 @@ export function TeamDetails() {
     Promise.all([teamDetailsApi.getDetails(teamId), teamApi.getTeam(teamId)])
       .then(async ([res, teamRes]) => {
         if (!isMounted) return;
-        console.log("Team data loaded:", { res, teamRes });
         setDetails(res);
         setMemberIds(teamRes.team.member_ids || []);
         setExecMemberIds(teamRes.team.exec_member_ids || []);
