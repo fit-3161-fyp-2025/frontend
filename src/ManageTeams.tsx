@@ -42,11 +42,11 @@ export function ManageTeams() {
   const goToTeam = (teamId: string) => navigate(`/teams/${teamId}`);
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="min-h-screen bg-background p-4 sm:p-8">
       <h3 className="text-xl font-bold text-left mb-4">Available Teams</h3>
-      <div className="mb-4">
+      <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:items-center">
         <button
-          className={`mr-2 px-3 py-2 rounded text-sm ${
+          className={`w-full sm:w-auto px-3 py-2 rounded text-sm ${
             viewMode === "table"
               ? "bg-primary text-primary-foreground"
               : "bg-muted text-muted-foreground"
@@ -56,7 +56,7 @@ export function ManageTeams() {
           List View
         </button>
         <button
-          className={`px-3 py-2 rounded text-sm ${
+          className={`w-full sm:w-auto px-3 py-2 rounded text-sm ${
             viewMode === "card"
               ? "bg-primary text-primary-foreground"
               : "bg-muted text-muted-foreground"
@@ -68,8 +68,8 @@ export function ManageTeams() {
       </div>
 
       {viewMode === "table" ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-[400px] w-full rounded-lg bg-card border">
+        <div className="overflow-x-auto touch-auto">
+          <table className="min-w-[320px] w-full rounded-lg bg-card border">
             <thead>
               <tr className="bg-card/60">
                 <th className="py-2 px-4 text-left font-semibold">Team Name</th>
@@ -126,15 +126,19 @@ export function ManageTeams() {
         </div>
       )}
 
-      <div className="flex justify-around mt-12">
-        <CreateTeam
-          description="Create a new team"
-          onCreate={() => dispatch(fetchTeams())}
-        />
-        <JoinTeam
-          description="Joining a new team? Enter the team code below"
-          onJoin={() => dispatch(fetchTeams())}
-        />
+      <div className="flex flex-col md:flex-row justify-around gap-6 mt-12">
+        <div className="w-full md:w-1/2">
+          <CreateTeam
+            description="Create a new team"
+            onCreate={() => dispatch(fetchTeams())}
+          />
+        </div>
+        <div className="w-full md:w-1/2">
+          <JoinTeam
+            description="Joining a new team? Enter the team code below"
+            onJoin={() => dispatch(fetchTeams())}
+          />
+        </div>
       </div>
     </div>
   );

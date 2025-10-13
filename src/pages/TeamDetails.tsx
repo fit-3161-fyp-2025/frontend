@@ -81,15 +81,6 @@ export function TeamDetails() {
     setLoading(true);
     setError(null);
 
-    // Force refresh when mock data toggle changes
-    const forceRefresh = localStorage.getItem("showMockData") === "true";
-    console.log(
-      "Loading team data (mock enabled:",
-      forceRefresh,
-      "for teamId:",
-      teamId
-    );
-
     Promise.all([teamDetailsApi.getDetails(teamId), teamApi.getTeam(teamId)])
       .then(async ([res, teamRes]) => {
         if (!isMounted) return;
