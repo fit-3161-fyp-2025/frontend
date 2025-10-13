@@ -142,7 +142,7 @@ export default function Projects() {
         <ProgressLoading stages={loadingStages} currentStage={loadingStage} />
       ) : (
         <>
-          <div className="flex items-start justify-between mt-2 mb-2">
+          <div className="flex flex-col sm:flex-row items-start justify-between mt-2 mb-2 gap-2">
             <div className="flex-1">
               <div className="space-y-4">
                 <div>
@@ -205,7 +205,7 @@ export default function Projects() {
               </div>
             </div>
 
-            <div className="flex flex-col items-end space-y-1 md:space-y-2">
+            <div className="flex flex-col items-start sm:items-end space-y-1 md:space-y-2">
               <CreateTask
                 project={project}
                 statuses={columns.map((c) => ({ id: c.id, name: c.name }))}
