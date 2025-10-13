@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
 import { Input } from "../ui/input";
 import z from "zod";
@@ -42,23 +48,19 @@ export function JoinTeam({ onJoin, description }: JoinTeamProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <Card className="w-full h-full max-w-sm max-h-sm">
       <CardHeader>
         <CardTitle>Join Team</CardTitle>
-        {description && (
-          <CardDescription>
-            {description}
-          </CardDescription>
-        )}
+        {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             {error && (
-              <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
+              <div className="text-destructive text-sm mb-4 p-2 bg-destructive/10 rounded">
                 {error}
               </div>
             )}
@@ -75,17 +77,12 @@ export function JoinTeam({ onJoin, description }: JoinTeamProps) {
               )}
             />
 
-            <Button
-              disabled={isLoading}
-              type="submit"
-              className="w-full"
-            >
+            <Button disabled={isLoading} type="submit" className="w-full">
               Join Team
             </Button>
           </form>
         </Form>
       </CardContent>
     </Card>
-
   );
 }

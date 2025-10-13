@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "../ui/card";
 import { useAppDispatch } from "@/hooks/redux";
 import { teamApi } from "@/api/team";
 import z from "zod";
@@ -35,7 +41,7 @@ export function CreateTeam({ onCreate, description }: CreateTeamProps) {
     try {
       const payload = {
         name: values.name,
-      }
+      };
       const team = await teamApi.create(payload);
       // TODO: Set team with team response
       // const teams = await dispatch(fetchTeams()).unwrap();
@@ -57,17 +63,13 @@ export function CreateTeam({ onCreate, description }: CreateTeamProps) {
     <Card className="w-full max-w-sm">
       <CardHeader>
         <CardTitle>Create Team</CardTitle>
-        {description &&
-          <CardDescription>
-            {description}
-          </CardDescription>
-        }
+        {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleCreateTeam)}>
             {error && (
-              <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
+              <div className="text-destructive text-sm mb-4 p-2 bg-destructive/10 rounded">
                 {error}
               </div>
             )}
@@ -83,11 +85,7 @@ export function CreateTeam({ onCreate, description }: CreateTeamProps) {
                 </FormItem>
               )}
             />
-            <Button
-              disabled={isLoading}
-              type="submit"
-              className="w-full"
-            >
+            <Button disabled={isLoading} type="submit" className="w-full">
               Create Team
             </Button>
           </form>
