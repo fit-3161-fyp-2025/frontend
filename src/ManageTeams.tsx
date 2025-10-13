@@ -46,9 +46,9 @@ export function ManageTeams() {
       <h3 className="text-lg sm:text-xl font-bold text-left mb-4">
         Available Teams
       </h3>
-      <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:items-center">
+      <div className="mb-4 flex flex-row gap-2 items-center">
         <button
-          className={`w-full sm:w-auto px-3 py-2 rounded text-sm ${
+          className={`px-3 py-2 rounded text-sm ${
             viewMode === "table"
               ? "bg-primary text-primary-foreground"
               : "bg-muted text-muted-foreground"
@@ -58,7 +58,7 @@ export function ManageTeams() {
           List View
         </button>
         <button
-          className={`w-full sm:w-auto px-3 py-2 rounded text-sm ${
+          className={`px-3 py-2 rounded text-sm ${
             viewMode === "card"
               ? "bg-primary text-primary-foreground"
               : "bg-muted text-muted-foreground"
@@ -94,7 +94,7 @@ export function ManageTeams() {
                     </button>
                   </td>
                   <td className="py-2 px-2 sm:px-4 align-middle">
-                    <div className="flex flex-col sm:flex-row gap-1 sm:gap-2 justify-center">
+                    <div className="flex flex-row gap-1 justify-center">
                       <LeaveTeamDialog team={team} onLeave={handleLeaveGroup} />
                       <ViewTeamDetailsDialog
                         team={team}
