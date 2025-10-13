@@ -593,14 +593,14 @@ export function TeamDetails() {
             />
           )}
           <button
-            className="text-sm text-red-600 hover:underline"
+            className="text-sm text-destructive hover:underline"
             onClick={handleLeaveTeam}
           >
             Leave team
           </button>
         </div>
       </div>
-      <p className="text-gray-600">Team ID: {teamId}</p>
+      <p className="text-muted-foreground">Team ID: {teamId}</p>
 
       {loading && (
         <div className="space-y-4">
@@ -609,7 +609,9 @@ export function TeamDetails() {
           <Skeleton className="h-48 w-full" />
         </div>
       )}
-      {error && <p className="text-red-600">Failed to load details: {error}</p>}
+      {error && (
+        <p className="text-destructive">Failed to load details: {error}</p>
+      )}
 
       {!loading && !error && (
         <>
@@ -618,7 +620,7 @@ export function TeamDetails() {
               <CardTitle className="flex items-center gap-3">
                 Invite Code
                 <button
-                  className="text-sm text-purple-600 hover:underline"
+                  className="text-sm text-primary hover:underline"
                   onClick={handleCopyInvite}
                 >
                   Copy
@@ -627,7 +629,7 @@ export function TeamDetails() {
             </CardHeader>
             <CardContent>
               {details ? (
-                <code className="px-2 py-1 bg-gray-100 rounded">
+                <code className="px-2 py-1 bg-muted rounded">
                   {details.code}
                 </code>
               ) : (
@@ -644,14 +646,14 @@ export function TeamDetails() {
                   <div className="flex gap-2">
                     <Badge
                       variant="default"
-                      className="bg-purple-100 text-purple-700"
+                      className="bg-primary text-primary-foreground"
                     >
                       {execMemberIds.length} Executive
                       {execMemberIds.length !== 1 ? "s" : ""}
                     </Badge>
                     <Badge
                       variant="outline"
-                      className="bg-gray-100 text-gray-700"
+                      className="bg-muted text-muted-foreground"
                     >
                       {memberIds.length - execMemberIds.length} Member
                       {memberIds.length - execMemberIds.length !== 1 ? "s" : ""}
@@ -659,7 +661,7 @@ export function TeamDetails() {
                   </div>
                 </div>
                 {team?.short_id && (
-                  <div className="bg-gray-200 rounded px-2 py-1">
+                  <div className="bg-muted rounded px-2 py-1">
                     <code>#{team.short_id}</code>
                   </div>
                 )}
@@ -694,8 +696,8 @@ export function TeamDetails() {
                       <button
                         className={`px-3 py-1 rounded text-sm ${
                           memberViewMode === "cards"
-                            ? "bg-purple-100 text-purple-700"
-                            : "bg-gray-100 text-gray-700"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
                         }`}
                         onClick={() => setMemberViewMode("cards")}
                       >
@@ -704,8 +706,8 @@ export function TeamDetails() {
                       <button
                         className={`px-3 py-1 rounded text-sm ${
                           memberViewMode === "compact"
-                            ? "bg-purple-100 text-purple-700"
-                            : "bg-gray-100 text-gray-700"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted text-muted-foreground"
                         }`}
                         onClick={() => setMemberViewMode("compact")}
                       >
@@ -716,7 +718,7 @@ export function TeamDetails() {
 
                   {/* Member Count Info */}
                   {memberSearchTerm && (
-                    <div className="text-sm text-gray-600">
+                    <div className="text-sm text-muted-foreground">
                       Found {getSortedMembers().length} of{" "}
                       {details?.members?.length} members
                     </div>
@@ -747,10 +749,10 @@ export function TeamDetails() {
                             key={member.id}
                             className={`border rounded-lg p-4 transition-all cursor-pointer ${
                               isSelected
-                                ? "border-purple-500 bg-purple-50"
+                                ? "border-primary bg-primary/10"
                                 : isExec
-                                ? "border-purple-300 bg-white"
-                                : "border-gray-200 hover:border-gray-300"
+                                ? "border-primary/50 bg-card"
+                                : "border-border hover:border-border/80"
                             }`}
                             onClick={() => handleMemberSelection(member.id)}
                           >
@@ -759,8 +761,8 @@ export function TeamDetails() {
                               <div
                                 className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm ${
                                   isExec
-                                    ? "bg-purple-600 text-white"
-                                    : "bg-gray-400 text-white"
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-muted text-muted-foreground"
                                 }`}
                               >
                                 {generateAvatarInitials(displayName)}
@@ -773,7 +775,7 @@ export function TeamDetails() {
                                     {displayName}
                                   </h4>
                                   {isSelected && (
-                                    <span className="text-purple-600 text-xs">
+                                    <span className="text-primary text-xs">
                                       ✓
                                     </span>
                                   )}
@@ -782,14 +784,14 @@ export function TeamDetails() {
                                   {isExec ? (
                                     <Badge
                                       variant="default"
-                                      className="bg-purple-100 text-purple-700 text-xs"
+                                      className="bg-primary text-primary-foreground text-xs"
                                     >
                                       Executive
                                     </Badge>
                                   ) : (
                                     <Badge
                                       variant="outline"
-                                      className="bg-gray-100 text-gray-700 text-xs"
+                                      className="bg-muted text-muted-foreground text-xs"
                                     >
                                       Member
                                     </Badge>
@@ -803,7 +805,7 @@ export function TeamDetails() {
                                     </Badge>
                                   )}
                                 </div>
-                                <div className="text-xs text-gray-500 mt-1 truncate">
+                                <div className="text-xs text-muted-foreground mt-1 truncate">
                                   {member.email}
                                 </div>
                               </div>
@@ -814,7 +816,7 @@ export function TeamDetails() {
                                   isCurrentUserExecutive &&
                                   member.email !== user?.email && (
                                     <button
-                                      className="text-purple-600 text-xs hover:underline"
+                                      className="text-primary text-xs hover:underline"
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         handlePromote(member.id);
@@ -825,7 +827,7 @@ export function TeamDetails() {
                                   )}
                                 {member.email !== user?.email && (
                                   <button
-                                    className="text-red-600 text-xs hover:underline"
+                                    className="text-destructive text-xs hover:underline"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleKick(member.id);
@@ -865,10 +867,10 @@ export function TeamDetails() {
                             key={member.id}
                             className={`border rounded p-3 transition-all cursor-pointer flex items-center gap-3 ${
                               isSelected
-                                ? "border-purple-500 bg-purple-50"
+                                ? "border-primary bg-primary/10"
                                 : isExec
-                                ? "border-purple-200 bg-purple-25"
-                                : "border-gray-200 hover:border-gray-300"
+                                ? "border-primary/50 bg-card"
+                                : "border-border hover:border-border/80"
                             }`}
                             onClick={() => handleMemberSelection(member.id)}
                           >
@@ -876,8 +878,8 @@ export function TeamDetails() {
                             <div
                               className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs ${
                                 isExec
-                                  ? "bg-purple-600 text-white"
-                                  : "bg-gray-400 text-white"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted text-muted-foreground"
                               }`}
                             >
                               {generateAvatarInitials(displayName)}
@@ -892,14 +894,14 @@ export function TeamDetails() {
                                 {isExec ? (
                                   <Badge
                                     variant="default"
-                                    className="bg-purple-100 text-purple-700 text-xs"
+                                    className="bg-primary text-primary-foreground text-xs"
                                   >
                                     Executive
                                   </Badge>
                                 ) : (
                                   <Badge
                                     variant="outline"
-                                    className="bg-gray-100 text-gray-700 text-xs"
+                                    className="bg-muted text-muted-foreground text-xs"
                                   >
                                     Member
                                   </Badge>
@@ -913,12 +915,12 @@ export function TeamDetails() {
                                   </Badge>
                                 )}
                                 {isSelected && (
-                                  <span className="text-purple-600 text-xs">
+                                  <span className="text-primary text-xs">
                                     ✓
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-gray-500 truncate">
+                              <div className="text-xs text-muted-foreground truncate">
                                 {member.email}
                               </div>
                             </div>
@@ -929,7 +931,7 @@ export function TeamDetails() {
                                 isCurrentUserExecutive &&
                                 member.email !== user?.email && (
                                   <button
-                                    className="text-purple-600 text-xs hover:underline px-1"
+                                    className="text-primary text-xs hover:underline px-1"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handlePromote(member.id);
@@ -940,7 +942,7 @@ export function TeamDetails() {
                                 )}
                               {member.email !== user?.email && (
                                 <button
-                                  className="text-red-600 text-xs hover:underline px-1"
+                                  className="text-destructive text-xs hover:underline px-1"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleKick(member.id);
@@ -960,7 +962,7 @@ export function TeamDetails() {
                   {getTotalPages() > 1 && (
                     <div className="flex items-center justify-center gap-2 pt-4 border-t">
                       <button
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-muted text-muted-foreground rounded text-sm hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() =>
                           setCurrentPage((prev) => Math.max(1, prev - 1))
                         }
@@ -968,11 +970,11 @@ export function TeamDetails() {
                       >
                         ← Previous
                       </button>
-                      <span className="text-sm text-gray-600 px-3">
+                      <span className="text-sm text-muted-foreground px-3">
                         Page {currentPage} of {getTotalPages()}
                       </span>
                       <button
-                        className="px-3 py-1 bg-gray-100 text-gray-700 rounded text-sm hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3 py-1 bg-muted text-muted-foreground rounded text-sm hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={() =>
                           setCurrentPage((prev) =>
                             Math.min(getTotalPages(), prev + 1)
@@ -988,18 +990,18 @@ export function TeamDetails() {
                   {/* Bulk Actions */}
                   {selectedMembers.length > 0 && (
                     <div className="flex items-center justify-center gap-3 border-t pt-4">
-                      <span className="text-sm text-gray-600">
+                      <span className="text-sm text-muted-foreground">
                         {selectedMembers.length} member
                         {selectedMembers.length > 1 ? "s" : ""} selected
                       </span>
                       <button
-                        className="bg-purple-600 text-white px-4 py-2 rounded text-sm"
+                        className="bg-primary text-primary-foreground px-4 py-2 rounded text-sm hover:bg-primary/90"
                         onClick={handleBulkPromote}
                       >
                         Promote Selected ({selectedMembers.length})
                       </button>
                       <button
-                        className="bg-gray-500 text-white px-4 py-2 rounded text-sm"
+                        className="bg-secondary text-secondary-foreground px-4 py-2 rounded text-sm hover:bg-secondary/80"
                         onClick={() => {
                           setSelectedMembers([]);
                           setShowBulkActions(false);
@@ -1021,14 +1023,14 @@ export function TeamDetails() {
                   Projects Management
                   <Badge
                     variant="secondary"
-                    className="bg-blue-100 text-blue-700"
+                    className="bg-secondary text-secondary-foreground"
                   >
                     {teamProjectIds.length} project
                     {teamProjectIds.length !== 1 ? "s" : ""}
                   </Badge>
                 </div>
                 <button
-                  className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
+                  className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm hover:bg-primary/90"
                   onClick={() => {
                     setShowCreateProject(!showCreateProject);
                     if (!showCreateProject) {
@@ -1045,31 +1047,31 @@ export function TeamDetails() {
               {teamProjectIds.length === 0 ? (
                 /* Empty State */
                 <div className="text-center py-8">
-                  <div className="w-16 h-16 mx-auto mb-4 bg-purple-100 rounded-full flex items-center justify-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
                     <span className="text-2xl">📁</span>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     No Projects Yet
                   </h3>
-                  <p className="text-gray-600 mb-6">
+                  <p className="text-muted-foreground mb-6">
                     Create your first project to start managing budgets and
                     tracking progress.
                   </p>
                   <div className="flex flex-col gap-3 max-w-md mx-auto">
                     <input
-                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                       placeholder="Project name"
                       value={newProjectName}
                       onChange={(e) => setNewProjectName(e.target.value)}
                     />
                     <textarea
-                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
+                      className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-ring focus:border-transparent h-20 resize-none"
                       placeholder="Description (optional)"
                       value={newProjectDesc}
                       onChange={(e) => setNewProjectDesc(e.target.value)}
                     />
                     <button
-                      className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={creatingProject || !newProjectName.trim()}
                       onClick={handleCreateProject}
                     >
@@ -1101,8 +1103,8 @@ export function TeamDetails() {
                           key={projectId}
                           className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
                             isSelected
-                              ? "border-purple-500 bg-purple-50 shadow-sm"
-                              : "border-gray-200 hover:border-gray-300"
+                              ? "border-primary bg-primary/10 shadow-sm"
+                              : "border-border hover:border-border/80"
                           }`}
                           onClick={() => setSelectedProjectId(projectId)}
                         >
@@ -1111,12 +1113,12 @@ export function TeamDetails() {
                               <h4 className="font-medium text-sm truncate">
                                 {projectName}
                               </h4>
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-xs text-muted-foreground mt-1">
                                 Project ID: {projectId.slice(-6)}
                               </p>
                             </div>
                             {isSelected && (
-                              <span className="text-purple-600 text-sm">✓</span>
+                              <span className="text-primary text-sm">✓</span>
                             )}
                           </div>
 
@@ -1124,7 +1126,9 @@ export function TeamDetails() {
                           {projectsBudgetData[projectId] ? (
                             <div className="space-y-2">
                               <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">Budget:</span>
+                                <span className="text-muted-foreground">
+                                  Budget:
+                                </span>
                                 <span className="font-medium">
                                   $
                                   {(
@@ -1135,7 +1139,7 @@ export function TeamDetails() {
                                 </span>
                               </div>
                               <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">
+                                <span className="text-muted-foreground">
                                   Available:
                                 </span>
                                 <span className="text-green-600 font-medium">
@@ -1146,7 +1150,9 @@ export function TeamDetails() {
                                 </span>
                               </div>
                               <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">Spent:</span>
+                                <span className="text-muted-foreground">
+                                  Spent:
+                                </span>
                                 <span className="text-red-600 font-medium">
                                   $
                                   {projectsBudgetData[
@@ -1157,9 +1163,9 @@ export function TeamDetails() {
 
                               {/* Budget Progress Bar */}
                               <div className="mt-2">
-                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div className="w-full bg-muted rounded-full h-2">
                                   <div
-                                    className="bg-red-500 h-2 rounded-full"
+                                    className="bg-destructive h-2 rounded-full"
                                     style={{
                                       width: `${Math.min(
                                         100,
@@ -1180,7 +1186,7 @@ export function TeamDetails() {
                                     }}
                                   ></div>
                                 </div>
-                                <p className="text-xs text-gray-600 mt-1">
+                                <p className="text-xs text-muted-foreground mt-1">
                                   {(() => {
                                     const totalBudget =
                                       projectsBudgetData[projectId]
@@ -1203,8 +1209,10 @@ export function TeamDetails() {
                           ) : (
                             <div className="space-y-2">
                               <div className="flex justify-between text-xs">
-                                <span className="text-gray-600">Status:</span>
-                                <span className="text-gray-500">
+                                <span className="text-muted-foreground">
+                                  Status:
+                                </span>
+                                <span className="text-muted-foreground">
                                   Loading...
                                 </span>
                               </div>
@@ -1215,7 +1223,7 @@ export function TeamDetails() {
                           <div className="flex gap-2 mt-3 pt-3 border-t">
                             {isExecutive && (
                               <button
-                                className="flex-1 bg-red-50 text-red-700 px-2 py-1 rounded text-xs hover:bg-red-100"
+                                className="flex-1 bg-destructive/10 text-destructive px-2 py-1 rounded text-xs hover:bg-destructive/20"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   const projectName =
@@ -1233,7 +1241,7 @@ export function TeamDetails() {
                             )}
                             {!isExecutive && isSelected && (
                               <button
-                                className="flex-1 bg-red-50 text-red-700 px-2 py-1 rounded text-xs hover:bg-red-100"
+                                className="flex-1 bg-destructive/10 text-destructive px-2 py-1 rounded text-xs hover:bg-destructive/20"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   push({
@@ -1255,13 +1263,13 @@ export function TeamDetails() {
 
                   {/* Create Project Form */}
                   {showCreateProject && (
-                    <div className="border bg-purple-50 rounded-lg p-4 mt-4">
+                    <div className="border bg-muted/50 rounded-lg p-4 mt-4">
                       <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-medium text-purple-800">
+                        <h4 className="font-medium text-foreground">
                           Create New Project
                         </h4>
                         <button
-                          className="text-purple-600 hover:text-purple-800 text-sm"
+                          className="text-primary hover:text-primary/80 text-sm"
                           onClick={() => setShowCreateProject(false)}
                         >
                           Cancel
@@ -1269,27 +1277,27 @@ export function TeamDetails() {
                       </div>
                       <div className="flex flex-col gap-3">
                         <input
-                          className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-ring focus:border-transparent"
                           placeholder="Project name"
                           value={newProjectName}
                           onChange={(e) => setNewProjectName(e.target.value)}
                         />
                         <textarea
-                          className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-purple-500 focus:border-transparent h-20 resize-none"
+                          className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-ring focus:border-transparent h-20 resize-none"
                           placeholder="Description (optional)"
                           value={newProjectDesc}
                           onChange={(e) => setNewProjectDesc(e.target.value)}
                         />
                         <div className="flex gap-2">
                           <button
-                            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={creatingProject || !newProjectName.trim()}
                             onClick={handleCreateProject}
                           >
                             {creatingProject ? "Creating..." : "Create Project"}
                           </button>
                           <button
-                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600"
+                            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80"
                             onClick={() => setShowCreateProject(false)}
                           >
                             Cancel
@@ -1303,12 +1311,14 @@ export function TeamDetails() {
                   {selectedProjectId && project && !projectError && (
                     <div className="border-t pt-4 space-y-4">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-lg text-gray-800">
+                        <h4 className="font-medium text-lg text-foreground">
                           {projectNamesById[selectedProjectId]} Budget
                           Management
                         </h4>
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-600">Total:</span>
+                          <span className="text-sm text-muted-foreground">
+                            Total:
+                          </span>
                           <span className="font-bold text-lg">
                             $
                             {(
@@ -1321,18 +1331,18 @@ export function TeamDetails() {
                       {/* Budget Cards */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Available Budget */}
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h5 className="text-sm font-medium text-green-800">
+                              <h5 className="text-sm font-medium text-green-800 dark:text-green-200">
                                 Available Budget
                               </h5>
-                              <p className="text-2xl font-bold text-green-600">
+                              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                                 ${project.budget_available.toFixed(2)}
                               </p>
                             </div>
-                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                              <span className="text-green-600 font-bold">
+                            <div className="w-12 h-12 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
+                              <span className="text-green-600 dark:text-green-400 font-bold">
                                 ✓
                               </span>
                             </div>
@@ -1340,29 +1350,31 @@ export function TeamDetails() {
                         </div>
 
                         {/* Spent Budget */}
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h5 className="text-sm font-medium text-red-800">
+                              <h5 className="text-sm font-medium text-red-800 dark:text-red-200">
                                 Budget Spent
                               </h5>
-                              <p className="text-2xl font-bold text-red-600">
+                              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                                 ${project.budget_spent.toFixed(2)}
                               </p>
                             </div>
-                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                              <span className="text-red-600 font-bold">$</span>
+                            <div className="w-12 h-12 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
+                              <span className="text-red-600 dark:text-red-400 font-bold">
+                                $
+                              </span>
                             </div>
                           </div>
                         </div>
                       </div>
 
                       {/* Budget Actions */}
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <h5 className="font-medium text-gray-800 mb-3">
+                      <div className="bg-muted rounded-lg p-4">
+                        <h5 className="font-medium text-foreground mb-3">
                           Budget Actions
                         </h5>
-                        <p className="text-sm text-gray-600 mb-3">
+                        <p className="text-sm text-muted-foreground mb-3">
                           {actionMsg ||
                             "Enter an amount below to add or spend budget"}
                         </p>
@@ -1371,13 +1383,13 @@ export function TeamDetails() {
                             type="number"
                             step="0.01"
                             min="0"
-                            className="border rounded-lg px-3 py-2 w-32 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            className="border rounded-lg px-3 py-2 w-32 focus:ring-2 focus:ring-primary focus:border-transparent"
                             placeholder="Amount"
                             value={budgetAmount}
                             onChange={(e) => setBudgetAmount(e.target.value)}
                           />
                           <button
-                            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={
                               !budgetAmount || parseFloat(budgetAmount) <= 0
                             }
@@ -1386,7 +1398,7 @@ export function TeamDetails() {
                             + Add Budget
                           </button>
                           <button
-                            className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={
                               !budgetAmount ||
                               parseFloat(budgetAmount) <= 0 ||
@@ -1404,8 +1416,8 @@ export function TeamDetails() {
 
                   {/* Show budget error */}
                   {projectError && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
-                      <p className="text-red-700 text-sm">
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 mt-4">
+                      <p className="text-destructive text-sm">
                         Error: {projectError}
                       </p>
                     </div>
@@ -1423,10 +1435,10 @@ export function TeamDetails() {
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <div className="text-6xl mb-4">📅</div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  <h3 className="text-lg font-medium text-foreground mb-2">
                     Event Management Coming Soon
                   </h3>
-                  <p className="text-gray-600">
+                  <p className="text-muted-foreground">
                     We're working on bringing you comprehensive event management
                     features.
                   </p>
@@ -1440,7 +1452,9 @@ export function TeamDetails() {
             </CardContent>
           </Card>
 
-          {actionMsg && <p className="text-sm text-gray-700">{actionMsg}</p>}
+          {actionMsg && (
+            <p className="text-sm text-muted-foreground">{actionMsg}</p>
+          )}
         </>
       )}
     </div>
