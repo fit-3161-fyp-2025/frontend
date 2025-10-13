@@ -15,79 +15,82 @@ import { TeamDetails } from "./pages/TeamDetails";
 import { SmartLanding } from "./components/SmartLanding";
 import { PublicEvents } from "./PublicEvents";
 import { ToastProvider } from "@/components/ui/toast";
+import { ThemeProvider } from "./contexts/theme-provider";
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<SmartLanding />} />
-            <Route path="/public/events" element={<PublicEvents />} />
-            <Route path="/login" element={<LogIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/email-verify" element={<EmailVerification />} />
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<SmartLanding />} />
+              <Route path="/public/events" element={<PublicEvents />} />
+              <Route path="/login" element={<LogIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/email-verify" element={<EmailVerification />} />
 
-            <Route
-              path="/teams/join"
-              element={
-                <ProtectedRoute>
-                  <JoinCreateTeam />
-                </ProtectedRoute>
-              }
-            />
+              <Route
+                path="/teams/join"
+                element={
+                  <ProtectedRoute>
+                    <JoinCreateTeam />
+                  </ProtectedRoute>
+                }
+              />
 
-            {/* Protected Routes - Needs to be authenticated */}
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-            </Route>
+              {/* Protected Routes - Needs to be authenticated */}
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+              </Route>
 
-            <Route
-              path="/events"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Events />} />
-            </Route>
+              <Route
+                path="/events"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Events />} />
+              </Route>
 
-            <Route
-              path="/projects"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Projects />} />
-            </Route>
+              <Route
+                path="/projects"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Projects />} />
+              </Route>
 
-            <Route
-              path="/teams"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<ManageTeams />} />
-              <Route path=":teamId" element={<TeamDetails />} />
-            </Route>
-            <Route path="*" element={<Error />} />
-          </Routes>
-        </ToastProvider>
-      </AuthProvider>
-    </BrowserRouter>
+              <Route
+                path="/teams"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<ManageTeams />} />
+                <Route path=":teamId" element={<TeamDetails />} />
+              </Route>
+              <Route path="*" element={<Error />} />
+            </Routes>
+          </ToastProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

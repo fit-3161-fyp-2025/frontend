@@ -1,18 +1,34 @@
 import { Link } from "react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Users, Clock, Mail, MapPin, ArrowRight } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  CalendarDays,
+  Users,
+  Clock,
+  Mail,
+  MapPin,
+  ArrowRight,
+} from "lucide-react";
 import { publicEventApi } from "./api/publicEvents";
 import type { Event } from "./types/events";
 import { PublicRSVPDialog } from "./components/event-calendar/public-rsvp-dialog";
 import type { CalendarEvent } from "./components/event-calendar/types";
 import { format } from "date-fns";
+import { ModeToggle } from "./components/mode-toggle";
 
 export function LandingPage() {
   const [featuredEvents, setFeaturedEvents] = useState<Event[]>([]);
   const [loadingEvents, setLoadingEvents] = useState(true);
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
+    null
+  );
   const [isRSVPDialogOpen, setIsRSVPDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -21,8 +37,10 @@ export function LandingPage() {
         const response = await publicEventApi.getAll();
         // Get next 3 upcoming events
         const upcomingEvents = response.events
-          .filter(event => new Date(event.start) > new Date())
-          .sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime())
+          .filter((event) => new Date(event.start) > new Date())
+          .sort(
+            (a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()
+          )
           .slice(0, 3);
         setFeaturedEvents(upcomingEvents);
       } catch (error) {
@@ -65,6 +83,7 @@ export function LandingPage() {
             <Button asChild>
               <Link to="/signup">Sign Up</Link>
             </Button>
+            <ModeToggle />
           </div>
         </div>
       </header>
@@ -77,10 +96,10 @@ export function LandingPage() {
             <span className="text-primary block">Your Clubs</span>
           </h2>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Discover events, manage teams, and stay organized with ClubSync. 
+            Discover events, manage teams, and stay organized with ClubSync.
             Whether you're a member or just curious, we've got you covered.
           </p>
-          
+
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button size="lg" className="text-lg px-8 py-6" asChild>
@@ -89,7 +108,12 @@ export function LandingPage() {
                 View Public Events
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-6" asChild>
+            <Button
+              size="lg"
+              variant="outline"
+              className="text-lg px-8 py-6"
+              asChild
+            >
               <Link to="/signup">
                 <Users className="mr-2 h-5 w-5" />
                 Join Clubs
@@ -110,8 +134,8 @@ export function LandingPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Stay informed about club events, workshops, and meetings. 
-                View dates, times, and locations at a glance.
+                Stay informed about club events, workshops, and meetings. View
+                dates, times, and locations at a glance.
               </p>
             </CardContent>
           </Card>
@@ -126,8 +150,8 @@ export function LandingPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Click on any event to request an RSVP invitation. 
-                Accept or decline right from your email.
+                Click on any event to request an RSVP invitation. Accept or
+                decline right from your email.
               </p>
             </CardContent>
           </Card>
@@ -142,8 +166,8 @@ export function LandingPage() {
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Create an account to join teams, manage projects, 
-                and collaborate with your clubs.
+                Create an account to join teams, manage projects, and
+                collaborate with your clubs.
               </p>
             </CardContent>
           </Card>
@@ -153,16 +177,18 @@ export function LandingPage() {
         {!loadingEvents && featuredEvents.length > 0 && (
           <div className="mb-16">
             <div className="text-center mb-8">
-              <h3 className="text-3xl font-bold text-foreground mb-4">Upcoming Events</h3>
+              <h3 className="text-3xl font-bold text-foreground mb-4">
+                Upcoming Events
+              </h3>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Don't miss out on these exciting upcoming events.
               </p>
             </div>
-            
+
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {featuredEvents.map((event) => (
-                <Card 
-                  key={event.id} 
+                <Card
+                  key={event.id}
                   className="group hover:shadow-lg transition-all duration-300 cursor-pointer border-2 hover:border-primary/20"
                   onClick={() => handleEventClick(event)}
                 >
@@ -182,7 +208,9 @@ export function LandingPage() {
                     <div className="space-y-2 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-primary" />
-                        <span>{format(new Date(event.start), "PPP 'at' p")}</span>
+                        <span>
+                          {format(new Date(event.start), "PPP 'at' p")}
+                        </span>
                       </div>
                       {event.location && (
                         <div className="flex items-center gap-2">
@@ -199,7 +227,7 @@ export function LandingPage() {
                 </Card>
               ))}
             </div>
-            
+
             <div className="text-center">
               <Button size="lg" variant="outline" asChild>
                 <Link to="/public/events">
@@ -215,8 +243,9 @@ export function LandingPage() {
         <div className="bg-card rounded-lg border p-8 text-center">
           <h3 className="text-2xl font-semibold mb-4">Ready to Explore?</h3>
           <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-            No registration required! Jump right in and see what's happening in your clubs. 
-            You can always create an account later to unlock additional features.
+            No registration required! Jump right in and see what's happening in
+            your clubs. You can always create an account later to unlock
+            additional features.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" asChild>
@@ -226,9 +255,7 @@ export function LandingPage() {
               </Link>
             </Button>
             <Button size="lg" variant="outline" asChild>
-              <Link to="/login">
-                Already have an account?
-              </Link>
+              <Link to="/login">Already have an account?</Link>
             </Button>
           </div>
         </div>

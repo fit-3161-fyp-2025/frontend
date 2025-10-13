@@ -9,6 +9,7 @@ import type { AppDispatch } from "@/lib/store";
 import { reloadCurrentProject } from "@/features/teams/teamSlice";
 import { useDispatch } from "react-redux";
 import { useLocation } from "react-router";
+import { ModeToggle } from "./mode-toggle";
 
 export function SiteHeader() {
   const isExecutive = useIsExecutive();
@@ -55,6 +56,9 @@ export function SiteHeader() {
               }
             }}
           />
+        </div>
+        <div>
+          <ModeToggle />
         </div>
       </div>
     </header>
