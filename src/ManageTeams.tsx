@@ -47,7 +47,9 @@ export function ManageTeams() {
       <div className="mb-4">
         <button
           className={`mr-2 px-3 py-2 rounded text-sm ${
-            viewMode === "table" ? "bg-purple-500 text-white" : "bg-gray-200"
+            viewMode === "table"
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground"
           }`}
           onClick={() => setViewMode("table")}
         >
@@ -55,7 +57,9 @@ export function ManageTeams() {
         </button>
         <button
           className={`px-3 py-2 rounded text-sm ${
-            viewMode === "card" ? "bg-purple-500 text-white" : "bg-gray-200"
+            viewMode === "card"
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground"
           }`}
           onClick={() => setViewMode("card")}
         >
@@ -65,9 +69,9 @@ export function ManageTeams() {
 
       {viewMode === "table" ? (
         <div className="overflow-x-auto">
-          <table className="min-w-[400px] w-full border border-gray-200 rounded-lg bg-white">
+          <table className="min-w-[400px] w-full rounded-lg bg-card border">
             <thead>
-              <tr className="bg-gray-100">
+              <tr className="bg-card/60">
                 <th className="py-2 px-4 text-left font-semibold">Team Name</th>
                 <th className="py-2 px-4 text-center font-semibold">Actions</th>
               </tr>
@@ -77,7 +81,7 @@ export function ManageTeams() {
                 <tr key={team.id} className="border-t">
                   <td className="py-2 px-4 align-middle">
                     <button
-                      className="text-purple-600 hover:underline"
+                      className="text-primary hover:underline"
                       onClick={() => goToTeam(team.id)}
                     >
                       {team.name}
@@ -102,10 +106,10 @@ export function ManageTeams() {
           {teams.map((team) => (
             <div
               key={team.id}
-              className="bg-white border border-gray-200 rounded-lg p-6 flex flex-col items-start justify-between shadow-md"
+              className="bg-card border rounded-lg p-6 flex flex-col items-start justify-between shadow-md"
             >
               <button
-                className="font-semibold text-lg mb-4 text-left text-purple-600 hover:underline"
+                className="font-semibold text-lg mb-4 text-left text-primary hover:underline"
                 onClick={() => goToTeam(team.id)}
               >
                 {team.name}
