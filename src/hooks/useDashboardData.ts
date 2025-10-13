@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { teamApi } from "@/api/team";
 import { projectsApi } from "@/api/projects";
-import { useAuth } from "@/contexts/AuthContext";
 import type { RootState } from "@/lib/store";
 import type { EventModel } from "@/types/team";
 import type { Project } from "@/types/projects";
@@ -58,7 +57,6 @@ export function useDashboardData() {
   const [error, setError] = useState<string | null>(null);
 
   const { selectedTeam } = useSelector((state: RootState) => state.teams);
-  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchDashboardData() {
