@@ -10,10 +10,10 @@ export interface DashboardData {
   events: EventModel[];
   projects: Project[];
   totalTasksCompleted: number;
+  totalTasks: number;
   activeProjectsCount: number;
   upcomingEventsCount: number;
   completedEventsCount: number;
-  activities: ActivityItem[];
   userTasks: UserTaskWithProject[];
 }
 
@@ -47,10 +47,10 @@ export function useDashboardData() {
     events: [],
     projects: [],
     totalTasksCompleted: 0,
+    totalTasks: 0,
     activeProjectsCount: 0,
     upcomingEventsCount: 0,
     completedEventsCount: 0,
-    activities: [],
     userTasks: [],
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -127,18 +127,23 @@ export function useDashboardData() {
         // Calculate actual completed tasks based on tasks in the rightmost column
         // The rightmost column is the last status in each project's todo_statuses array
         let totalTasksCompleted = 0;
-        
+        let totalTasks = allTodos.length;
+
         projects.forEach((project) => {
           if (project.todo_statuses && project.todo_statuses.length > 0) {
             // Get the last status ID (rightmost column)
-            const lastStatusId = project.todo_statuses[project.todo_statuses.length - 1].id;
-            
+            const lastStatusId =
+              project.todo_statuses[project.todo_statuses.length - 1].id;
+
             // Count todos in this project that are in the last status
-            const projectTodos = allTodos.filter(todo => {
+            const projectTodos = allTodos.filter((todo) => {
               // Find which project this todo belongs to by checking if it's in the project's todo_ids
-              return project.todo_ids.includes(todo.id) && todo.status_id === lastStatusId;
+              return (
+                project.todo_ids.includes(todo.id) &&
+                todo.status_id === lastStatusId
+              );
             });
-            
+
             totalTasksCompleted += projectTodos.length;
           }
         });
@@ -223,10 +228,10 @@ export function useDashboardData() {
           events,
           projects,
           totalTasksCompleted,
+          totalTasks,
           activeProjectsCount,
           upcomingEventsCount,
           completedEventsCount,
-          activities,
           userTasks,
         });
       } catch (error) {

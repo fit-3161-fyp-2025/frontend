@@ -2,7 +2,6 @@ import { QuickStats } from "./components/dashboard/quick-stats";
 import { QuickNavigation } from "./components/dashboard/quick-navigation";
 import { TeamSummary } from "./components/dashboard/team-summary";
 import { UpcomingEvents } from "./components/dashboard/upcoming-events";
-import { RecentActivity } from "./components/dashboard/recent-activity";
 import { UserTasks } from "./components/dashboard/user-tasks";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { Alert, AlertDescription } from "./components/ui/alert";
@@ -41,6 +40,7 @@ export function Dashboard() {
               completedEventsCount={data.completedEventsCount}
               activeProjectsCount={data.activeProjectsCount}
               totalTasksCompleted={data.totalTasksCompleted}
+              totalTasks={data.totalTasks}
             />
           </section>
 
@@ -61,13 +61,6 @@ export function Dashboard() {
                 />
               </section>
 
-              {/* Recent Activity */}
-              <section>
-                <RecentActivity
-                  activities={data.activities}
-                  isLoading={isLoading}
-                />
-              </section>
             </div>
 
             {/* Right Column - Team Summary & User Tasks */}
@@ -76,6 +69,8 @@ export function Dashboard() {
                 <UserTasks
                   userTasks={data.userTasks}
                   isLoading={isLoading}
+                  completedTasksCount={data.totalTasksCompleted}
+                  totalTasksCount={data.totalTasks}
                 />
               </section>
 

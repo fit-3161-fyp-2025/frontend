@@ -14,12 +14,14 @@ interface QuickStatsProps {
   completedEventsCount: number;
   activeProjectsCount: number;
   totalTasksCompleted: number;
+  totalTasks: number;
 }
 
 export function QuickStats({ 
   upcomingEventsCount, 
   activeProjectsCount, 
-  totalTasksCompleted 
+  totalTasksCompleted,
+  totalTasks
 }: QuickStatsProps) {
   const { selectedTeam, isFetchingTeams } = useSelector((state: RootState) => state.teams);
 
@@ -95,9 +97,9 @@ export function QuickStats({
           <CheckSquare className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">{totalTasksCompleted}</CardTitle>
+          <CardTitle className="text-2xl font-bold">{totalTasksCompleted}/{totalTasks}</CardTitle>
           <CardDescription className="text-sm">
-            This month across all projects
+            Tasks completed across all projects
           </CardDescription>
         </CardHeader>
       </Card>
