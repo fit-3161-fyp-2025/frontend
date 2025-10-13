@@ -17,10 +17,15 @@ export interface DeleteTeamDialogProps {
   team: TeamModel;
   onDelete: () => void;
   execMemberIds?: string[];
-  memberDetails?: Array<{ id: string; email: string; }>;
+  memberDetails?: Array<{ id: string; email: string }>;
 }
 
-export function DeleteTeamDialog({ team, onDelete, execMemberIds, memberDetails }: DeleteTeamDialogProps) {
+export function DeleteTeamDialog({
+  team,
+  onDelete,
+  execMemberIds,
+  memberDetails,
+}: DeleteTeamDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { user } = useAuth();
@@ -28,42 +33,43 @@ export function DeleteTeamDialog({ team, onDelete, execMemberIds, memberDetails 
 
   // Use the execMemberIds from props (fetched from API) or fall back to team.exec_member_ids
   const executiveMembers = execMemberIds || team.exec_member_ids || [];
-  
+
   // Find the current user's ID by matching their email with member details
-  const currentUserMember = memberDetails?.find(member => member.email === user?.email);
+  const currentUserMember = memberDetails?.find(
+    (member) => member.email === user?.email
+  );
   const currentUserId = currentUserMember?.id;
-  
+
   // Check if current user is an executive
   const isExecutive = currentUserId && executiveMembers.includes(currentUserId);
 
-  // Debug logging
-  console.log('DeleteTeamDialog Debug:', {
-    user: user,
-    userEmail: user?.email,
-    currentUserId,
-    executiveMembers,
-    execMemberIdsFromProps: execMemberIds,
-    execMemberIdsFromTeam: team.exec_member_ids,
-    execMembersArray: executiveMembers,
-    isExecutive,
-    memberDetails: memberDetails
-  });
-
   const handleDelete = async () => {
     if (!isExecutive) {
-      push({ title: "Permission Denied", description: "Only executives can delete teams", variant: "destructive" });
+      push({
+        title: "Permission Denied",
+        description: "Only executives can delete teams",
+        variant: "destructive",
+      });
       return;
     }
 
     setIsDeleting(true);
     try {
       await teamApi.deleteTeam(team.id);
-      push({ title: "Team Deleted", description: `${team.name} has been permanently deleted`, variant: "default" });
+      push({
+        title: "Team Deleted",
+        description: `${team.name} has been permanently deleted`,
+        variant: "default",
+      });
       setIsOpen(false);
       onDelete();
     } catch (error) {
       console.error("Error deleting team:", error);
-      push({ title: "Error Deleting Team", description: "Failed to delete team. Please try again.", variant: "destructive" });
+      push({
+        title: "Error Deleting Team",
+        description: "Failed to delete team. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsDeleting(false);
     }

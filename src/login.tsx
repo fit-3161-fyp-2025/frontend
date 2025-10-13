@@ -18,7 +18,7 @@ import {
 } from "./components/ui/form";
 import { Input } from "./components/ui/input";
 import { Link, useNavigate } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
 import { useDispatch } from "react-redux";
 import { type AppDispatch } from "./lib/store";
@@ -31,7 +31,7 @@ const logInFormSchema = z.object({
 });
 
 export function LogIn() {
-  const { login, isLoading, isAuthenticated } = useAuth();
+  const { login, isLoading, isAuthenticated, logout } = useAuth();
   const dispatch = useDispatch<AppDispatch>();
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -39,6 +39,11 @@ export function LogIn() {
   const form = useForm<z.infer<typeof logInFormSchema>>({
     resolver: zodResolver(logInFormSchema),
   });
+
+  // Log out on mount
+  useEffect(() => {
+    logout();
+  }, []);
 
   async function onSubmit(values: z.infer<typeof logInFormSchema>) {
     setError(null);
@@ -127,7 +132,11 @@ export function LogIn() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <Input
+                          type="password"
+                          {...field}
+                          placeholder="(Minimum 6 characters)"
+                        />
                       </FormControl>
                     </FormItem>
                   )}

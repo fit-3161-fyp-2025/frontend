@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { teamApi } from "@/api/team";
 import { projectsApi } from "@/api/projects";
-import { useAuth } from "@/contexts/AuthContext";
 import type { RootState } from "@/lib/store";
 import type { EventModel } from "@/types/team";
 import type { Project } from "@/types/projects";
@@ -58,7 +57,6 @@ export function useDashboardData() {
   const [error, setError] = useState<string | null>(null);
 
   const { selectedTeam } = useSelector((state: RootState) => state.teams);
-  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchDashboardData() {
@@ -130,20 +128,6 @@ export function useDashboardData() {
         // In a real app, you'd track completion timestamps
         const totalTasksCompleted = Math.floor(allTodos.length * 0.7); // Simulate 70% completion
 
-        // Get current user email from auth context
-        const currentUserEmail = user?.email || "";
-
-        // Debug logging
-        console.log("Dashboard Debug:", {
-          currentUser: user,
-          currentUserEmail,
-          allTodos: allTodos.length,
-          projects: projects.length,
-          selectedTeam: selectedTeam?.name,
-          selectedTeamMemberIds: selectedTeam?.member_ids,
-          selectedTeamExecIds: selectedTeam?.exec_member_ids,
-        });
-
         // Filter tasks assigned to current user and enrich with project info
         const userTasks: UserTaskWithProject[] = allTodos
           .map((todo) => {
@@ -164,8 +148,6 @@ export function useDashboardData() {
             // In a real app, you'd match assignee_id with user ID
             return true; // Show all tasks from current team for now
           });
-
-        console.log("User tasks found:", userTasks.length);
 
         // Generate mock activities (in a real app, this would come from an activity feed API)
         const activities: ActivityItem[] =

@@ -94,9 +94,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const verifyEmailAndLogin = async (email: string, password: string, code: string) => {
+  const verifyEmailAndLogin = async (
+    email: string,
+    password: string,
+    code: string
+  ) => {
     try {
       setIsLoading(true);
+      logout();
       const user = await authApi.verifyCode({
         email: email,
         verification_code: code,
@@ -115,7 +120,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  }
+  };
 
   const value: AuthContextType = {
     user,

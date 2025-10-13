@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { Mail, Calendar, MapPin, Clock, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Mail,
+  Calendar,
+  MapPin,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -45,7 +52,8 @@ export function PublicRSVPDialog({
       setIsSuccess(true);
       toast.success("RSVP invitation sent to your email!");
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to send RSVP invitation";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to send RSVP invitation";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -85,14 +93,14 @@ export function PublicRSVPDialog({
                 {format(event.start, "PPP 'at' p")}
               </span>
             </div>
-            
+
             {event.location && (
               <div className="flex items-center gap-2 text-sm">
                 <MapPin className="h-4 w-4 text-primary" />
                 <span>{event.location}</span>
               </div>
             )}
-            
+
             {event.description && (
               <div className="text-sm text-muted-foreground">
                 <p className="line-clamp-3">{event.description}</p>
@@ -149,11 +157,10 @@ export function PublicRSVPDialog({
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">Invitation Sent!</h3>
               <p className="text-muted-foreground mb-4">
-                Check your email for the RSVP invitation. You can accept or decline directly from the email.
+                Check your email for the RSVP invitation. You can accept or
+                decline directly from the email.
               </p>
-              <Button onClick={handleClose}>
-                Close
-              </Button>
+              <Button onClick={handleClose}>Close</Button>
             </div>
           )}
         </div>
