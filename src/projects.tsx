@@ -136,7 +136,7 @@ export default function Projects() {
   }, [isInitialLoad, loading, availableProjects.length, selectedTeam]);
 
   return (
-    <div className="bg-background p-4 sm:p28 py-2">
+    <div className="bg-background p-4 sm:p28 py-2 overflow-hidden">
       {ConfirmDialog}
       {loading ? (
         <ProgressLoading stages={loadingStages} currentStage={loadingStage} />
@@ -212,7 +212,7 @@ export default function Projects() {
                 users={users}
                 onCreated={() => loadProjectData(selectedProjectId || "")}
               />
-              <ViewToggle view={view} onViewChange={setView} />
+              {!isMobile && <ViewToggle view={view} onViewChange={setView} />}
             </div>
           </div>
 

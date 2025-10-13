@@ -117,7 +117,7 @@ export function Events() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
+    <div className="bg-background p-4 sm:p28 py-2 overflow-hidden">
       <EventCalendar
         events={events}
         onEventAdd={handleEventAdd}
