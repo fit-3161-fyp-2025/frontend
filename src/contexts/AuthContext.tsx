@@ -7,7 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useLocation } from "react-router";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -19,6 +19,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isAuthenticated = !!user;
 
@@ -90,7 +91,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await authApi.logout();
     } finally {
       setUser(null);
-      navigate("/login", { replace: true });
+      if (!location.pathname.startsWith("/signup")) {
+        navigate("/login", { replace: true });
+      }
     }
   };
 
