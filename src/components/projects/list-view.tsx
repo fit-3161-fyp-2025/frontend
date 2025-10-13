@@ -40,10 +40,12 @@ export function ListView({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Owner</TableHead>
-            <TableHead>Description</TableHead>
+            <TableHead className="text-xs md:text-sm">Name</TableHead>
+            <TableHead className="text-xs md:text-sm">Status</TableHead>
+            <TableHead className="text-xs md:text-sm">Owner</TableHead>
+            <TableHead className="text-xs md:text-sm hidden md:table-cell">
+              Description
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -58,20 +60,22 @@ export function ListView({
                 )}
                 onClick={() => onSelect(item)}
               >
-                <TableCell className="font-medium max-w-25 truncate">
+                <TableCell className="font-medium max-w-20 md:max-w-25 truncate text-xs md:text-sm">
                   {item.name}
                 </TableCell>
-                <TableCell className="max-w-5 truncate">
+                <TableCell className="max-w-3 md:max-w-5 truncate">
                   <ListViewStatusBadge
                     status={column.name}
                     color={column.color}
                   />
                 </TableCell>
-                <TableCell className="max-w-15 truncate">
+                <TableCell className="max-w-10 md:max-w-15 truncate">
                   <KanbanAvatar owner={item.owner} />
                 </TableCell>
-                <TableCell className="max-w-35 truncate">
-                  <div className="text-sm w-20">{item.description}</div>
+                <TableCell className="max-w-20 md:max-w-35 truncate hidden md:table-cell">
+                  <div className="text-xs md:text-sm w-20">
+                    {item.description}
+                  </div>
                 </TableCell>
               </TableRow>
             );

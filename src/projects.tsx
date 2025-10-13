@@ -14,6 +14,7 @@ import { DeleteProjectButton } from "./components/projects/delete-project";
 import { AddColumnDialog } from "./components/projects/add-column";
 import { ViewToggle } from "./components/projects/view-toggle";
 import { useIsExecutive } from "./hooks/useIsExecutive";
+import { useIsMobile } from "./hooks/use-mobile";
 import {
   Tooltip,
   TooltipContent,
@@ -41,7 +42,17 @@ export default function Projects() {
   const [selectedItem, setSelectedItem] = useState<KanbanItemProps | null>(
     null
   );
+  const dispatch = useDispatch<AppDispatch>();
+  const isExecutive = useIsExecutive() ?? false;
+  const isMobile = useIsMobile();
+  const { DialogEl: ConfirmDialog } = useConfirm();
   const [view, setView] = useState<"kanban" | "list">("kanban");
+
+  useEffect(() => {
+    if (isMobile) {
+      setView("list");
+    }
+  }, [isMobile]);
   const loadingStages = [
     "Fetching user teams...",
     "Loading available projects...",
@@ -50,10 +61,6 @@ export default function Projects() {
     "Fetching todo items...",
     "Preparing workspace...",
   ];
-
-  const dispatch = useDispatch<AppDispatch>();
-  const isExecutive = useIsExecutive() ?? false;
-  const { DialogEl: ConfirmDialog } = useConfirm();
 
   const {
     loading,
@@ -198,7 +205,7 @@ export default function Projects() {
               </div>
             </div>
 
-            <div className="flex flex-col items-end space-y-2">
+            <div className="flex flex-col items-end space-y-1 md:space-y-2">
               <CreateTask
                 project={project}
                 statuses={columns.map((c) => ({ id: c.id, name: c.name }))}
