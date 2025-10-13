@@ -1,34 +1,53 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import z from "zod"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
+import z from "zod";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./components/ui/card";
 import { Button } from "./components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel } from "./components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+} from "./components/ui/form";
 import { Input } from "./components/ui/input";
 import { Link, useNavigate } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
 import { CalendarDays, ArrowLeft, Home } from "lucide-react";
 
-const signUpFormSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
-  passwordConfirmation: z.string(),
-}).refine((data) => data.password === data.passwordConfirmation, {
-  message: "Passwords don't match",
-  path: ["passwordConfirmation"],
-});
+const signUpFormSchema = z
+  .object({
+    first_name: z.string().min(1, "First name is required"),
+    last_name: z.string().min(1, "Last name is required"),
+    email: z.string().email("Please enter a valid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    passwordConfirmation: z.string(),
+  })
+  .refine((data) => data.password === data.passwordConfirmation, {
+    message: "Passwords don't match",
+    path: ["passwordConfirmation"],
+  });
 
 export function SignUp() {
-  const { register, isLoading, isAuthenticated } = useAuth();
+  const { register, isLoading, isAuthenticated, logout } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof signUpFormSchema>>({
     resolver: zodResolver(signUpFormSchema),
   });
+
+  // Logout on mount
+  useEffect(() => {
+    logout();
+  }, []);
 
   async function onSubmit(values: z.infer<typeof signUpFormSchema>) {
     setError(null);
@@ -45,11 +64,11 @@ export function SignUp() {
           email: values.email,
           password: values.password,
         },
-      })
+      });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(err instanceof Error ? err.message : "Something went wrong");
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -95,7 +114,10 @@ export function SignUp() {
               </div>
             )}
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
@@ -129,7 +151,11 @@ export function SignUp() {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="johndoe@example.com" type="email" {...field} />
+                        <Input
+                          placeholder="johndoe@example.com"
+                          type="email"
+                          {...field}
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -141,7 +167,11 @@ export function SignUp() {
                     <FormItem>
                       <FormLabel>Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <Input
+                          type="password"
+                          {...field}
+                          placeholder="(Minimum 6 Characters)"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -153,7 +183,11 @@ export function SignUp() {
                     <FormItem>
                       <FormLabel>Confirm Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <Input
+                          type="password"
+                          {...field}
+                          placeholder="(Minimum 6 Characters)"
+                        />
                       </FormControl>
                     </FormItem>
                   )}
@@ -163,11 +197,14 @@ export function SignUp() {
                 </Button>
               </form>
             </Form>
-            
+
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Link to="/login" className="text-primary hover:underline font-medium">
+                <Link
+                  to="/login"
+                  className="text-primary hover:underline font-medium"
+                >
                   Log in here
                 </Link>
               </p>
