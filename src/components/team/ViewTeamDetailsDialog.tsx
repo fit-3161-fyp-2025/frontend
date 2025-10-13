@@ -65,7 +65,7 @@ export function ViewTeamDetailsDialog({
         <Button
           variant="outline"
           size="sm"
-          className="text-xs sm:text-sm ml-2"
+          className="text-xs sm:text-sm"
           onClick={handleOpen}
         >
           View Details
