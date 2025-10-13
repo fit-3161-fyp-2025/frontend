@@ -98,7 +98,7 @@ export function Events() {
       end: updatedEvent.end.toISOString(),
       colour: updatedEvent.color ?? "rose",
       location: updatedEvent.location ?? "No location",
-    }
+    };
 
     await eventApi.update(updatedEvent.id, formattedEvent);
 
