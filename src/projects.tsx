@@ -129,7 +129,7 @@ export default function Projects() {
   }, [isInitialLoad, loading, availableProjects.length, selectedTeam]);
 
   return (
-    <div className="bg-background p-8 py-2">
+    <div className="bg-background p-4 sm:p28 py-2">
       {ConfirmDialog}
       {loading ? (
         <ProgressLoading stages={loadingStages} currentStage={loadingStage} />
