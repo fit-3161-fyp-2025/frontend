@@ -83,7 +83,7 @@ export function ViewTeamDetailsDialog({
               Please check if the backend endpoint is working and returning the
               expected data.
               <br />
-              Team ID: {team.id}
+              Team Code: {details?.code || "Loading..."}
             </span>
           </DialogDescription>
         ) : details ? (

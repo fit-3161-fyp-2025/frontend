@@ -124,9 +124,28 @@ export function useDashboardData() {
 
         const activeProjectsCount = projects.length;
 
-        // For now, we'll simulate some completed tasks count
-        // In a real app, you'd track completion timestamps
-        const totalTasksCompleted = Math.floor(allTodos.length * 0.7); // Simulate 70% completion
+        // Calculate actual completed tasks based on tasks in the rightmost column
+        // The rightmost column is the last status in each project's todo_statuses array
+        let totalTasksCompleted = 0;
+
+        projects.forEach((project) => {
+          if (project.todo_statuses && project.todo_statuses.length > 0) {
+            // Get the last status ID (rightmost column)
+            const lastStatusId =
+              project.todo_statuses[project.todo_statuses.length - 1].id;
+
+            // Count todos in this project that are in the last status
+            const projectTodos = allTodos.filter((todo) => {
+              // Find which project this todo belongs to by checking if it's in the project's todo_ids
+              return (
+                project.todo_ids.includes(todo.id) &&
+                todo.status_id === lastStatusId
+              );
+            });
+
+            totalTasksCompleted += projectTodos.length;
+          }
+        });
 
         // Filter tasks assigned to current user and enrich with project info
         const userTasks: UserTaskWithProject[] = allTodos
@@ -149,61 +168,6 @@ export function useDashboardData() {
             return true; // Show all tasks from current team for now
           });
 
-        // Generate mock activities (in a real app, this would come from an activity feed API)
-        const activities: ActivityItem[] =
-          projects.length > 0 || events.length > 0
-            ? [
-                {
-                  id: "1",
-                  type: "task_completed",
-                  title: "Task completed",
-                  description: `Completed "Update project documentation" in ${
-                    projects[0]?.name || "Team Project"
-                  }`,
-                  timestamp: new Date(
-                    Date.now() - 2 * 60 * 60 * 1000
-                  ).toISOString(), // 2 hours ago
-                  user: "System",
-                },
-                {
-                  id: "2",
-                  type: "event_created",
-                  title: "Event created",
-                  description: events[0]
-                    ? `"${events[0].name}" scheduled for ${new Date(
-                        events[0].start
-                      ).toLocaleDateString()}`
-                    : "New team event scheduled",
-                  timestamp: new Date(
-                    Date.now() - 5 * 60 * 60 * 1000
-                  ).toISOString(), // 5 hours ago
-                  user: "Team Lead",
-                },
-                {
-                  id: "3",
-                  type: "project_updated",
-                  title: "Project updated",
-                  description: `Updated ${
-                    projects[0]?.name || "Team Project"
-                  } with new requirements`,
-                  timestamp: new Date(
-                    Date.now() - 1 * 24 * 60 * 60 * 1000
-                  ).toISOString(), // 1 day ago
-                  user: "Project Manager",
-                },
-                {
-                  id: "4",
-                  type: "member_joined",
-                  title: "Member joined",
-                  description: "New team member joined the project",
-                  timestamp: new Date(
-                    Date.now() - 2 * 24 * 60 * 60 * 1000
-                  ).toISOString(), // 2 days ago
-                  user: "Admin",
-                },
-              ]
-            : [];
-
         setData({
           events,
           projects,
@@ -211,7 +175,7 @@ export function useDashboardData() {
           activeProjectsCount,
           upcomingEventsCount,
           completedEventsCount,
-          activities,
+          activities: [],
           userTasks,
         });
       } catch (error) {
