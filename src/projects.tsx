@@ -21,6 +21,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./components/ui/tooltip";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 import { useSelector, useDispatch } from "react-redux";
 import { type AppDispatch, type RootState } from "./lib/store";
@@ -43,6 +45,7 @@ export default function Projects() {
     null
   );
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const isExecutive = useIsExecutive() ?? false;
   const isMobile = useIsMobile();
   const { DialogEl: ConfirmDialog } = useConfirm();
@@ -53,6 +56,7 @@ export default function Projects() {
       setView("list");
     }
   }, [isMobile]);
+
   const loadingStages = [
     "Fetching user teams...",
     "Loading available projects...",
@@ -91,6 +95,16 @@ export default function Projects() {
     selectedProjectId: selectedProjectId ?? "",
     isExecutive,
   });
+
+  // Redirect to manage teams if no team is selected
+  // This must come after useProjectData to access isInitialLoad
+  useEffect(() => {
+    // Only redirect after initial load is complete to avoid race condition on refresh
+    if (!isFetchingTeams && !isInitialLoad && teams.length === 0) {
+      toast.error("No team available. Please create/join a new team");
+      navigate("/teams");
+    }
+  }, [isFetchingTeams, isInitialLoad, teams, navigate]);
 
   const hasProjects =
     (availableProjects?.length ?? 0) > 0 && !!selectedProjectId;

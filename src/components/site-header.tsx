@@ -10,18 +10,26 @@ import { reloadCurrentProject } from "@/features/teams/teamSlice";
 import { useDispatch } from "react-redux";
 import { useLocation } from "react-router";
 import { ModeToggle } from "./mode-toggle";
+import { useViewingTeam } from "@/contexts/ViewingTeamContext";
 
 export function SiteHeader() {
   const isExecutive = useIsExecutive();
   const dispatch = useDispatch<AppDispatch>();
+  const location = useLocation();
+  const { viewingTeamId, isViewingTeamExecutive } = useViewingTeam();
   const selectedProjectId = useAppSelector(
     (state) => state.teams.selectedProjectId
   );
-  const location = useLocation();
 
   // Hide sidebar trigger on team details pages
   const shouldShowSidebarTrigger =
     !location.pathname.match(/^\/teams\/[^\/]+$/);
+
+  // Determine which executive status to show:
+  // - If viewing a team details page, use viewing team's status
+  // - Otherwise, use the selected team's status
+  const displayExecutiveStatus =
+    viewingTeamId !== null ? isViewingTeamExecutive : isExecutive;
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b pb-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -39,12 +47,12 @@ export function SiteHeader() {
           />
         </div>
         <div className="flex items-center space-x-2">
-          {isExecutive !== null && (
+          {displayExecutiveStatus !== null && (
             <Badge
-              variant={isExecutive ? "default" : "secondary"}
+              variant={displayExecutiveStatus ? "default" : "secondary"}
               className="text-xs"
             >
-              {isExecutive ? "Exec" : "Member"}
+              {displayExecutiveStatus ? "Exec" : "Member"}
             </Badge>
           )}
         </div>

@@ -3,6 +3,7 @@ import { AppSidebar } from "./components/sidebar/app-sidebar";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { useTokenRefresh } from "./hooks/useTokenRefresh";
 import { PageHeaderProvider } from "./contexts/PageHeaderContext";
+import { ViewingTeamProvider } from "./contexts/ViewingTeamContext";
 import { SiteHeader } from "./components/site-header";
 import { useEffect } from "react";
 import { usePageHeader } from "./contexts/PageHeaderContext";
@@ -74,16 +75,18 @@ export function Layout() {
   return (
     <SidebarProvider>
       {shouldShowSidebar && <AppSidebar />}
-      <PageHeaderProvider>
-        <RouteHeaderSetter />
-        <main className="m-4 w-full min-w-0">
-          <SiteHeader />
+      <ViewingTeamProvider>
+        <PageHeaderProvider>
+          <RouteHeaderSetter />
+          <main className="m-4 w-full min-w-0">
+            <SiteHeader />
 
-          <div className="mt-2">
-            <Outlet />
-          </div>
-        </main>
-      </PageHeaderProvider>
+            <div className="mt-2">
+              <Outlet />
+            </div>
+          </main>
+        </PageHeaderProvider>
+      </ViewingTeamProvider>
     </SidebarProvider>
   );
 }

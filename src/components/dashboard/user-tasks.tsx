@@ -19,6 +19,7 @@ interface UserTasksProps {
 interface UserTaskWithProject extends ToDoItem {
   project_name: string;
   status_name: string;
+  isCompleted: boolean;
 }
 
 export function UserTasks({ userTasks, isLoading = false }: UserTasksProps) {
@@ -26,24 +27,15 @@ export function UserTasks({ userTasks, isLoading = false }: UserTasksProps) {
 
   // Sort tasks: pending first, then by project
   const sortedTasks = userTasks.sort((a, b) => {
-    // Sort by status name - "Completed" or "Done" first, then others
-    const aIsCompleted = a.status_name.toLowerCase().includes('completed') || a.status_name.toLowerCase().includes('done');
-    const bIsCompleted = b.status_name.toLowerCase().includes('completed') || b.status_name.toLowerCase().includes('done');
-    
-    if (aIsCompleted !== bIsCompleted) {
-      return aIsCompleted ? 1 : -1; // Incomplete first
+    // Sort by completion status - incomplete first
+    if (a.isCompleted !== b.isCompleted) {
+      return a.isCompleted ? 1 : -1; // Incomplete first
     }
     return a.project_name.localeCompare(b.project_name);
   });
 
-  const pendingTasks = sortedTasks.filter(task => 
-    !task.status_name.toLowerCase().includes('completed') && 
-    !task.status_name.toLowerCase().includes('done')
-  );
-  const completedTasks = sortedTasks.filter(task => 
-    task.status_name.toLowerCase().includes('completed') || 
-    task.status_name.toLowerCase().includes('done')
-  );
+  const pendingTasks = sortedTasks.filter((task) => !task.isCompleted);
+  const completedTasks = sortedTasks.filter((task) => task.isCompleted);
 
   if (isLoading) {
     return (
@@ -86,19 +78,19 @@ export function UserTasks({ userTasks, isLoading = false }: UserTasksProps) {
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
-        <CardDescription>
-          Tasks assigned to you in this team
-        </CardDescription>
+        <CardDescription>Tasks assigned to you in this team</CardDescription>
       </CardHeader>
       <CardContent>
         {userTasks.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
             <CheckSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>No tasks assigned to you</p>
-            <p className="text-sm mt-2">Tasks will appear here when they're assigned to you</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <p className="text-sm mt-2">
+              Tasks will appear here when they're assigned to you
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
               className="mt-4"
               onClick={() => navigate("/projects")}
             >
@@ -118,8 +110,8 @@ export function UserTasks({ userTasks, isLoading = false }: UserTasksProps) {
                 </div>
                 <div className="space-y-3">
                   {pendingTasks.slice(0, 3).map((task) => (
-                    <div 
-                      key={task.id} 
+                    <div
+                      key={task.id}
                       className="border rounded-lg p-3 hover:bg-accent/50 transition-colors cursor-pointer"
                       onClick={() => navigate("/projects")}
                     >
@@ -133,14 +125,14 @@ export function UserTasks({ userTasks, isLoading = false }: UserTasksProps) {
                               </p>
                             )}
                           </div>
-                          <Badge 
+                          <Badge
                             variant={task.approved ? "default" : "secondary"}
                             className="text-xs ml-2 flex-shrink-0"
                           >
                             {task.status_name}
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center justify-between pt-1">
                           <span className="text-xs text-muted-foreground">
                             {task.project_name}
@@ -149,7 +141,7 @@ export function UserTasks({ userTasks, isLoading = false }: UserTasksProps) {
                       </div>
                     </div>
                   ))}
-                  
+
                   {pendingTasks.length > 3 && (
                     <p className="text-xs text-muted-foreground text-center">
                       +{pendingTasks.length - 3} more pending tasks
@@ -170,14 +162,16 @@ export function UserTasks({ userTasks, isLoading = false }: UserTasksProps) {
                 </div>
                 <div className="space-y-2">
                   {completedTasks.slice(0, 2).map((task) => (
-                    <div 
-                      key={task.id} 
+                    <div
+                      key={task.id}
                       className="border rounded-lg p-3 hover:bg-accent/50 transition-colors cursor-pointer opacity-75"
                       onClick={() => navigate("/projects")}
                     >
                       <div className="flex items-start justify-between">
                         <div className="space-y-1 flex-1">
-                          <h5 className="font-medium text-sm line-through text-muted-foreground">{task.name}</h5>
+                          <h5 className="font-medium text-sm line-through text-muted-foreground">
+                            {task.name}
+                          </h5>
                           <span className="text-xs text-muted-foreground">
                             {task.project_name}
                           </span>
@@ -186,7 +180,7 @@ export function UserTasks({ userTasks, isLoading = false }: UserTasksProps) {
                       </div>
                     </div>
                   ))}
-                  
+
                   {completedTasks.length > 2 && (
                     <p className="text-xs text-muted-foreground text-center">
                       +{completedTasks.length - 2} more completed tasks
@@ -195,12 +189,14 @@ export function UserTasks({ userTasks, isLoading = false }: UserTasksProps) {
                 </div>
               </div>
             )}
-            
+
             {/* Summary */}
             <div className="pt-4 border-t">
               <div className="flex justify-between text-sm text-muted-foreground">
                 <span>Total assigned: {userTasks.length}</span>
-                <span>{completedTasks.length}/{userTasks.length} completed</span>
+                <span>
+                  {completedTasks.length}/{userTasks.length} completed
+                </span>
               </div>
             </div>
           </div>
