@@ -9,6 +9,7 @@ import { teamApi } from "@/api/team";
 import type { Project } from "@/types/projects";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
@@ -104,18 +105,21 @@ export function TeamDetails() {
         );
 
         // Fetch team details (members list)
-        return teamDetailsApi.getDetails(teamId);
+        return teamDetailsApi.getDetails(teamId).then((detailsRes) => ({
+          detailsRes,
+          pids,
+        }));
       })
-      .then(async (res) => {
-        if (!isMounted) return;
-        if (res) setDetails(res);
+      .then(async (result) => {
+        if (!isMounted || !result) return;
+        const { detailsRes, pids } = result;
+        if (detailsRes) setDetails(detailsRes);
 
         // Fetch project names
-        const pids = memberIds.length > 0 ? teamProjectIds : [];
         if (pids.length > 0) {
           setSelectedProjectId(pids[0]);
           const entries = await Promise.all(
-            pids.map(async (pid) => {
+            pids.map(async (pid: string) => {
               try {
                 const projectRes = await projectsApi.getProject(pid);
                 return [pid, projectRes.project.name] as const;
@@ -324,12 +328,9 @@ export function TeamDetails() {
               memberDetails={details?.members}
             />
           )}
-          <button
-            className="text-sm text-destructive hover:underline"
-            onClick={handleLeaveTeam}
-          >
+          <Button variant="destructive" size="sm" onClick={handleLeaveTeam}>
             Leave team
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -350,12 +351,9 @@ export function TeamDetails() {
             <CardHeader>
               <CardTitle className="flex items-center gap-3">
                 Invite Code
-                <button
-                  className="text-sm text-primary hover:underline"
-                  onClick={handleCopyInvite}
-                >
+                <Button variant="ghost" size="sm" onClick={handleCopyInvite}>
                   Copy
-                </button>
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -400,8 +398,9 @@ export function TeamDetails() {
                     {teamProjectIds.length !== 1 ? "s" : ""}
                   </Badge>
                 </div>
-                <button
-                  className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm hover:bg-primary/90"
+                <Button
+                  variant={showCreateProject ? "secondary" : "default"}
+                  size="sm"
                   onClick={() => {
                     setShowCreateProject(!showCreateProject);
                     if (!showCreateProject) {
@@ -411,7 +410,7 @@ export function TeamDetails() {
                   }}
                 >
                   {showCreateProject ? "Cancel" : "+ New Project"}
-                </button>
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -441,8 +440,7 @@ export function TeamDetails() {
                       value={newProjectDesc}
                       onChange={(e) => setNewProjectDesc(e.target.value)}
                     />
-                    <button
-                      className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                    <Button
                       disabled={
                         creatingProject ||
                         !newProjectName.trim() ||
@@ -451,7 +449,7 @@ export function TeamDetails() {
                       onClick={handleCreateProject}
                     >
                       {creatingProject ? "Creating..." : "Create Project"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -595,10 +593,12 @@ export function TeamDetails() {
                           )}
 
                           {/* Actions */}
-                          <div className="flex gap-2 mt-3 pt-3 border-t">
-                            {isExecutive && (
-                              <button
-                                className="flex-1 bg-destructive/10 text-destructive px-2 py-1 rounded text-xs hover:bg-destructive/20"
+                          {isExecutive && (
+                            <div className="flex gap-2 mt-3 pt-3 border-t">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="flex-1"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   const projectName =
@@ -612,22 +612,9 @@ export function TeamDetails() {
                                 }}
                               >
                                 Delete
-                              </button>
-                            )}
-                            {!isExecutive && isSelected && (
-                              <button
-                                className="flex-1 bg-destructive/10 text-destructive px-2 py-1 rounded text-xs hover:bg-destructive/20"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  toast.error(
-                                    "Only executives can delete projects"
-                                  );
-                                }}
-                              >
-                                Delete
-                              </button>
-                            )}
-                          </div>
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -640,12 +627,13 @@ export function TeamDetails() {
                         <h4 className="font-medium text-foreground">
                           Create New Project
                         </h4>
-                        <button
-                          className="text-primary hover:text-primary/80 text-sm"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => setShowCreateProject(false)}
                         >
                           Cancel
-                        </button>
+                        </Button>
                       </div>
                       <div className="flex flex-col gap-3">
                         <input
@@ -661,8 +649,7 @@ export function TeamDetails() {
                           onChange={(e) => setNewProjectDesc(e.target.value)}
                         />
                         <div className="flex gap-2">
-                          <button
-                            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                          <Button
                             disabled={
                               creatingProject ||
                               !newProjectName.trim() ||
@@ -671,13 +658,13 @@ export function TeamDetails() {
                             onClick={handleCreateProject}
                           >
                             {creatingProject ? "Creating..." : "Create Project"}
-                          </button>
-                          <button
-                            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80"
+                          </Button>
+                          <Button
+                            variant="secondary"
                             onClick={() => setShowCreateProject(false)}
                           >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>

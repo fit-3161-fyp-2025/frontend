@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../ui/dialog";
+import { Trash2, AlertTriangle } from "lucide-react";
 import { teamApi } from "@/api/team";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -75,10 +76,20 @@ export function DeleteTeamDialog({
     }
   };
 
+  // Don't render anything if user is not an executive
+  if (!isExecutive) {
+    return null;
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive" size="sm">
+        <Button
+          variant="destructive"
+          size="sm"
+          className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 font-semibold shadow-md hover:shadow-lg transition-all"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
           Delete Team
         </Button>
       </DialogTrigger>
@@ -116,8 +127,10 @@ export function DeleteTeamDialog({
             variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting || !isExecutive}
+            className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 font-bold shadow-lg hover:shadow-xl transition-all"
           >
-            {isDeleting ? "Deleting..." : "Delete Team"}
+            <AlertTriangle className="mr-2 h-4 w-4" />
+            {isDeleting ? "Deleting..." : "Permanently Delete Team"}
           </Button>
         </DialogFooter>
       </DialogContent>

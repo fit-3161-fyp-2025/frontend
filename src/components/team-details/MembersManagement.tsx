@@ -132,9 +132,8 @@ export function MembersManagement({
     const isCurrentUserExecutive =
       currentUserId && execMemberIds.includes(currentUserId);
 
-    // Only executives can select members
+    // Only executives can select members (silently ignore for non-executives)
     if (!isCurrentUserExecutive) {
-      toast.error("Only executives can select members for bulk actions");
       return;
     }
 
@@ -143,9 +142,8 @@ export function MembersManagement({
       return;
     }
 
-    // Executives cannot select other executives
+    // Executives cannot select other executives (silently ignore)
     if (execMemberIds.includes(memberId)) {
-      toast.error("Cannot select executives for promotion");
       return;
     }
 
@@ -288,7 +286,6 @@ export function MembersManagement({
                   <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md border border-border/50">
                     💡 <span className="font-medium">Tip:</span> Click on
                     regular members to select them for bulk promotion.
-                    Executives and yourself cannot be selected.
                   </div>
                 );
               }
@@ -398,17 +395,18 @@ export function MembersManagement({
                                 Promote
                               </button>
                             )}
-                          {member.email !== currentUserEmail && (
-                            <button
-                              className="text-destructive text-xs hover:underline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleKick(member.id);
-                              }}
-                            >
-                              Kick
-                            </button>
-                          )}
+                          {member.email !== currentUserEmail &&
+                            isCurrentUserExecutive && (
+                              <button
+                                className="text-destructive text-xs hover:underline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleKick(member.id);
+                                }}
+                              >
+                                Kick
+                              </button>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -513,17 +511,18 @@ export function MembersManagement({
                               Promote
                             </button>
                           )}
-                        {member.email !== currentUserEmail && (
-                          <button
-                            className="text-destructive text-xs hover:underline px-1"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleKick(member.id);
-                            }}
-                          >
-                            Kick
-                          </button>
-                        )}
+                        {member.email !== currentUserEmail &&
+                          isCurrentUserExecutive && (
+                            <button
+                              className="text-destructive text-xs hover:underline px-1"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleKick(member.id);
+                              }}
+                            >
+                              Kick
+                            </button>
+                          )}
                       </div>
                     </div>
                   );
