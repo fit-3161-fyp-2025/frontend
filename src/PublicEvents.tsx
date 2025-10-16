@@ -93,7 +93,11 @@ export function PublicEvents() {
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <CalendarDays className="h-8 w-8 text-primary" />
+            <img
+              src="/clubsync.png"
+              alt="ClubSync logo"
+              className="h-8 w-8 object-contain"
+            />
             <h1 className="text-2xl font-bold">ClubSync</h1>
           </div>
           <div className="flex items-center space-x-4">
