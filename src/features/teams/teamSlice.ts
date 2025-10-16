@@ -104,15 +104,15 @@ const teamsSlice = createSlice({
 
       .addCase(fetchTeams.fulfilled, (state, action) => {
         state.isFetchingTeams = false;
-        state.teams = action.payload || [];
+        state.teams = action.payload;
 
         // Always re-select the up-to-date team object from the fetched list
         let next: TeamModel | null = null;
-        if (state.selectedTeam && action.payload) {
+        if (state.selectedTeam) {
           next =
             action.payload.find((t) => t.id === state.selectedTeam!.id) ?? null;
         }
-        if (!next && action.payload && action.payload.length > 0) {
+        if (!next && action.payload.length > 0) {
           next = action.payload[0];
         }
         state.selectedTeam = next;

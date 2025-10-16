@@ -596,6 +596,7 @@ export function TeamDetails() {
           </button>
         </div>
       </div>
+      <p className="text-gray-600">Team ID: {teamId}</p>
 
       {loading && (
         <div className="space-y-4">
