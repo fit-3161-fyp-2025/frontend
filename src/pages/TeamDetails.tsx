@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { useToast } from "@/components/ui/toast";
+import { toast } from "sonner";
 import { parseErrorMessage } from "@/utils/errorParser";
 import { DeleteTeamDialog } from "@/components/team/DeleteTeamDialog";
 import { useAuth } from "@/contexts/AuthContext";
@@ -71,7 +71,6 @@ export function TeamDetails() {
 
   const { user, isLoading } = useAuth();
   const { confirm, DialogEl } = useConfirm();
-  const { push } = useToast();
   const { setHeader } = usePageHeader();
 
   useEffect(() => {
@@ -203,22 +202,14 @@ export function TeamDetails() {
     try {
       await teamApi.promoteMember(teamId, memberId);
       setActionMsg("Member promoted");
-      push({
-        title: "Success",
-        description: "Member promoted",
-        variant: "success",
-      });
+      toast.success("Member promoted");
       setExecMemberIds((prev) =>
         prev.includes(memberId) ? prev : [...prev, memberId]
       );
     } catch (e) {
       const errorInfo = parseErrorMessage(e);
       setActionMsg(`Failed to promote: ${errorInfo.description}`);
-      push({
-        title: errorInfo.title,
-        description: errorInfo.description,
-        variant: "destructive",
-      });
+      toast.error(errorInfo.description);
     }
   };
 
@@ -234,19 +225,11 @@ export function TeamDetails() {
           setMemberIds((prev) => prev.filter((id) => id !== memberId));
           setExecMemberIds((prev) => prev.filter((id) => id !== memberId));
           setActionMsg("Member removed");
-          push({
-            title: "Removed",
-            description: "Member removed from team",
-            variant: "success",
-          });
+          toast.success("Member removed from team");
         } catch (e) {
           const errorInfo = parseErrorMessage(e);
           setActionMsg(`Failed to remove member: ${errorInfo.description}`);
-          push({
-            title: errorInfo.title,
-            description: errorInfo.description,
-            variant: "destructive",
-          });
+          toast.error(errorInfo.description);
         }
       },
     });
@@ -261,20 +244,12 @@ export function TeamDetails() {
         setActionMsg(null);
         try {
           await teamApi.leave({ team_id: teamId });
-          push({
-            title: "Left team",
-            description: "You have left the team",
-            variant: "success",
-          });
+          toast.success("You have left the team");
           navigate("/teams");
         } catch (e) {
           const errorInfo = parseErrorMessage(e);
           setActionMsg(`Failed to leave team: ${errorInfo.description}`);
-          push({
-            title: errorInfo.title,
-            description: errorInfo.description,
-            variant: "destructive",
-          });
+          toast.error(errorInfo.description);
         }
       },
     });
@@ -284,14 +259,10 @@ export function TeamDetails() {
     try {
       await navigator.clipboard.writeText(details?.code ?? "");
       setActionMsg("Invite code copied");
-      push({ title: "Copied", description: "Invite code copied" });
+      toast.success("Invite code copied");
     } catch {
       setActionMsg("Failed to copy invite code");
-      push({
-        title: "Error",
-        description: "Failed to copy",
-        variant: "destructive",
-      });
+      toast.error("Failed to copy");
     }
   };
 
@@ -324,19 +295,11 @@ export function TeamDetails() {
         );
       }
       setActionMsg("Project deleted");
-      push({
-        title: "Project Deleted",
-        description: "Project has been permanently deleted",
-        variant: "default",
-      });
+      toast.success("Project has been permanently deleted");
     } catch (e) {
       const errorInfo = parseErrorMessage(e);
       setActionMsg(`Failed to delete project: ${errorInfo.description}`);
-      push({
-        title: errorInfo.title,
-        description: errorInfo.description,
-        variant: "destructive",
-      });
+      toast.error(errorInfo.description);
     }
   };
 
@@ -345,11 +308,7 @@ export function TeamDetails() {
     const amount = parseFloat(budgetAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
       setActionMsg("Enter a positive amount");
-      push({
-        title: "Invalid amount",
-        description: "Enter a positive number",
-        variant: "destructive",
-      });
+      toast.error("Enter a positive number");
       return;
     }
     setActionMsg(null);
@@ -363,19 +322,11 @@ export function TeamDetails() {
       }));
       setBudgetAmount("");
       setActionMsg("Budget increased");
-      push({
-        title: "Budget updated",
-        description: "Amount added",
-        variant: "success",
-      });
+      toast.success("Amount added");
     } catch (e) {
       const errorInfo = parseErrorMessage(e);
       setActionMsg(`Failed to increase budget: ${errorInfo.description}`);
-      push({
-        title: errorInfo.title,
-        description: errorInfo.description,
-        variant: "destructive",
-      });
+      toast.error(errorInfo.description);
     }
   };
 
@@ -384,11 +335,7 @@ export function TeamDetails() {
     const amount = parseFloat(budgetAmount);
     if (!Number.isFinite(amount) || amount <= 0) {
       setActionMsg("Enter a positive amount");
-      push({
-        title: "Invalid amount",
-        description: "Enter a positive number",
-        variant: "destructive",
-      });
+      toast.error("Enter a positive number");
       return;
     }
     setActionMsg(null);
@@ -402,19 +349,11 @@ export function TeamDetails() {
       }));
       setBudgetAmount("");
       setActionMsg("Budget spent");
-      push({
-        title: "Budget updated",
-        description: "Amount spent",
-        variant: "success",
-      });
+      toast.success("Amount spent");
     } catch (e) {
       const errorInfo = parseErrorMessage(e);
       setActionMsg(`Failed to spend budget: ${errorInfo.description}`);
-      push({
-        title: errorInfo.title,
-        description: errorInfo.description,
-        variant: "destructive",
-      });
+      toast.error(errorInfo.description);
     }
   };
 
@@ -493,11 +432,7 @@ export function TeamDetails() {
       currentUserId && executiveMembers.includes(currentUserId);
 
     if (!isExecutive) {
-      push({
-        title: "Permission Denied",
-        description: "Only executives can promote members",
-        variant: "destructive",
-      });
+      toast.error("Only executives can promote members");
       return;
     }
 
@@ -530,11 +465,7 @@ export function TeamDetails() {
     if (!teamId) return;
     if (!newProjectName.trim()) {
       setActionMsg("Enter a project name");
-      push({
-        title: "Missing name",
-        description: "Enter a project name",
-        variant: "destructive",
-      });
+      toast.error("Enter a project name");
       return;
     }
     setCreatingProject(true);
@@ -553,19 +484,11 @@ export function TeamDetails() {
       setNewProjectDesc("");
       setShowCreateProject(false);
       setActionMsg("Project created");
-      push({
-        title: "Project created",
-        description: res.project.name,
-        variant: "success",
-      });
+      toast.success(res.project.name);
     } catch (e) {
       const errorInfo = parseErrorMessage(e);
       setActionMsg(`Failed to create project: ${errorInfo.description}`);
-      push({
-        title: errorInfo.title,
-        description: errorInfo.description,
-        variant: "destructive",
-      });
+      toast.error(errorInfo.description);
     } finally {
       setCreatingProject(false);
     }
@@ -1234,12 +1157,9 @@ export function TeamDetails() {
                                 className="flex-1 bg-destructive/10 text-destructive px-2 py-1 rounded text-xs hover:bg-destructive/20"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  push({
-                                    title: "Permission Denied",
-                                    description:
-                                      "Only executives can delete projects",
-                                    variant: "destructive",
-                                  });
+                                  toast.error(
+                                    "Only executives can delete projects"
+                                  );
                                 }}
                               >
                                 Delete
