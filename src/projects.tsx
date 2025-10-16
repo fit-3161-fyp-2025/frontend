@@ -136,18 +136,18 @@ export default function Projects() {
   ]);
 
   useEffect(() => {
-    // Only check after initial load is truly complete
-    if (isInitialLoad || loading) return;
+    // Only check once after initial load is truly complete
+    if (hasCheckedInitialState.current || isInitialLoad || loading) return;
 
     if (
-      !hasCheckedInitialState.current &&
       availableProjects.length === 0 &&
-      selectedTeam
+      selectedTeam &&
+      isExecutive
     ) {
       hasCheckedInitialState.current = true;
       setIsCreateProjectOpen(true);
     }
-  }, [isInitialLoad, loading, availableProjects.length, selectedTeam]);
+  }, [isInitialLoad, loading, availableProjects.length, selectedTeam, isExecutive]);
 
   return (
     <div className="bg-background p-4 sm:p28 py-2 overflow-hidden">
