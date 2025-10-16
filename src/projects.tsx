@@ -21,6 +21,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./components/ui/tooltip";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 import { useSelector, useDispatch } from "react-redux";
 import { type AppDispatch, type RootState } from "./lib/store";
@@ -43,6 +45,7 @@ export default function Projects() {
     null
   );
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const isExecutive = useIsExecutive() ?? false;
   const isMobile = useIsMobile();
   const { DialogEl: ConfirmDialog } = useConfirm();
@@ -53,6 +56,15 @@ export default function Projects() {
       setView("list");
     }
   }, [isMobile]);
+
+  // Redirect to manage teams if no team is selected
+  useEffect(() => {
+    if (!isFetchingTeams && teams.length === 0) {
+      toast.error("No team available. Please create/join a new team");
+      navigate("/teams");
+    }
+  }, [isFetchingTeams, teams, navigate]);
+
   const loadingStages = [
     "Fetching user teams...",
     "Loading available projects...",
