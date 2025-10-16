@@ -26,6 +26,7 @@ interface UserTaskWithProject {
   approved: boolean;
   project_name: string;
   status_name: string;
+  isCompleted: boolean;
 }
 
 interface ActivityItem {
@@ -94,17 +95,42 @@ export function useDashboardData() {
         const todoPromises = projects.map(async (project) => {
           try {
             const todosResponse = await projectsApi.getTodoItems(project.id);
-            return todosResponse.todos || [];
+            return {
+              todos: todosResponse.todos || [],
+              project: project,
+            };
           } catch (error) {
             console.error(
               `Failed to fetch todos for project ${project.id}:`,
               error
             );
-            return [];
+            return {
+              todos: [],
+              project: project,
+            };
           }
         });
 
-        const allTodos = (await Promise.all(todoPromises)).flat();
+        const todosWithProjects = await Promise.all(todoPromises);
+        const allTodos = todosWithProjects.flatMap((t) => t.todos);
+
+        // Calculate completed tasks - tasks in the rightmost column (last status) of each project
+        const totalTasksCompleted = todosWithProjects.reduce(
+          (count, { todos, project }) => {
+            // Get the rightmost column (last status) ID
+            const lastColumnId =
+              project.todo_statuses[project.todo_statuses.length - 1]?.id;
+
+            if (!lastColumnId) return count;
+
+            // Count todos in the last column
+            const completedInProject = todos.filter(
+              (todo) => todo.status_id === lastColumnId
+            ).length;
+            return count + completedInProject;
+          },
+          0
+        );
 
         // Calculate stats
         const now = new Date();
@@ -124,10 +150,6 @@ export function useDashboardData() {
 
         const activeProjectsCount = projects.length;
 
-        // For now, we'll simulate some completed tasks count
-        // In a real app, you'd track completion timestamps
-        const totalTasksCompleted = Math.floor(allTodos.length * 0.7); // Simulate 70% completion
-
         // Filter tasks assigned to current user and enrich with project info
         const userTasks: UserTaskWithProject[] = allTodos
           .map((todo) => {
@@ -136,10 +158,16 @@ export function useDashboardData() {
               (s) => s.id === todo.status_id
             );
 
+            // Check if task is in the last column (completed)
+            const lastColumnId =
+              project?.todo_statuses[project.todo_statuses.length - 1]?.id;
+            const isCompleted = lastColumnId === todo.status_id;
+
             return {
               ...todo,
               project_name: project?.name || "Unknown Project",
               status_name: status?.name || "Unknown Status",
+              isCompleted,
             };
           })
           .filter(() => {

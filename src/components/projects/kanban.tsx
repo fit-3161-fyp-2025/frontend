@@ -14,6 +14,13 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { KanbanColDropdown } from "./kanban-col-dropdown";
 import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { CheckCircle2 } from "lucide-react";
 
 interface KanbanProps {
   columns: Column[];
@@ -85,6 +92,9 @@ export function Kanban({
     const [editingName, setEditingName] = useState(false);
     const [nameValue, setNameValue] = useState(column.name);
 
+    // Check if this is the last column (rightmost = "done" column)
+    const isLastColumn = columns[columns.length - 1]?.id === column.id;
+
     useEffect(() => {
       setNameValue(column.name);
     }, [column.name]);
@@ -120,6 +130,21 @@ export function Kanban({
                 className="h-2 w-2 rounded-full"
                 style={{ backgroundColor: column.color }}
               />
+              {isLastColumn && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        This is the "Done" column - tasks here count as
+                        completed
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
               {editingName ? (
                 <Input
                   value={nameValue}
