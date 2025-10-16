@@ -136,18 +136,22 @@ export default function Projects() {
   ]);
 
   useEffect(() => {
-    // Only check after initial load is truly complete
-    if (isInitialLoad || loading) return;
+    // Only check once after initial load is truly complete
+    // Wait until loading is false to avoid dialog flashing during loading state
+    if (hasCheckedInitialState.current || isInitialLoad || loading) return;
 
     if (
-      !hasCheckedInitialState.current &&
       availableProjects.length === 0 &&
-      selectedTeam
+      selectedTeam &&
+      isExecutive
     ) {
       hasCheckedInitialState.current = true;
-      setIsCreateProjectOpen(true);
+      // Small delay to ensure loading UI has completed rendering
+      setTimeout(() => {
+        setIsCreateProjectOpen(true);
+      }, 100);
     }
-  }, [isInitialLoad, loading, availableProjects.length, selectedTeam]);
+  }, [isInitialLoad, loading, availableProjects.length, selectedTeam, isExecutive]);
 
   return (
     <div className="bg-background p-4 sm:p28 py-2 overflow-hidden">
