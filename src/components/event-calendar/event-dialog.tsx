@@ -498,10 +498,10 @@ export function EventDialog({
             />
           </div>
 
-          <div className="*:not-first:mt-1.5">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="guest-email">Invite Guests</Label>
-              {event?.id && (
+          {event?.id && (
+            <div className="*:not-first:mt-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="guest-email">Invite Guests</Label>
                 <Button
                   type="button"
                   variant="ghost"
@@ -516,113 +516,111 @@ export function EventDialog({
                   />
                   <span className="ml-1 text-xs">Refresh</span>
                 </Button>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                id="guest-email"
-                type="email"
-                placeholder="Enter email address"
-                value={guestEmail}
-                onChange={(e) => setGuestEmail(e.target.value)}
-                onKeyDown={handleGuestKeyDown}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                onClick={handleAddGuest}
-                aria-label="Add guest"
-              >
-                <RiMailLine size={16} aria-hidden="true" />
-              </Button>
-            </div>
-
-            {loadingRSVPs ? (
-              <div className="mt-3 flex items-center justify-center py-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <RiRefreshLine size={16} className="animate-spin" />
-                  <span>Loading RSVP data...</span>
-                </div>
               </div>
-            ) : guests.length > 0 ? (
-              <div className="mt-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    {guests.length} {guests.length === 1 ? "guest" : "guests"}{" "}
-                    invited
-                  </p>
-                  <div className="flex gap-2 text-xs">
-                    <span className="text-green-600">
-                      {guests.filter((g) => g.status === "accepted").length}{" "}
-                      accepted
-                    </span>
-                    <span className="text-red-600">
-                      {guests.filter((g) => g.status === "declined").length}{" "}
-                      declined
-                    </span>
-                    <span className="text-yellow-600">
-                      {guests.filter((g) => g.status === "pending").length}{" "}
-                      pending
-                    </span>
+              <div className="flex gap-2">
+                <Input
+                  id="guest-email"
+                  type="email"
+                  placeholder="Enter email address"
+                  value={guestEmail}
+                  onChange={(e) => setGuestEmail(e.target.value)}
+                  onKeyDown={handleGuestKeyDown}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={handleAddGuest}
+                  aria-label="Add guest"
+                >
+                  <RiMailLine size={16} aria-hidden="true" />
+                </Button>
+              </div>
+
+              {loadingRSVPs ? (
+                <div className="mt-3 flex items-center justify-center py-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <RiRefreshLine size={16} className="animate-spin" />
+                    <span>Loading RSVP data...</span>
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  {guests.map((guest) => {
-                    const getStatusBadge = (status: string) => {
-                      switch (status) {
-                        case "accepted":
-                          return (
-                            <Badge
-                              variant="default"
-                              className="bg-green-100 text-green-800 hover:bg-green-100"
-                            >
-                              Confirmed
-                            </Badge>
-                          );
-                        case "declined":
-                          return (
-                            <Badge
-                              variant="destructive"
-                              className="bg-red-100 text-red-800 hover:bg-red-100"
-                            >
-                              Declined
-                            </Badge>
-                          );
-                        case "pending":
-                          return (
-                            <Badge
-                              variant="secondary"
-                              className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
-                            >
-                              Pending
-                            </Badge>
-                          );
-                        default:
-                          return <Badge variant="outline">{status}</Badge>;
-                      }
-                    };
+              ) : guests.length > 0 ? (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      {guests.length} {guests.length === 1 ? "guest" : "guests"}{" "}
+                      invited
+                    </p>
+                    <div className="flex gap-2 text-xs">
+                      <span className="text-green-600">
+                        {guests.filter((g) => g.status === "accepted").length}{" "}
+                        accepted
+                      </span>
+                      <span className="text-red-600">
+                        {guests.filter((g) => g.status === "declined").length}{" "}
+                        declined
+                      </span>
+                      <span className="text-yellow-600">
+                        {guests.filter((g) => g.status === "pending").length}{" "}
+                        pending
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    {guests.map((guest) => {
+                      const getStatusBadge = (status: string) => {
+                        switch (status) {
+                          case "accepted":
+                            return (
+                              <Badge
+                                variant="default"
+                                className="bg-green-100 text-green-800 hover:bg-green-100"
+                              >
+                                Confirmed
+                              </Badge>
+                            );
+                          case "declined":
+                            return (
+                              <Badge
+                                variant="destructive"
+                                className="bg-red-100 text-red-800 hover:bg-red-100"
+                              >
+                                Declined
+                              </Badge>
+                            );
+                          case "pending":
+                            return (
+                              <Badge
+                                variant="secondary"
+                                className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                              >
+                                Pending
+                              </Badge>
+                            );
+                          default:
+                            return <Badge variant="outline">{status}</Badge>;
+                        }
+                      };
 
-                    return (
-                      <div
-                        key={guest.email}
-                        className="flex items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                      >
-                        <span className="truncate">{guest.email}</span>
-                        {getStatusBadge(guest.status)}
-                      </div>
-                    );
-                  })}
+                      return (
+                        <div
+                          key={guest.email}
+                          className="flex items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        >
+                          <span className="truncate">{guest.email}</span>
+                          {getStatusBadge(guest.status)}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              event?.id && (
+              ) : (
                 <div className="mt-3 text-sm text-muted-foreground text-center py-2">
                   No guests invited yet
                 </div>
-              )
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           <fieldset className="space-y-4">
             <legend className="text-foreground text-sm leading-none font-medium">
