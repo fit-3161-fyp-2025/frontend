@@ -18,6 +18,7 @@ import { BudgetManagement } from "@/components/team-details/BudgetManagement";
 import { MembersManagement } from "@/components/team-details/MembersManagement";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePageHeader } from "@/contexts/PageHeaderContext";
+import { useViewingTeam } from "@/contexts/ViewingTeamContext";
 
 export function TeamDetails() {
   const navigate = useNavigate();
@@ -61,51 +62,63 @@ export function TeamDetails() {
   const { user, isLoading } = useAuth();
   const { confirm, DialogEl } = useConfirm();
   const { setHeader } = usePageHeader();
+  const { setViewingTeam } = useViewingTeam();
 
   useEffect(() => {
-    if (!teamId || !selectedTeam) return;
+    if (!teamId || !user) return;
     let isMounted = true;
     setLoading(true);
     setError(null);
 
-    // Use selectedTeam from Redux instead of fetching again
-    setMemberIds(selectedTeam.member_ids || []);
-    setExecMemberIds(selectedTeam.exec_member_ids || []);
-    const pids = selectedTeam.project_ids || [];
-    setTeamProjectIds(pids);
+    // Fetch the specific team by teamId from URL (not from Redux selectedTeam)
+    // This ensures we always show the correct team data for the URL, independent of sidebar selection
+    teamApi
+      .getTeam(teamId)
+      .then((teamRes) => {
+        if (!isMounted) return;
+        const team = teamRes.team;
 
-    // Set breadcrumb header
-    setHeader(
-      <div className="w-full">
-        <div className="flex flex-col gap-1 py-1">
-          <nav className="text-sm text-muted-foreground">
-            <span
-              className="hover:text-foreground cursor-pointer"
-              onClick={() => navigate("/teams")}
-            >
-              Manage Teams
-            </span>
-            <span className="mx-2">›</span>
-            <span className="text-foreground">{selectedTeam.name}</span>
-          </nav>
-        </div>
-      </div>
-    );
+        setMemberIds(team.member_ids || []);
+        setExecMemberIds(team.exec_member_ids || []);
+        const pids = team.project_ids || [];
+        setTeamProjectIds(pids);
 
-    // Fetch team details (members list) and project names
-    teamDetailsApi
-      .getDetails(teamId)
+        // Update viewing team context for header badge
+        const isExec = team.exec_member_ids.includes(user.id);
+        setViewingTeam(teamId, isExec); // Set breadcrumb header
+        setHeader(
+          <div className="w-full">
+            <div className="flex flex-col gap-1 py-1">
+              <nav className="text-sm text-muted-foreground">
+                <span
+                  className="hover:text-foreground cursor-pointer"
+                  onClick={() => navigate("/teams")}
+                >
+                  Manage Teams
+                </span>
+                <span className="mx-2">›</span>
+                <span className="text-foreground">{team.name}</span>
+              </nav>
+            </div>
+          </div>
+        );
+
+        // Fetch team details (members list)
+        return teamDetailsApi.getDetails(teamId);
+      })
       .then(async (res) => {
         if (!isMounted) return;
-        setDetails(res);
+        if (res) setDetails(res);
 
+        // Fetch project names
+        const pids = memberIds.length > 0 ? teamProjectIds : [];
         if (pids.length > 0) {
           setSelectedProjectId(pids[0]);
           const entries = await Promise.all(
             pids.map(async (pid) => {
               try {
-                const res = await projectsApi.getProject(pid);
-                return [pid, res.project.name] as const;
+                const projectRes = await projectsApi.getProject(pid);
+                return [pid, projectRes.project.name] as const;
               } catch {
                 return [pid, pid] as const;
               }
@@ -124,8 +137,10 @@ export function TeamDetails() {
       });
     return () => {
       isMounted = false;
+      // Clear viewing team context when leaving the page
+      setViewingTeam(null, null);
     };
-  }, [teamId, selectedTeam]);
+  }, [teamId, user]);
 
   useEffect(() => {
     if (!selectedProjectId) {
@@ -360,7 +375,6 @@ export function TeamDetails() {
             execMemberIds={execMemberIds}
             details={details}
             currentUserEmail={user?.email}
-            selectedTeamExecMemberIds={selectedTeam?.exec_member_ids}
             onMemberPromoted={(memberId) => {
               setExecMemberIds((prev) =>
                 prev.includes(memberId) ? prev : [...prev, memberId]

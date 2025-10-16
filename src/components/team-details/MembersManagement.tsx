@@ -13,7 +13,6 @@ interface MembersManagementProps {
   execMemberIds: string[];
   details: { members: User[]; code: string } | null;
   currentUserEmail?: string;
-  selectedTeamExecMemberIds?: string[];
   onMemberPromoted: (memberId: string) => void;
   onMemberKicked: (memberId: string) => void;
   onConfirm: (options: {
@@ -29,7 +28,6 @@ export function MembersManagement({
   execMemberIds,
   details,
   currentUserEmail,
-  selectedTeamExecMemberIds,
   onMemberPromoted,
   onMemberKicked,
   onConfirm,
@@ -131,9 +129,8 @@ export function MembersManagement({
       (m) => m.email === currentUserEmail
     );
     const currentUserId = currentUserMember?.id;
-    const executiveMembers = execMemberIds || selectedTeamExecMemberIds || [];
     const isCurrentUserExecutive =
-      currentUserId && executiveMembers.includes(currentUserId);
+      currentUserId && execMemberIds.includes(currentUserId);
 
     // Only executives can select members
     if (!isCurrentUserExecutive) {
@@ -147,7 +144,7 @@ export function MembersManagement({
     }
 
     // Executives cannot select other executives
-    if (executiveMembers.includes(memberId)) {
+    if (execMemberIds.includes(memberId)) {
       toast.error("Cannot select executives for promotion");
       return;
     }
@@ -164,9 +161,7 @@ export function MembersManagement({
       (member) => member.email === currentUserEmail
     );
     const currentUserId = currentUserMember?.id;
-    const executiveMembers = execMemberIds || selectedTeamExecMemberIds || [];
-    const isExecutive =
-      currentUserId && executiveMembers.includes(currentUserId);
+    const isExecutive = currentUserId && execMemberIds.includes(currentUserId);
 
     if (!isExecutive) {
       toast.error("Only executives can promote members");
@@ -285,10 +280,8 @@ export function MembersManagement({
                 (m) => m.email === currentUserEmail
               );
               const currentUserId = currentUserMember?.id;
-              const executiveMembers =
-                execMemberIds || selectedTeamExecMemberIds || [];
               const isCurrentUserExecutive =
-                currentUserId && executiveMembers.includes(currentUserId);
+                currentUserId && execMemberIds.includes(currentUserId);
 
               if (isCurrentUserExecutive) {
                 return (
@@ -312,10 +305,8 @@ export function MembersManagement({
                     (m) => m.email === currentUserEmail
                   );
                   const currentUserId = currentUserMember?.id;
-                  const executiveMembers =
-                    execMemberIds || selectedTeamExecMemberIds || [];
                   const isCurrentUserExecutive =
-                    currentUserId && executiveMembers.includes(currentUserId);
+                    currentUserId && execMemberIds.includes(currentUserId);
                   const displayName =
                     member.first_name && member.last_name
                       ? `${member.first_name} ${member.last_name}`
@@ -434,10 +425,8 @@ export function MembersManagement({
                     (m) => m.email === currentUserEmail
                   );
                   const currentUserId = currentUserMember?.id;
-                  const executiveMembers =
-                    execMemberIds || selectedTeamExecMemberIds || [];
                   const isCurrentUserExecutive =
-                    currentUserId && executiveMembers.includes(currentUserId);
+                    currentUserId && execMemberIds.includes(currentUserId);
                   const displayName =
                     member.first_name && member.last_name
                       ? `${member.first_name} ${member.last_name}`
