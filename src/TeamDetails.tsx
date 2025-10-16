@@ -21,10 +21,9 @@ import { usePageHeader } from "@/contexts/PageHeaderContext";
 export function TeamDetails() {
   const navigate = useNavigate();
   const { teamId } = useParams();
-  const { teams, isFetchingTeams } = useSelector(
+  const { isFetchingTeams, selectedTeam } = useSelector(
     (state: RootState) => state.teams
   );
-  const team = teams.find((t) => t.id === teamId);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,37 +73,41 @@ export function TeamDetails() {
   const { setHeader } = usePageHeader();
 
   useEffect(() => {
-    if (!teamId) return;
+    if (!teamId || !selectedTeam) return;
     let isMounted = true;
     setLoading(true);
     setError(null);
 
-    Promise.all([teamDetailsApi.getDetails(teamId), teamApi.getTeam(teamId)])
-      .then(async ([res, teamRes]) => {
+    // Use selectedTeam from Redux instead of fetching again
+    setMemberIds(selectedTeam.member_ids || []);
+    setExecMemberIds(selectedTeam.exec_member_ids || []);
+    const pids = selectedTeam.project_ids || [];
+    setTeamProjectIds(pids);
+
+    // Set breadcrumb header
+    setHeader(
+      <div className="w-full">
+        <div className="flex flex-col gap-1 py-1">
+          <nav className="text-sm text-muted-foreground">
+            <span
+              className="hover:text-foreground cursor-pointer"
+              onClick={() => navigate("/teams")}
+            >
+              Manage Teams
+            </span>
+            <span className="mx-2">›</span>
+            <span className="text-foreground">{selectedTeam.name}</span>
+          </nav>
+        </div>
+      </div>
+    );
+
+    // Fetch team details (members list) and project names
+    teamDetailsApi
+      .getDetails(teamId)
+      .then(async (res) => {
         if (!isMounted) return;
         setDetails(res);
-        setMemberIds(teamRes.team.member_ids || []);
-        setExecMemberIds(teamRes.team.exec_member_ids || []);
-        const pids = teamRes.team.project_ids || [];
-        setTeamProjectIds(pids);
-
-        // Set breadcrumb header
-        setHeader(
-          <div className="w-full">
-            <div className="flex flex-col gap-1 py-1">
-              <nav className="text-sm text-muted-foreground">
-                <span
-                  className="hover:text-foreground cursor-pointer"
-                  onClick={() => navigate("/teams")}
-                >
-                  Manage Teams
-                </span>
-                <span className="mx-2">›</span>
-                <span className="text-foreground">{teamRes.team.name}</span>
-              </nav>
-            </div>
-          </div>
-        );
 
         if (pids.length > 0) {
           setSelectedProjectId(pids[0]);
@@ -132,7 +135,7 @@ export function TeamDetails() {
     return () => {
       isMounted = false;
     };
-  }, [teamId]);
+  }, [teamId, selectedTeam]);
 
   useEffect(() => {
     if (!selectedProjectId) {
@@ -427,7 +430,8 @@ export function TeamDetails() {
       (member) => member.email === user?.email
     );
     const currentUserId = currentUserMember?.id;
-    const executiveMembers = execMemberIds || team?.exec_member_ids || [];
+    const executiveMembers =
+      execMemberIds || selectedTeam?.exec_member_ids || [];
     const isExecutive =
       currentUserId && executiveMembers.includes(currentUserId);
 
@@ -504,13 +508,13 @@ export function TeamDetails() {
       {DialogEl}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">
-          {team?.name ||
+          {selectedTeam?.name ||
             (isFetchingTeams ? "Loading team..." : `Team ${teamId}`)}
         </h1>
         <div className="flex gap-4">
-          {team && user && !isLoading && (
+          {selectedTeam && user && !isLoading && (
             <DeleteTeamDialog
-              team={team}
+              team={selectedTeam}
               onDelete={handleDeleteTeam}
               execMemberIds={execMemberIds}
               memberDetails={details?.members}
@@ -653,7 +657,7 @@ export function TeamDetails() {
                         );
                         const currentUserId = currentUserMember?.id;
                         const executiveMembers =
-                          execMemberIds || team?.exec_member_ids || [];
+                          execMemberIds || selectedTeam?.exec_member_ids || [];
                         const isCurrentUserExecutive =
                           currentUserId &&
                           executiveMembers.includes(currentUserId);
@@ -771,7 +775,7 @@ export function TeamDetails() {
                         );
                         const currentUserId = currentUserMember?.id;
                         const executiveMembers =
-                          execMemberIds || team?.exec_member_ids || [];
+                          execMemberIds || selectedTeam?.exec_member_ids || [];
                         const isCurrentUserExecutive =
                           currentUserId &&
                           executiveMembers.includes(currentUserId);
@@ -1015,7 +1019,7 @@ export function TeamDetails() {
                       );
                       const currentUserId = currentUserMember?.id;
                       const executiveMembers =
-                        execMemberIds || team?.exec_member_ids || [];
+                        execMemberIds || selectedTeam?.exec_member_ids || [];
                       const isExecutive =
                         currentUserId &&
                         executiveMembers.includes(currentUserId);
