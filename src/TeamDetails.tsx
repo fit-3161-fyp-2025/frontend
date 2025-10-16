@@ -58,9 +58,6 @@ export function TeamDetails() {
   const [creatingProject, setCreatingProject] = useState(false);
   const [showCreateProject, setShowCreateProject] = useState(false);
 
-  // Event management state
-  const [_showBulkActions, setShowBulkActions] = useState(false);
-
   const { user, isLoading } = useAuth();
   const { confirm, DialogEl } = useConfirm();
   const { setHeader } = usePageHeader();
@@ -191,45 +188,6 @@ export function TeamDetails() {
       isMounted = false;
     };
   }, [teamProjectIds]);
-
-  const handlePromote = async (memberId: string) => {
-    if (!teamId) return;
-    setActionMsg(null);
-    try {
-      await teamApi.promoteMember(teamId, memberId);
-      setActionMsg("Member promoted");
-      toast.success("Member promoted");
-      setExecMemberIds((prev) =>
-        prev.includes(memberId) ? prev : [...prev, memberId]
-      );
-    } catch (e) {
-      const errorInfo = parseErrorMessage(e);
-      setActionMsg(`Failed to promote: ${errorInfo.description}`);
-      toast.error(errorInfo.description);
-    }
-  };
-
-  const handleKick = (memberId: string) => {
-    if (!teamId) return;
-    confirm({
-      title: "Remove member",
-      description: "This member will be removed from the team.",
-      onConfirm: async () => {
-        setActionMsg(null);
-        try {
-          await teamApi.kickMember(teamId, memberId);
-          setMemberIds((prev) => prev.filter((id) => id !== memberId));
-          setExecMemberIds((prev) => prev.filter((id) => id !== memberId));
-          setActionMsg("Member removed");
-          toast.success("Member removed from team");
-        } catch (e) {
-          const errorInfo = parseErrorMessage(e);
-          setActionMsg(`Failed to remove member: ${errorInfo.description}`);
-          toast.error(errorInfo.description);
-        }
-      },
-    });
-  };
 
   const handleLeaveTeam = () => {
     if (!teamId) return;
