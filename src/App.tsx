@@ -11,7 +11,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { JoinCreateTeam } from "./JoinCreateTeam";
 import { ManageTeams } from "./ManageTeams";
 import { EmailVerification } from "./EmailVerification";
-import { TeamDetails } from "./pages/TeamDetails";
+import { TeamDetails } from "./TeamDetails";
 import { SmartLanding } from "./components/SmartLanding";
 import { PublicEvents } from "./PublicEvents";
 import { ToastProvider } from "@/components/ui/toast";
