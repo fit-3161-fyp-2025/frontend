@@ -468,13 +468,18 @@ export function TeamDetails() {
       toast.error("Enter a project name");
       return;
     }
+    if (!newProjectDesc.trim()) {
+      setActionMsg("Enter a project description");
+      toast.error("Enter a project description");
+      return;
+    }
     setCreatingProject(true);
     setActionMsg(null);
     try {
       const res = await projectsApi.createProject(
         teamId,
         newProjectName.trim(),
-        newProjectDesc.trim() || undefined
+        newProjectDesc.trim()
       );
       const newId = res.project.id;
       setTeamProjectIds((prev) => [...prev, newId]);
@@ -979,13 +984,17 @@ export function TeamDetails() {
                     />
                     <textarea
                       className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-ring focus:border-transparent h-20 resize-none"
-                      placeholder="Description (optional)"
+                      placeholder="Project description"
                       value={newProjectDesc}
                       onChange={(e) => setNewProjectDesc(e.target.value)}
                     />
                     <button
                       className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={creatingProject || !newProjectName.trim()}
+                      disabled={
+                        creatingProject ||
+                        !newProjectName.trim() ||
+                        !newProjectDesc.trim()
+                      }
                       onClick={handleCreateProject}
                     >
                       {creatingProject ? "Creating..." : "Create Project"}
@@ -1194,14 +1203,18 @@ export function TeamDetails() {
                         />
                         <textarea
                           className="border rounded-lg px-3 py-2 focus:ring-2 focus:ring-ring focus:border-transparent h-20 resize-none"
-                          placeholder="Description (optional)"
+                          placeholder="Project description"
                           value={newProjectDesc}
                           onChange={(e) => setNewProjectDesc(e.target.value)}
                         />
                         <div className="flex gap-2">
                           <button
                             className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={creatingProject || !newProjectName.trim()}
+                            disabled={
+                              creatingProject ||
+                              !newProjectName.trim() ||
+                              !newProjectDesc.trim()
+                            }
                             onClick={handleCreateProject}
                           >
                             {creatingProject ? "Creating..." : "Create Project"}
