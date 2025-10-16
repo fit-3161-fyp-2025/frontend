@@ -126,6 +126,32 @@ export function MembersManagement({
   };
 
   const handleMemberSelection = (memberId: string) => {
+    // Get current user info
+    const currentUserMember = details?.members?.find(
+      (m) => m.email === currentUserEmail
+    );
+    const currentUserId = currentUserMember?.id;
+    const executiveMembers = execMemberIds || selectedTeamExecMemberIds || [];
+    const isCurrentUserExecutive =
+      currentUserId && executiveMembers.includes(currentUserId);
+
+    // Only executives can select members
+    if (!isCurrentUserExecutive) {
+      toast.error("Only executives can select members for bulk actions");
+      return;
+    }
+
+    // Executives cannot select themselves (silently ignore)
+    if (memberId === currentUserId) {
+      return;
+    }
+
+    // Executives cannot select other executives
+    if (executiveMembers.includes(memberId)) {
+      toast.error("Cannot select executives for promotion");
+      return;
+    }
+
     setSelectedMembers((prev) =>
       prev.includes(memberId)
         ? prev.filter((id) => id !== memberId)
@@ -253,6 +279,29 @@ export function MembersManagement({
               </div>
             )}
 
+            {/* Selection Info for Executives */}
+            {(() => {
+              const currentUserMember = details?.members?.find(
+                (m) => m.email === currentUserEmail
+              );
+              const currentUserId = currentUserMember?.id;
+              const executiveMembers =
+                execMemberIds || selectedTeamExecMemberIds || [];
+              const isCurrentUserExecutive =
+                currentUserId && executiveMembers.includes(currentUserId);
+
+              if (isCurrentUserExecutive) {
+                return (
+                  <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md border border-border/50">
+                    💡 <span className="font-medium">Tip:</span> Click on
+                    regular members to select them for bulk promotion.
+                    Executives and yourself cannot be selected.
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {/* Member Display */}
             {memberViewMode === "cards" ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -272,15 +321,25 @@ export function MembersManagement({
                       ? `${member.first_name} ${member.last_name}`
                       : member.first_name || member.email.split("@")[0];
 
+                  // Determine if this member can be selected for bulk actions
+                  const canBeSelected =
+                    isCurrentUserExecutive &&
+                    !isExec &&
+                    member.id !== currentUserId;
+
                   return (
                     <div
                       key={member.id}
-                      className={`border rounded-lg p-4 transition-all cursor-pointer ${
+                      className={`border rounded-lg p-4 transition-all ${
+                        canBeSelected ? "cursor-pointer" : "cursor-default"
+                      } ${
                         isSelected
                           ? "border-primary bg-primary/10"
                           : isExec
                           ? "border-primary/50 bg-card"
-                          : "border-border hover:border-border/80"
+                          : canBeSelected
+                          ? "border-border hover:border-border/80"
+                          : "border-border opacity-75"
                       }`}
                       onClick={() => handleMemberSelection(member.id)}
                     >
@@ -384,15 +443,25 @@ export function MembersManagement({
                       ? `${member.first_name} ${member.last_name}`
                       : member.first_name || member.email.split("@")[0];
 
+                  // Determine if this member can be selected for bulk actions
+                  const canBeSelected =
+                    isCurrentUserExecutive &&
+                    !isExec &&
+                    member.id !== currentUserId;
+
                   return (
                     <div
                       key={member.id}
-                      className={`border rounded p-3 transition-all cursor-pointer flex items-center gap-3 ${
+                      className={`border rounded p-3 transition-all flex items-center gap-3 ${
+                        canBeSelected ? "cursor-pointer" : "cursor-default"
+                      } ${
                         isSelected
                           ? "border-primary bg-primary/10"
                           : isExec
                           ? "border-primary/50 bg-card"
-                          : "border-border hover:border-border/80"
+                          : canBeSelected
+                          ? "border-border hover:border-border/80"
+                          : "border-border opacity-75"
                       }`}
                       onClick={() => handleMemberSelection(member.id)}
                     >
