@@ -177,61 +177,6 @@ export function useDashboardData() {
             return true; // Show all tasks from current team for now
           });
 
-        // Generate mock activities (in a real app, this would come from an activity feed API)
-        const activities: ActivityItem[] =
-          projects.length > 0 || events.length > 0
-            ? [
-                {
-                  id: "1",
-                  type: "task_completed",
-                  title: "Task completed",
-                  description: `Completed "Update project documentation" in ${
-                    projects[0]?.name || "Team Project"
-                  }`,
-                  timestamp: new Date(
-                    Date.now() - 2 * 60 * 60 * 1000
-                  ).toISOString(), // 2 hours ago
-                  user: "System",
-                },
-                {
-                  id: "2",
-                  type: "event_created",
-                  title: "Event created",
-                  description: events[0]
-                    ? `"${events[0].name}" scheduled for ${new Date(
-                        events[0].start
-                      ).toLocaleDateString()}`
-                    : "New team event scheduled",
-                  timestamp: new Date(
-                    Date.now() - 5 * 60 * 60 * 1000
-                  ).toISOString(), // 5 hours ago
-                  user: "Team Lead",
-                },
-                {
-                  id: "3",
-                  type: "project_updated",
-                  title: "Project updated",
-                  description: `Updated ${
-                    projects[0]?.name || "Team Project"
-                  } with new requirements`,
-                  timestamp: new Date(
-                    Date.now() - 1 * 24 * 60 * 60 * 1000
-                  ).toISOString(), // 1 day ago
-                  user: "Project Manager",
-                },
-                {
-                  id: "4",
-                  type: "member_joined",
-                  title: "Member joined",
-                  description: "New team member joined the project",
-                  timestamp: new Date(
-                    Date.now() - 2 * 24 * 60 * 60 * 1000
-                  ).toISOString(), // 2 days ago
-                  user: "Admin",
-                },
-              ]
-            : [];
-
         setData({
           events,
           projects,
@@ -239,7 +184,7 @@ export function useDashboardData() {
           activeProjectsCount,
           upcomingEventsCount,
           completedEventsCount,
-          activities,
+          activities: [],
           userTasks,
         });
       } catch (error) {
