@@ -57,14 +57,6 @@ export default function Projects() {
     }
   }, [isMobile]);
 
-  // Redirect to manage teams if no team is selected
-  useEffect(() => {
-    if (!isFetchingTeams && teams.length === 0) {
-      toast.error("No team available. Please create/join a new team");
-      navigate("/teams");
-    }
-  }, [isFetchingTeams, teams, navigate]);
-
   const loadingStages = [
     "Fetching user teams...",
     "Loading available projects...",
@@ -103,6 +95,16 @@ export default function Projects() {
     selectedProjectId: selectedProjectId ?? "",
     isExecutive,
   });
+
+  // Redirect to manage teams if no team is selected
+  // This must come after useProjectData to access isInitialLoad
+  useEffect(() => {
+    // Only redirect after initial load is complete to avoid race condition on refresh
+    if (!isFetchingTeams && !isInitialLoad && teams.length === 0) {
+      toast.error("No team available. Please create/join a new team");
+      navigate("/teams");
+    }
+  }, [isFetchingTeams, isInitialLoad, teams, navigate]);
 
   const hasProjects =
     (availableProjects?.length ?? 0) > 0 && !!selectedProjectId;
