@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface BudgetManagementProps {
   selectedProjectId: string;
@@ -127,24 +128,23 @@ export function BudgetManagement({
         <div className="bg-muted rounded-lg p-4">
           <h5 className="font-medium text-foreground mb-3">Budget Actions</h5>
           <div className="flex flex-wrap gap-3">
-            <button
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90"
+            <Button
               onClick={() => {
                 setBudgetAmount("");
                 setShowAddBudgetDialog(true);
               }}
             >
               + Add Budget
-            </button>
-            <button
-              className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90"
+            </Button>
+            <Button
+              variant="destructive"
               onClick={() => {
                 setBudgetAmount("");
                 setShowSpendBudgetDialog(true);
               }}
             >
               - Spend Budget
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -182,22 +182,21 @@ export function BudgetManagement({
             />
           </div>
           <DialogFooter>
-            <button
-              className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80"
+            <Button
+              variant="secondary"
               onClick={() => {
                 setShowAddBudgetDialog(false);
                 setBudgetAmount("");
               }}
             >
               Cancel
-            </button>
-            <button
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            </Button>
+            <Button
               disabled={!budgetAmount || parseFloat(budgetAmount) <= 0}
               onClick={handleIncreaseBudget}
             >
               Add Budget
-            </button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -249,17 +248,17 @@ export function BudgetManagement({
               )}
           </div>
           <DialogFooter>
-            <button
-              className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/80"
+            <Button
+              variant="secondary"
               onClick={() => {
                 setShowSpendBudgetDialog(false);
                 setBudgetAmount("");
               }}
             >
               Cancel
-            </button>
-            <button
-              className="bg-destructive text-destructive-foreground px-4 py-2 rounded-lg hover:bg-destructive/90 disabled:opacity-50 disabled:cursor-not-allowed"
+            </Button>
+            <Button
+              variant="destructive"
               disabled={
                 !budgetAmount ||
                 parseFloat(budgetAmount) <= 0 ||
@@ -268,7 +267,7 @@ export function BudgetManagement({
               onClick={handleSpendBudget}
             >
               Spend Budget
-            </button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
