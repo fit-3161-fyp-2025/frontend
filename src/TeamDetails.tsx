@@ -9,12 +9,12 @@ import { teamApi } from "@/api/team";
 import type { Project } from "@/types/projects";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { toast } from "sonner";
 import { parseErrorMessage } from "@/utils/errorParser";
 import { DeleteTeamDialog } from "@/components/team/DeleteTeamDialog";
+import { BudgetManagement } from "@/components/team-details/BudgetManagement";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePageHeader } from "@/contexts/PageHeaderContext";
 
@@ -57,7 +57,6 @@ export function TeamDetails() {
   const [projectsBudgetData, setProjectsBudgetData] = useState<
     Record<string, Project>
   >({});
-  const [budgetAmount, setBudgetAmount] = useState<string>("");
   const [actionMsg, setActionMsg] = useState<string | null>(null);
 
   const [newProjectName, setNewProjectName] = useState("");
@@ -275,7 +274,6 @@ export function TeamDetails() {
 
   const handleDeleteProject = async (projectId: string) => {
     if (!teamId) return;
-    setActionMsg(null);
     try {
       await teamApi.deleteProject(teamId, projectId);
       setTeamProjectIds((prev) => prev.filter((id) => id !== projectId));
@@ -297,65 +295,9 @@ export function TeamDetails() {
           remainingProjects.length > 0 ? remainingProjects[0] : null
         );
       }
-      setActionMsg("Project deleted");
       toast.success("Project has been permanently deleted");
     } catch (e) {
       const errorInfo = parseErrorMessage(e);
-      setActionMsg(`Failed to delete project: ${errorInfo.description}`);
-      toast.error(errorInfo.description);
-    }
-  };
-
-  const handleIncreaseBudget = async () => {
-    if (!selectedProjectId) return;
-    const amount = parseFloat(budgetAmount);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setActionMsg("Enter a positive amount");
-      toast.error("Enter a positive number");
-      return;
-    }
-    setActionMsg(null);
-    try {
-      await projectsApi.increaseBudget(selectedProjectId, amount);
-      const res = await projectsApi.getProject(selectedProjectId);
-      setProject(res.project);
-      setProjectsBudgetData((prev) => ({
-        ...prev,
-        [selectedProjectId]: res.project,
-      }));
-      setBudgetAmount("");
-      setActionMsg("Budget increased");
-      toast.success("Amount added");
-    } catch (e) {
-      const errorInfo = parseErrorMessage(e);
-      setActionMsg(`Failed to increase budget: ${errorInfo.description}`);
-      toast.error(errorInfo.description);
-    }
-  };
-
-  const handleSpendBudget = async () => {
-    if (!selectedProjectId) return;
-    const amount = parseFloat(budgetAmount);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setActionMsg("Enter a positive amount");
-      toast.error("Enter a positive number");
-      return;
-    }
-    setActionMsg(null);
-    try {
-      await projectsApi.spendBudget(selectedProjectId, amount);
-      const res = await projectsApi.getProject(selectedProjectId);
-      setProject(res.project);
-      setProjectsBudgetData((prev) => ({
-        ...prev,
-        [selectedProjectId]: res.project,
-      }));
-      setBudgetAmount("");
-      setActionMsg("Budget spent");
-      toast.success("Amount spent");
-    } catch (e) {
-      const errorInfo = parseErrorMessage(e);
-      setActionMsg(`Failed to spend budget: ${errorInfo.description}`);
       toast.error(errorInfo.description);
     }
   };
@@ -1236,109 +1178,18 @@ export function TeamDetails() {
 
                   {/* Budget Management Section */}
                   {selectedProjectId && project && !projectError && (
-                    <div className="border-t pt-4 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-lg text-foreground">
-                          {projectNamesById[selectedProjectId]} Budget
-                          Management
-                        </h4>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">
-                            Total:
-                          </span>
-                          <span className="font-bold text-lg">
-                            $
-                            {(
-                              project.budget_available + project.budget_spent
-                            ).toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Budget Cards */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Available Budget */}
-                        <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h5 className="text-sm font-medium text-green-800 dark:text-green-200">
-                                Available Budget
-                              </h5>
-                              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                                ${project.budget_available.toFixed(2)}
-                              </p>
-                            </div>
-                            <div className="w-12 h-12 bg-green-100 dark:bg-green-800 rounded-full flex items-center justify-center">
-                              <span className="text-green-600 dark:text-green-400 font-bold">
-                                ✓
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Spent Budget */}
-                        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h5 className="text-sm font-medium text-red-800 dark:text-red-200">
-                                Budget Spent
-                              </h5>
-                              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                                ${project.budget_spent.toFixed(2)}
-                              </p>
-                            </div>
-                            <div className="w-12 h-12 bg-red-100 dark:bg-red-800 rounded-full flex items-center justify-center">
-                              <span className="text-red-600 dark:text-red-400 font-bold">
-                                $
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Budget Actions */}
-                      <div className="bg-muted rounded-lg p-4">
-                        <h5 className="font-medium text-foreground mb-3">
-                          Budget Actions
-                        </h5>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          {actionMsg ||
-                            "Enter an amount below to add or spend budget"}
-                        </p>
-                        <div className="flex flex-wrap gap-3">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            className="border rounded-lg px-3 py-2 w-32 focus:ring-2 focus:ring-primary focus:border-transparent"
-                            placeholder="Amount"
-                            value={budgetAmount}
-                            onChange={(e) => setBudgetAmount(e.target.value)}
-                          />
-                          <button
-                            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={
-                              !budgetAmount || parseFloat(budgetAmount) <= 0
-                            }
-                            onClick={handleIncreaseBudget}
-                          >
-                            + Add Budget
-                          </button>
-                          <button
-                            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={
-                              !budgetAmount ||
-                              parseFloat(budgetAmount) <= 0 ||
-                              parseFloat(budgetAmount) >
-                                project.budget_available
-                            }
-                            onClick={handleSpendBudget}
-                          >
-                            - Spend Budget
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                    <BudgetManagement
+                      selectedProjectId={selectedProjectId}
+                      projectName={projectNamesById[selectedProjectId]}
+                      project={project}
+                      onBudgetUpdate={(updatedProject) => {
+                        setProject(updatedProject);
+                        setProjectsBudgetData((prev) => ({
+                          ...prev,
+                          [selectedProjectId]: updatedProject,
+                        }));
+                      }}
+                    />
                   )}
 
                   {/* Show budget error */}
