@@ -137,6 +137,7 @@ export default function Projects() {
 
   useEffect(() => {
     // Only check once after initial load is truly complete
+    // Wait until loading is false to avoid dialog flashing during loading state
     if (hasCheckedInitialState.current || isInitialLoad || loading) return;
 
     if (
@@ -145,7 +146,10 @@ export default function Projects() {
       isExecutive
     ) {
       hasCheckedInitialState.current = true;
-      setIsCreateProjectOpen(true);
+      // Small delay to ensure loading UI has completed rendering
+      setTimeout(() => {
+        setIsCreateProjectOpen(true);
+      }, 100);
     }
   }, [isInitialLoad, loading, availableProjects.length, selectedTeam, isExecutive]);
 
