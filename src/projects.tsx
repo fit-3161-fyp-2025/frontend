@@ -140,18 +140,20 @@ export default function Projects() {
     // Wait until loading is false to avoid dialog flashing during loading state
     if (hasCheckedInitialState.current || isInitialLoad || loading) return;
 
-    if (
-      availableProjects.length === 0 &&
-      selectedTeam &&
-      isExecutive
-    ) {
+    if (availableProjects.length === 0 && selectedTeam && isExecutive) {
       hasCheckedInitialState.current = true;
       // Small delay to ensure loading UI has completed rendering
       setTimeout(() => {
         setIsCreateProjectOpen(true);
       }, 100);
     }
-  }, [isInitialLoad, loading, availableProjects.length, selectedTeam, isExecutive]);
+  }, [
+    isInitialLoad,
+    loading,
+    availableProjects.length,
+    selectedTeam,
+    isExecutive,
+  ]);
 
   return (
     <div className="bg-background p-4 sm:p28 py-2 overflow-hidden">
@@ -244,7 +246,20 @@ export default function Projects() {
             />
           )}
 
-          {view === "kanban" ? (
+          {!hasProjects && availableProjects.length === 0 ? (
+            <div className="flex items-center justify-center h-[calc(100vh-25vh)] border-2 border-dashed rounded-lg">
+              <div className="text-center p-8">
+                <p className="text-lg font-medium text-muted-foreground mb-2">
+                  No projects available
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {isExecutive
+                    ? "Create a new project to get started"
+                    : "Contact an executive to create a project"}
+                </p>
+              </div>
+            </div>
+          ) : view === "kanban" ? (
             <Kanban
               columns={columns}
               features={features}

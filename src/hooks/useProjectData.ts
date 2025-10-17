@@ -131,13 +131,34 @@ export function useProjectData({
           setProposedCounts(newProposedCounts);
         }
 
-        // Set initial selected project if none selected
-        if (!selectedProjectId && projectResponses.length > 0) {
+        // Handle project selection based on available projects
+        if (projectResponses.length === 0) {
+          // No projects in this team - clear everything
+          dispatch(setSelectedProjectId(null));
+          setProject(null);
+          setFeatures([]);
+          setColumns([]);
+          setRawTodos([]);
+          setRawProposed([]);
+        } else if (!selectedProjectId) {
+          // Has projects but none selected - select first project
           const firstProjectId = projectResponses[0].project.id;
           dispatch(setSelectedProjectId(firstProjectId));
           await loadProjectData(firstProjectId);
-        } else if (selectedProjectId) {
-          await loadProjectData(selectedProjectId);
+        } else {
+          // Check if the currently selected project belongs to this team
+          const projectExists = projectResponses.some(
+            (r) => r.project.id === selectedProjectId
+          );
+          if (projectExists) {
+            // Selected project exists in new team - load it
+            await loadProjectData(selectedProjectId);
+          } else {
+            // Selected project doesn't exist in new team - select first project
+            const firstProjectId = projectResponses[0].project.id;
+            dispatch(setSelectedProjectId(firstProjectId));
+            await loadProjectData(firstProjectId);
+          }
         }
       } catch (err) {
         console.error("Failed to load projects:", err);
