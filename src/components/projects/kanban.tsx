@@ -138,8 +138,8 @@ export function Kanban({
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>
-                        This is the "Done" column - tasks here count as
-                        completed
+                        This column's tasks will be tracked as "Completed" in
+                        the Dashboard
                       </p>
                     </TooltipContent>
                   </Tooltip>
