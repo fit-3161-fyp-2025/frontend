@@ -24,12 +24,11 @@ import { useViewingTeam } from "@/contexts/ViewingTeamContext";
 export function TeamDetails() {
   const navigate = useNavigate();
   const { teamId } = useParams();
-  const { isFetchingTeams, selectedTeam } = useSelector(
-    (state: RootState) => state.teams
-  );
+  const { selectedTeam } = useSelector((state: RootState) => state.teams);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [teamName, setTeamName] = useState<string>("");
   const [details, setDetails] = useState<{
     members: User[];
     code: string;
@@ -79,14 +78,37 @@ export function TeamDetails() {
         if (!isMounted) return;
         const team = teamRes.team;
 
-        setMemberIds(team.member_ids || []);
-        setExecMemberIds(team.exec_member_ids || []);
+        setTeamName(team.name);
+        const memberIdsList = team.member_ids || [];
+        const execMemberIdsList = team.exec_member_ids || [];
+        setMemberIds(memberIdsList);
+        setExecMemberIds(execMemberIdsList);
         const pids = team.project_ids || [];
         setTeamProjectIds(pids);
 
+        // Fetch team details (members list) first to get user's member ID
+        return teamDetailsApi.getDetails(teamId).then((detailsRes) => ({
+          detailsRes,
+          pids,
+          execMemberIdsList, // Pass this through
+          teamName: team.name, // Pass team name through
+        }));
+      })
+      .then(async (result) => {
+        if (!isMounted || !result) return;
+        const { detailsRes, pids, execMemberIdsList, teamName } = result;
+        if (detailsRes) setDetails(detailsRes);
+
         // Update viewing team context for header badge
-        const isExec = team.exec_member_ids.includes(user.id);
-        setViewingTeam(teamId, isExec); // Set breadcrumb header
+        // Find current user in the team's member list by email to get their member ID
+        const currentUserMember = detailsRes?.members?.find(
+          (m) => m.email === user?.email
+        );
+        const currentUserId = currentUserMember?.id;
+        const isExec = currentUserId
+          ? execMemberIdsList.includes(currentUserId)
+          : false;
+        setViewingTeam(teamId, isExec);
         setHeader(
           <div className="w-full">
             <div className="flex flex-col gap-1 py-1">
@@ -98,22 +120,11 @@ export function TeamDetails() {
                   Manage Teams
                 </span>
                 <span className="mx-2">›</span>
-                <span className="text-foreground">{team.name}</span>
+                <span className="text-foreground">{teamName}</span>
               </nav>
             </div>
           </div>
         );
-
-        // Fetch team details (members list)
-        return teamDetailsApi.getDetails(teamId).then((detailsRes) => ({
-          detailsRes,
-          pids,
-        }));
-      })
-      .then(async (result) => {
-        if (!isMounted || !result) return;
-        const { detailsRes, pids } = result;
-        if (detailsRes) setDetails(detailsRes);
 
         // Fetch project names
         if (pids.length > 0) {
@@ -144,7 +155,26 @@ export function TeamDetails() {
       // Clear viewing team context when leaving the page
       setViewingTeam(null, null);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [teamId, user]);
+
+  // Update badge when exec members list changes (e.g., promotions/demotions)
+  useEffect(() => {
+    // Only update if we're currently viewing this team and have the necessary data
+    if (!teamId || !user?.email || !details?.members || !execMemberIds.length)
+      return;
+
+    // Find current user in the team's member list by email to get their member ID
+    const currentUserMember = details.members.find(
+      (m) => m.email === user.email
+    );
+    const currentUserId = currentUserMember?.id;
+    const isExec = currentUserId
+      ? execMemberIds.includes(currentUserId)
+      : false;
+    setViewingTeam(teamId, isExec);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [execMemberIds]); // Only re-run when execMemberIds changes
 
   useEffect(() => {
     if (!selectedProjectId) {
@@ -316,8 +346,7 @@ export function TeamDetails() {
       {DialogEl}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">
-          {selectedTeam?.name ||
-            (isFetchingTeams ? "Loading team..." : `Team ${teamId}`)}
+          {teamName || (loading ? "Loading team..." : `Team ${teamId}`)}
         </h1>
         <div className="flex gap-4">
           {selectedTeam && user && !isLoading && (

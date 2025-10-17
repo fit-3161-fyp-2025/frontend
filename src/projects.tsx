@@ -46,7 +46,7 @@ export default function Projects() {
   );
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const isExecutive = useIsExecutive() ?? false;
+  const isExecutive = useIsExecutive();
   const isMobile = useIsMobile();
   const { DialogEl: ConfirmDialog } = useConfirm();
   const [view, setView] = useState<"kanban" | "list">("kanban");
@@ -135,23 +135,44 @@ export default function Projects() {
     dispatch,
   ]);
 
+  // Reset the check flag when team changes
   useEffect(() => {
-    // Only check once after initial load is truly complete
-    // Wait until loading is false to avoid dialog flashing during loading state
-    if (hasCheckedInitialState.current || isInitialLoad || loading) return;
+    hasCheckedInitialState.current = false;
+  }, [selectedTeam?.id]);
 
+  useEffect(() => {
+    // Only check after initial load is complete and executive status is determined
+    if (isInitialLoad || loading) return;
+
+    // Don't check until isExecutive is fully loaded (not null)
+    if (isExecutive === null) return;
+
+    // If already checked for this team, don't check again
+    if (hasCheckedInitialState.current) return;
+
+    // Mark as checked to prevent multiple checks
+    hasCheckedInitialState.current = true;
+
+    // Only open dialog for executives when there are NO projects
     if (
       availableProjects.length === 0 &&
       selectedTeam &&
-      isExecutive
+      isExecutive === true
     ) {
-      hasCheckedInitialState.current = true;
       // Small delay to ensure loading UI has completed rendering
       setTimeout(() => {
         setIsCreateProjectOpen(true);
       }, 100);
     }
-  }, [isInitialLoad, loading, availableProjects.length, selectedTeam, isExecutive]);
+    // Note: If there ARE projects (availableProjects.length > 0), we just mark as checked
+    // and don't open the dialog - this prevents opening when team already has projects
+  }, [
+    isInitialLoad,
+    loading,
+    availableProjects.length,
+    selectedTeam,
+    isExecutive,
+  ]);
 
   return (
     <div className="bg-background p-4 sm:p28 py-2 overflow-hidden">
@@ -181,8 +202,14 @@ export default function Projects() {
                       <TooltipTrigger asChild>
                         <div>
                           <CreateProject
-                            open={isCreateProjectOpen}
-                            onOpenChange={setIsCreateProjectOpen}
+                            open={
+                              isExecutive === true ? isCreateProjectOpen : false
+                            }
+                            onOpenChange={(open) => {
+                              // Only allow executives to open the dialog
+                              if (open && isExecutive !== true) return;
+                              setIsCreateProjectOpen(open);
+                            }}
                             handleCreateProject={async (name, description) => {
                               const success = await handleCreateProject(
                                 name,
@@ -244,7 +271,20 @@ export default function Projects() {
             />
           )}
 
-          {view === "kanban" ? (
+          {!hasProjects && availableProjects.length === 0 ? (
+            <div className="flex items-center justify-center h-[calc(100vh-25vh)] border-2 border-dashed rounded-lg">
+              <div className="text-center p-8">
+                <p className="text-lg font-medium text-muted-foreground mb-2">
+                  No projects available
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {isExecutive
+                    ? "Create a new project to get started"
+                    : "Contact an executive to create a project"}
+                </p>
+              </div>
+            </div>
+          ) : view === "kanban" ? (
             <Kanban
               columns={columns}
               features={features}

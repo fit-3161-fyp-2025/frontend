@@ -33,7 +33,7 @@ export default function SelectProject({
         value={selectedProjectId ?? ""}
         onValueChange={handleProjectChange}
       >
-        <SelectTrigger className="w-[180px] hover:bg-purple-50">
+        <SelectTrigger className="w-[180px] hover:bg-accent">
           <SelectValue placeholder="Select project" />
         </SelectTrigger>
         <SelectContent>
