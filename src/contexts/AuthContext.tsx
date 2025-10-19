@@ -91,7 +91,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await authApi.logout();
     } finally {
       setUser(null);
-      if (!location.pathname.startsWith("/signup")) {
+      if (
+        !location.pathname.startsWith("/signup") &&
+        !location.pathname.startsWith("/email-verify")
+      ) {
         navigate("/login", { replace: true });
       }
     }
@@ -104,7 +107,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   ) => {
     try {
       setIsLoading(true);
-      logout();
+      // Clear user state without navigating
+      setUser(null);
+
       const user = await authApi.verifyCode({
         email: email,
         verification_code: code,

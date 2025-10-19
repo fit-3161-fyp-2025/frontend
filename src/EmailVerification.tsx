@@ -27,6 +27,7 @@ import { Button } from "./components/ui/button";
 import { useAuth } from "./contexts/AuthContext";
 import { useAppDispatch } from "./hooks/redux";
 import { fetchTeams } from "./features/teams/teamSlice";
+import { ProgressLoading } from "./components/ProgressLoading";
 
 const OTPFormSchema = z.object({
   verification_code: z.string().min(6, {
@@ -39,6 +40,7 @@ export function EmailVerification() {
   const { email, password } = state as { email: string; password: string };
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
   const { verifyEmailAndLogin } = useAuth();
   const dispatch = useAppDispatch();
 
@@ -51,6 +53,7 @@ export function EmailVerification() {
 
   const onSubmit = async (data: z.infer<typeof OTPFormSchema>) => {
     setError(null);
+    setIsVerifying(true);
 
     try {
       await verifyEmailAndLogin(email, password, data.verification_code);
@@ -61,8 +64,13 @@ export function EmailVerification() {
       const errMsg =
         error instanceof Error ? error.message : "Failed to verify, try again";
       setError(errMsg);
+      setIsVerifying(false);
     }
   };
+
+  if (isVerifying) {
+    return <ProgressLoading message="Verifying and logging you in..." />;
+  }
 
   return (
     <div className="min-h-screen bg-background flex justify-center items-center">
@@ -110,7 +118,9 @@ export function EmailVerification() {
                 )}
               />
 
-              <Button type="submit">Verify</Button>
+              <Button type="submit" disabled={isVerifying}>
+                Verify
+              </Button>
             </form>
           </Form>
         </CardContent>
