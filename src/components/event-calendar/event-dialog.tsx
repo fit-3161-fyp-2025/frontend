@@ -557,7 +557,7 @@ export function EventDialog({
 
               {loadingRSVPs ? (
                 <div className="mt-3 flex items-center justify-center py-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                     <RiRefreshLine size={16} className="animate-spin" />
                     <span>Loading RSVP data...</span>
                   </div>

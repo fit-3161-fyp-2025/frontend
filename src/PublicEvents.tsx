@@ -76,10 +76,10 @@ export function PublicEvents() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-lg text-muted-foreground">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 p-4 sm:p-8 flex items-center justify-center">
+        <div className="text-center px-4">
+          <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-base sm:text-lg text-muted-foreground">
             Loading amazing events...
           </p>
         </div>

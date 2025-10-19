@@ -17,12 +17,14 @@ export function Dashboard() {
   return (
     <div className="min-h-screen bg-background p-4 lg:p-8">
       <div className="max-w-full">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold text-left">
-            Dashboard{selectedTeam ? ` - ${selectedTeam.name}` : ''}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-left">
+            Dashboard{selectedTeam ? ` - ${selectedTeam.name}` : ""}
           </h1>
           {isLoading && (
-            <div className="text-sm text-muted-foreground">Loading...</div>
+            <div className="text-xs sm:text-sm text-muted-foreground">
+              Loading...
+            </div>
           )}
         </div>
 
@@ -50,15 +52,12 @@ export function Dashboard() {
             <div className="xl:col-span-2 space-y-8">
               {/* Navigation Cards */}
               <section>
-                <QuickNavigation/>
+                <QuickNavigation />
               </section>
 
               {/* Upcoming Events */}
               <section>
-                <UpcomingEvents
-                  events={data.events}
-                  isLoading={isLoading}
-                />
+                <UpcomingEvents events={data.events} isLoading={isLoading} />
               </section>
 
               {/* Recent Activity */}
@@ -73,10 +72,7 @@ export function Dashboard() {
             {/* Right Column - Team Summary & User Tasks */}
             <div className="xl:col-span-1 space-y-8">
               <section>
-                <UserTasks
-                  userTasks={data.userTasks}
-                  isLoading={isLoading}
-                />
+                <UserTasks userTasks={data.userTasks} isLoading={isLoading} />
               </section>
 
               <section>
