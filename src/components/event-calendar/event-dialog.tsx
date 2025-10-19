@@ -65,8 +65,12 @@ export function EventDialog({
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
-  const [startTime, setStartTime] = useState(`${DefaultStartHour}:00`);
-  const [endTime, setEndTime] = useState(`${DefaultEndHour}:00`);
+  const [startTime, setStartTime] = useState(
+    `${DefaultStartHour.toString().padStart(2, "0")}:00`
+  );
+  const [endTime, setEndTime] = useState(
+    `${DefaultEndHour.toString().padStart(2, "0")}:00`
+  );
   const [allDay, setAllDay] = useState(false);
   const [location, setLocation] = useState("");
   const [color, setColor] = useState<EventColor>("sky");
@@ -128,18 +132,19 @@ export function EventDialog({
       }
 
       setError(null); // Reset error when opening dialog
-    } else {
+    } else if (isOpen) {
+      // Only reset form when dialog is actually open
       resetForm();
     }
-  }, [event]);
+  }, [event, isOpen]);
 
   const resetForm = () => {
     setTitle("");
     setDescription("");
     setStartDate(new Date());
     setEndDate(new Date());
-    setStartTime(`${DefaultStartHour}:00`);
-    setEndTime(`${DefaultEndHour}:00`);
+    setStartTime(`${DefaultStartHour.toString().padStart(2, "0")}:00`);
+    setEndTime(`${DefaultEndHour.toString().padStart(2, "0")}:00`);
     setAllDay(false);
     setLocation("");
     setColor("sky");
@@ -157,7 +162,7 @@ export function EventDialog({
   // Memoize time options so they're only calculated once
   const timeOptions = useMemo(() => {
     const options = [];
-    for (let hour = StartHour; hour <= EndHour; hour++) {
+    for (let hour = StartHour; hour < EndHour; hour++) {
       for (let minute = 0; minute < 60; minute += 15) {
         const formattedHour = hour.toString().padStart(2, "0");
         const formattedMinute = minute.toString().padStart(2, "0");
