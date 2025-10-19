@@ -19,6 +19,7 @@ type SelectProjectProps = {
   selectedProjectId: string | null;
   handleProjectChange: (projectId: string) => void;
   proposedCounts?: Record<string, number>;
+  isExecutive?: boolean | null;
 };
 
 export default function SelectProject({
@@ -26,6 +27,7 @@ export default function SelectProject({
   selectedProjectId,
   handleProjectChange,
   proposedCounts,
+  isExecutive,
 }: SelectProjectProps) {
   return (
     <TooltipProvider>
@@ -51,7 +53,7 @@ export default function SelectProject({
                   <p>{project.description}</p>
                 </TooltipContent>
               </Tooltip>
-              {(proposedCounts?.[project.id] ?? 0) > 0 && (
+              {isExecutive && (proposedCounts?.[project.id] ?? 0) > 0 && (
                 <Badge variant="destructive" className="ml-2">
                   {proposedCounts?.[project.id] ?? 0}
                 </Badge>

@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserIcon, HashIcon, Trash2Icon, CornerDownRight } from "lucide-react";
+import { UserIcon, Trash2Icon, CornerDownRight } from "lucide-react";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useState, useEffect } from "react";
 import type { KanbanItemProps } from "./index";
