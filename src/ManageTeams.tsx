@@ -24,6 +24,12 @@ export function ManageTeams() {
   const handleLeaveGroup = async (teamId: string) => {
     try {
       await dispatch(removeTeam(teamId)).unwrap();
+
+      // Check if there are no teams left after leaving
+      const updatedTeams = teams.filter((team) => team.id !== teamId);
+      if (updatedTeams.length === 0) {
+        navigate("/teams/join");
+      }
     } catch (error) {
       console.log("Manage Teams Error:", error);
       const errMsg =

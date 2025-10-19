@@ -44,6 +44,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { CalendarEvent, EventColor, RSVP } from "./types";
 import { eventApi } from "@/api/events";
+import { toast } from "sonner";
 
 interface EventDialogProps {
   event: CalendarEvent | null;
@@ -64,8 +65,12 @@ export function EventDialog({
   const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
-  const [startTime, setStartTime] = useState(`${DefaultStartHour}:00`);
-  const [endTime, setEndTime] = useState(`${DefaultEndHour}:00`);
+  const [startTime, setStartTime] = useState(
+    `${DefaultStartHour.toString().padStart(2, "0")}:00`
+  );
+  const [endTime, setEndTime] = useState(
+    `${DefaultEndHour.toString().padStart(2, "0")}:00`
+  );
   const [allDay, setAllDay] = useState(false);
   const [location, setLocation] = useState("");
   const [color, setColor] = useState<EventColor>("sky");
@@ -75,6 +80,7 @@ export function EventDialog({
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
   const [loadingRSVPs, setLoadingRSVPs] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
 
   // Function to fetch current RSVP data
   const fetchRSVPData = async (eventId: string) => {
@@ -126,18 +132,19 @@ export function EventDialog({
       }
 
       setError(null); // Reset error when opening dialog
-    } else {
+    } else if (isOpen) {
+      // Only reset form when dialog is actually open
       resetForm();
     }
-  }, [event]);
+  }, [event, isOpen]);
 
   const resetForm = () => {
     setTitle("");
     setDescription("");
     setStartDate(new Date());
     setEndDate(new Date());
-    setStartTime(`${DefaultStartHour}:00`);
-    setEndTime(`${DefaultEndHour}:00`);
+    setStartTime(`${DefaultStartHour.toString().padStart(2, "0")}:00`);
+    setEndTime(`${DefaultEndHour.toString().padStart(2, "0")}:00`);
     setAllDay(false);
     setLocation("");
     setColor("sky");
@@ -155,7 +162,7 @@ export function EventDialog({
   // Memoize time options so they're only calculated once
   const timeOptions = useMemo(() => {
     const options = [];
-    for (let hour = StartHour; hour <= EndHour; hour++) {
+    for (let hour = StartHour; hour < EndHour; hour++) {
       for (let minute = 0; minute < 60; minute += 15) {
         const formattedHour = hour.toString().padStart(2, "0");
         const formattedMinute = minute.toString().padStart(2, "0");
@@ -191,15 +198,24 @@ export function EventDialog({
       return;
     }
 
-    const response = event && (await eventApi.inviteGuest(event.id, email));
+    setIsSendingInvite(true);
+    try {
+      const response = event && (await eventApi.inviteGuest(event.id, email));
 
-    response &&
-      setGuests([
-        ...guests,
-        { id: response.rsvp_id, email, status: "pending" },
-      ]);
-    setGuestEmail("");
-    setError(null);
+      response &&
+        setGuests([
+          ...guests,
+          { id: response.rsvp_id, email, status: "pending" },
+        ]);
+      setGuestEmail("");
+      setError(null);
+      toast.success(`Invite sent to ${email}`);
+    } catch (error) {
+      setError("Failed to send invite. Please try again.");
+      toast.error("Failed to send invite");
+    } finally {
+      setIsSendingInvite(false);
+    }
   };
 
   const handleGuestKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -525,12 +541,14 @@ export function EventDialog({
                   value={guestEmail}
                   onChange={(e) => setGuestEmail(e.target.value)}
                   onKeyDown={handleGuestKeyDown}
+                  disabled={isSendingInvite}
                 />
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
                   onClick={handleAddGuest}
+                  disabled={isSendingInvite}
                   aria-label="Add guest"
                 >
                   <RiMailLine size={16} aria-hidden="true" />
