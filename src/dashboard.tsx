@@ -2,7 +2,6 @@ import { QuickStats } from "./components/dashboard/quick-stats";
 import { QuickNavigation } from "./components/dashboard/quick-navigation";
 import { TeamSummary } from "./components/dashboard/team-summary";
 import { UpcomingEvents } from "./components/dashboard/upcoming-events";
-import { RecentActivity } from "./components/dashboard/recent-activity";
 import { UserTasks } from "./components/dashboard/user-tasks";
 import { useDashboardData } from "./hooks/useDashboardData";
 import { Alert, AlertDescription } from "./components/ui/alert";
@@ -19,7 +18,7 @@ export function Dashboard() {
       <div className="max-w-full">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 sm:mb-8 gap-2">
           <h1 className="text-2xl sm:text-3xl font-bold text-left">
-            Dashboard{selectedTeam ? ` - ${selectedTeam.name}` : ""}
+            {selectedTeam ? `${selectedTeam.name}` : ""}
           </h1>
           {isLoading && (
             <div className="text-xs sm:text-sm text-muted-foreground">
@@ -58,14 +57,6 @@ export function Dashboard() {
               {/* Upcoming Events */}
               <section>
                 <UpcomingEvents events={data.events} isLoading={isLoading} />
-              </section>
-
-              {/* Recent Activity */}
-              <section>
-                <RecentActivity
-                  activities={data.activities}
-                  isLoading={isLoading}
-                />
               </section>
             </div>
 
