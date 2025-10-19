@@ -45,11 +45,13 @@ export function ProgressLoading({
     stages.length > 0 && stages[currentStage] ? stages[currentStage] : message;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6">
-      <div className="w-full max-w-md space-y-4">
+    <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4 sm:space-y-6 px-4">
+      <div className="w-full max-w-md space-y-3 sm:space-y-4">
         <div className="text-center">
-          <h3 className="text-lg font-medium">{currentStageMessage}</h3>
-          <p className="text-sm text-muted-foreground mt-1">
+          <h3 className="text-base sm:text-lg font-medium">
+            {currentStageMessage}
+          </h3>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
             {stages.length > 0
               ? `Step ${currentStage + 1} of ${stages.length}`
               : "Please wait..."}

@@ -19,6 +19,7 @@ type SelectProjectProps = {
   selectedProjectId: string | null;
   handleProjectChange: (projectId: string) => void;
   proposedCounts?: Record<string, number>;
+  isExecutive?: boolean | null;
 };
 
 export default function SelectProject({
@@ -26,6 +27,7 @@ export default function SelectProject({
   selectedProjectId,
   handleProjectChange,
   proposedCounts,
+  isExecutive,
 }: SelectProjectProps) {
   return (
     <TooltipProvider>
@@ -33,7 +35,7 @@ export default function SelectProject({
         value={selectedProjectId ?? ""}
         onValueChange={handleProjectChange}
       >
-        <SelectTrigger className="w-[180px] hover:bg-accent">
+        <SelectTrigger className="w-[180px] sm:w-[240px] md:w-[280px] hover:bg-accent">
           <SelectValue placeholder="Select project" />
         </SelectTrigger>
         <SelectContent>
@@ -45,13 +47,13 @@ export default function SelectProject({
             >
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <span className="truncate max-w-[120px]">{project.name}</span>
+                  <span className="truncate max-w-[280px]">{project.name}</span>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{project.description}</p>
                 </TooltipContent>
               </Tooltip>
-              {(proposedCounts?.[project.id] ?? 0) > 0 && (
+              {isExecutive && (proposedCounts?.[project.id] ?? 0) > 0 && (
                 <Badge variant="destructive" className="ml-2">
                   {proposedCounts?.[project.id] ?? 0}
                 </Badge>

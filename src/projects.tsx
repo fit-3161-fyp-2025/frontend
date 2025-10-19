@@ -197,6 +197,7 @@ export default function Projects() {
                       selectedProjectId={selectedProjectId}
                       handleProjectChange={handleProjectChange}
                       proposedCounts={proposedCounts}
+                      isExecutive={isExecutive}
                     />
                     <Tooltip>
                       <TooltipTrigger asChild>

@@ -8,7 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UserIcon, HashIcon, Trash2Icon, CornerDownRight } from "lucide-react";
+import { UserIcon, Trash2Icon, CornerDownRight } from "lucide-react";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useState, useEffect } from "react";
 import type { KanbanItemProps } from "./index";
@@ -325,15 +325,6 @@ export function KanbanItemSheet({
             {/* Delete Button */}
             {onDelete && (
               <div className="border-t border-border p-4 mt-auto">
-                {/* ID Section */}
-                <div className="flex items-center gap-2 text-base font-medium text-foreground text-sm">
-                  <HashIcon className="h-4 w-4" />
-                  Task ID
-                  <div className="p-4 text-sm text-muted-foreground">
-                    {localItem!.id}
-                  </div>
-                </div>
-
                 <Button
                   variant="destructive"
                   size="lg"
