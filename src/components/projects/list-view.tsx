@@ -72,8 +72,8 @@ export function ListView({
                 <TableCell className="max-w-10 md:max-w-15 truncate">
                   <KanbanAvatar owner={item.owner} />
                 </TableCell>
-                <TableCell className="max-w-20 md:max-w-35 truncate hidden md:table-cell">
-                  <div className="text-xs md:text-sm w-20">
+                <TableCell className="max-w-20 md:max-w-35 hidden md:table-cell">
+                  <div className="text-xs md:text-sm truncate max-w-[200px] md:max-w-[300px]">
                     {item.description}
                   </div>
                 </TableCell>
