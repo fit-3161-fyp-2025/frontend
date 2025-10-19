@@ -248,7 +248,14 @@ export function TeamDetails() {
         try {
           await teamApi.leave({ team_id: teamId });
           toast.success("You have left the team");
-          navigate("/teams");
+
+          // Fetch updated teams to check if any remain
+          const updatedTeams = await teamApi.getUserTeams();
+          if (updatedTeams.length === 0) {
+            navigate("/teams/join");
+          } else {
+            navigate("/teams");
+          }
         } catch (e) {
           const errorInfo = parseErrorMessage(e);
           setActionMsg(`Failed to leave team: ${errorInfo.description}`);
@@ -269,8 +276,19 @@ export function TeamDetails() {
     }
   };
 
-  const handleDeleteTeam = () => {
-    navigate("/teams");
+  const handleDeleteTeam = async () => {
+    // Fetch updated teams to check if any remain
+    try {
+      const updatedTeams = await teamApi.getUserTeams();
+      if (updatedTeams.length === 0) {
+        navigate("/teams/join");
+      } else {
+        navigate("/teams");
+      }
+    } catch (error) {
+      // If fetch fails, just navigate to /teams
+      navigate("/teams");
+    }
   };
 
   const handleDeleteProject = async (projectId: string) => {
