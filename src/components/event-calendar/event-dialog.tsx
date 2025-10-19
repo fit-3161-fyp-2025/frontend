@@ -44,6 +44,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { CalendarEvent, EventColor, RSVP } from "./types";
 import { eventApi } from "@/api/events";
+import { toast } from "sonner";
 
 interface EventDialogProps {
   event: CalendarEvent | null;
@@ -75,6 +76,7 @@ export function EventDialog({
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
   const [loadingRSVPs, setLoadingRSVPs] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
 
   // Function to fetch current RSVP data
   const fetchRSVPData = async (eventId: string) => {
@@ -191,15 +193,24 @@ export function EventDialog({
       return;
     }
 
-    const response = event && (await eventApi.inviteGuest(event.id, email));
+    setIsSendingInvite(true);
+    try {
+      const response = event && (await eventApi.inviteGuest(event.id, email));
 
-    response &&
-      setGuests([
-        ...guests,
-        { id: response.rsvp_id, email, status: "pending" },
-      ]);
-    setGuestEmail("");
-    setError(null);
+      response &&
+        setGuests([
+          ...guests,
+          { id: response.rsvp_id, email, status: "pending" },
+        ]);
+      setGuestEmail("");
+      setError(null);
+      toast.success(`Invite sent to ${email}`);
+    } catch (error) {
+      setError("Failed to send invite. Please try again.");
+      toast.error("Failed to send invite");
+    } finally {
+      setIsSendingInvite(false);
+    }
   };
 
   const handleGuestKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -525,12 +536,14 @@ export function EventDialog({
                   value={guestEmail}
                   onChange={(e) => setGuestEmail(e.target.value)}
                   onKeyDown={handleGuestKeyDown}
+                  disabled={isSendingInvite}
                 />
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
                   onClick={handleAddGuest}
+                  disabled={isSendingInvite}
                   aria-label="Add guest"
                 >
                   <RiMailLine size={16} aria-hidden="true" />
