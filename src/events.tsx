@@ -70,6 +70,7 @@ export function Events() {
         end: event.end.toISOString(),
         colour: event.color ?? "rose",
         location: event.location ?? "No location",
+        public: true,
       });
 
       const formattedCreatedEvent: CalendarEvent = {
@@ -98,6 +99,7 @@ export function Events() {
       end: updatedEvent.end.toISOString(),
       colour: updatedEvent.color ?? "rose",
       location: updatedEvent.location ?? "No location",
+      public: true,
     };
 
     await eventApi.update(updatedEvent.id, formattedEvent);

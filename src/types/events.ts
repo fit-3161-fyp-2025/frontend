@@ -24,6 +24,7 @@ export interface CreateEventPayload {
   end: string;
   colour: EventColor;
   location: string;
+  public: boolean;
 }
 
 export interface CreateEventRes {
